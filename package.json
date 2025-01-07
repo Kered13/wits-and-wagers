@@ -1,0 +1,17 @@
+{
+  "name": "wits-and-wagers",
+  "version": "1.0.0",
+  "description": "Wits & Wagers multiplayer web game.",
+  "main": "app.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node app"
+  },
+  "dependencies": {
+    "express": "*",
+    "cors": "*",
+    "body-parser": "*"
+  },
+  "author": "Derek Brown",
+  "license": "MIT"
+}
