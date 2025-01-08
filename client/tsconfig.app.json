@@ -6,10 +6,11 @@
     "outDir": "./out-tsc/app",
     "types": []
   },
-  "files": [
-    "src/main.ts"
-  ],
   "include": [
-    "src/**/*.d.ts"
+    "**/*.ts",
+    "**/*.d.ts"
+  ],
+  "exclude": [
+    "**/*.spec.ts"
   ]
 }

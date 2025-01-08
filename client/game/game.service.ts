@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable, Subject } from 'rxjs';
 
-import { GameJson } from 'shared/game/game.interface';
+import { GameJson } from '../../shared/game/game.interface';
 
 
 @Injectable({providedIn: 'root'})

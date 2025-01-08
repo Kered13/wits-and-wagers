@@ -4,7 +4,7 @@ import { MatCardModule } from '@angular/material/card';
 import { Subscription } from 'rxjs';
 
 import { GameService } from './game.service';
-import { GameJson } from 'shared/game/game.interface';
+import { GameJson } from '../../shared/game/game.interface';
 
 
 @Component({
