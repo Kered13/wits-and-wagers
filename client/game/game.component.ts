@@ -20,7 +20,7 @@ export class GameComponent implements OnInit, OnDestroy{
 	constructor(private gameService: GameService) {}
 	
 	ngOnInit(): void {
-		this.counter = this.gameService.getGameState().counter;
+		this.gameService.getGameState();
 		this.counterSub = this.gameService.getGameUpdateListener()
 			.subscribe((game: GameJson) => {
 				this.counter = game.counter;
