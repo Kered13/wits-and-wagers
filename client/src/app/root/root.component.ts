@@ -1,7 +1,8 @@
 import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 
-import { GameComponent } from '../game/game.component';
+import { GameComponent } from 'client/src/app/game/game.component';
+
 
 @Component({
 	selector: 'app-root',
