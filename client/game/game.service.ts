@@ -1,10 +1,10 @@
-import { Injectable } from '@angular/core';
-import { Observable, Subject } from 'rxjs';
+import { Injectable } from "@angular/core";
+import { Observable, Subject } from "rxjs";
 
-import { GameJson } from '../../shared/game/game.interface';
+import { GameJson } from "../../shared/game/game.interface.js";
 
 
-@Injectable({providedIn: 'root'})
+@Injectable({providedIn: "root"})
 export class GameService {
   private game: GameJson = {counter: 0};
   private counterUpdated: Subject<GameJson> = new Subject<GameJson>();

@@ -1,15 +1,15 @@
-import { Component } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { Component } from "@angular/core";
+import { RouterOutlet } from "@angular/router";
 
-import { GameComponent } from '../game/game.component';
+import { GameComponent } from "../game/game.component.js";
 
 
 @Component({
-	selector: 'app-root',
+	selector: "app-root",
 	imports: [RouterOutlet, GameComponent],
-	templateUrl: './root.component.html',
-	styleUrl: './root.component.css'
+	templateUrl: "./root.component.html",
+	styleUrl: "./root.component.css"
 })
 export class AppComponent {
-	title: string = 'client';
+	title: string = "client";
 }

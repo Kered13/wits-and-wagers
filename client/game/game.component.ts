@@ -1,17 +1,17 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
-import { MatButton } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
-import { Subscription } from 'rxjs';
+import { Component, OnDestroy, OnInit } from "@angular/core";
+import { MatButton } from "@angular/material/button";
+import { MatCardModule } from "@angular/material/card";
+import { Subscription } from "rxjs";
 
-import { GameService } from './game.service';
-import { GameJson } from '../../shared/game/game.interface';
+import { GameService } from "./game.service.js";
+import { GameJson } from "../../shared/game/game.interface.js";
 
 
 @Component({
-	selector: 'app-game',
+	selector: "app-game",
 	imports: [MatButton, MatCardModule],
-	templateUrl: './game.component.html',
-	styleUrl: './game.component.css'
+	templateUrl: "./game.component.html",
+	styleUrl: "./game.component.css"
 })
 export class GameComponent implements OnInit, OnDestroy{
 	counter: number = 0;
