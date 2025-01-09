@@ -8,7 +8,7 @@ import { HostComponent } from "../host/host.component.js";
 
 @Component({
 	selector: "app-root",
-	imports: [RouterOutlet, RouterOutlet, RouterLink, RouterLinkActive, HomeComponent, HostComponent, GameComponent],
+	imports: [RouterOutlet, RouterOutlet, RouterLink, RouterLinkActive],
 	templateUrl: "./root.component.html",
 	styleUrl: "./root.component.css"
 })

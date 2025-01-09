@@ -3,8 +3,8 @@ import { MatButton } from "@angular/material/button";
 import { MatCardModule } from "@angular/material/card";
 import { Subscription } from "rxjs";
 
-import { GameService } from "./game.service.js";
-import { GameJson } from "../../shared/game/game.interface.js";
+import { GameInstanceService, GameService } from "./game.service.js";
+import { GameState } from "../../shared/game/game.interface.js";
 
 
 @Component({
@@ -16,13 +16,16 @@ import { GameJson } from "../../shared/game/game.interface.js";
 export class GameComponent implements OnInit, OnDestroy{
 	counter: number = 0;
 	private counterSub: Subscription | undefined;
+	private gameService: GameInstanceService;
 	
-	constructor(private gameService: GameService) {}
+	constructor(gameService: GameService) {
+		this.gameService = gameService.getGameInstanceService("game1");
+	}
 	
 	ngOnInit(): void {
 		this.gameService.getGameState();
 		this.counterSub = this.gameService.getGameUpdateListener()
-			.subscribe((game: GameJson) => {
+			.subscribe((game: GameState) => {
 				this.counter = game.counter;
 			});
 	}
