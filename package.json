@@ -8,7 +8,9 @@
     "build": "npx tsc --project server/tsconfig.json",
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "npx tsx server/app.ts",
-    "watch": "npx tsx watch server/app.ts"
+    "watch": "npm run watch-server",
+    "watch-server": "npx tsx watch server/app.ts",
+    "watch-client": "cd client && ng serve"
   },
   "dependencies": {
     "@angular/animations": "^19.0.0",
