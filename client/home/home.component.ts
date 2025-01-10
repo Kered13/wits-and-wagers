@@ -1,4 +1,4 @@
-import { Component } from "@angular/core";
+import { ChangeDetectionStrategy, Component } from "@angular/core";
 import { MatButton } from "@angular/material/button";
 import { MatCardModule } from "@angular/material/card";
 import { Router } from "@angular/router";
@@ -8,7 +8,8 @@ import { Router } from "@angular/router";
 	selector: "app-home",
 	imports: [MatButton, MatCardModule],
 	templateUrl: "./home.component.html",
-	styleUrl: "./home.component.css"
+	styleUrl: "./home.component.css",
+	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class HomeComponent {
 	constructor(private router: Router) {}

@@ -1,4 +1,4 @@
-import { Component, computed, OnDestroy, OnInit, Signal } from "@angular/core";
+import { ChangeDetectionStrategy, Component, computed, OnDestroy, OnInit, Signal } from "@angular/core";
 import { MatButton } from "@angular/material/button";
 import { MatCardModule } from "@angular/material/card";
 import { Subscription } from "rxjs";
@@ -11,7 +11,8 @@ import { GameState } from "../../shared/game/game.interface.js";
 	selector: "app-game",
 	imports: [MatButton, MatCardModule],
 	templateUrl: "./game.component.html",
-	styleUrl: "./game.component.css"
+	styleUrl: "./game.component.css",
+	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class GameComponent {
 	counter: Signal<number>;
