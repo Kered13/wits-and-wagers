@@ -2,9 +2,10 @@ import { HttpClient, HttpHeaders } from "@angular/common/http";
 import { Injectable, signal, Signal, WritableSignal } from "@angular/core";
 import { Observable, map, filter } from "rxjs";
 import { webSocket, WebSocketSubject } from 'rxjs/webSocket';
+import { is } from "valibot";
 
-import { GameId, GameState } from "../../shared/game/game.interface.js";
-import { GameEnd, GameNotification } from "../../shared/game/update.interface.js";
+import { type GameId, type GameState } from "../../shared/game/game.interface.js";
+import { type GameEnd, GameNotificationSchema, type GameNotification } from "../../shared/game/update.interface.js";
 
 
 @Injectable({providedIn: "root"})
@@ -40,9 +41,7 @@ export class GameInstanceService {
 		wsSubject.next(this.id);
 		
 		const notifications: Observable<GameNotification> =
-			wsSubject.pipe(
-				filter(object => "type" in object),
-				map(object => object as GameNotification));
+			wsSubject.pipe(filter(object => is(GameNotificationSchema, object)));
 		
 		this.gameUpdates = signal({ counter: 0 });
 		notifications
