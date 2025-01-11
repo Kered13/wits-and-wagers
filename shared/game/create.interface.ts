@@ -1,4 +1,4 @@
-import { GameId } from "./game.interface.js";
+import { type GameId } from "./game.interface.js";
 
 
 export type CreateGameRequest = {

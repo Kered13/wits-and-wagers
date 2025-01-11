@@ -4,7 +4,8 @@ import expressWs from "express-ws";
 import type { WebSocket } from "ws";
 
 import { Game } from "./game/game.js";
-import type { GameUpdate } from "../shared/game/update.interface.js";
+import { type GameUpdate } from "../shared/game/update.interface.js";
+import { type GameId } from "../shared/game/game.interface.js";
 
 
 const expressApp: express.Application = express();
@@ -18,47 +19,107 @@ app.get("/", (req, res) => {
 	res.send("Hello, World!");
 });
 
-const gameId = "game1";
-const game = new Game();
-const clients: Set<WebSocket> = new Set();
 
-function notifyClients(): void {
-	const gameUpdate: GameUpdate = {
-		type: "update",
-		id: gameId,
-		state: game.getJson()
-	};
-	const json = JSON.stringify(gameUpdate);
+class GameServer {
+	public readonly game: Game;
 	
-	clients.forEach(clientWs => {
-		clientWs.send(json);
-	});
-}
+	private readonly clients: Set<WebSocket>;
+
+	constructor(public readonly id: GameId) {
+		this.game = new Game();
+		this.clients = new Set();
+	}
+	
+	public addClient(clientWs: WebSocket): void {
+		this.clients.add(clientWs);
+	}
+	
+	public removeClient(clientWs: WebSocket): void {
+		this.clients.delete(clientWs);
+	}
+	
+	public notifyClients(): void {
+		const gameUpdate: GameUpdate = {
+			type: "update",
+			id: this.id,
+			state: this.game.getJson()
+		};
+		const json = JSON.stringify(gameUpdate);
+		
+		this.clients.forEach(clientWs => {
+			clientWs.send(json);
+		});
+	}
+};
+
+const games: Map<GameId, GameServer> = new Map();
+const gameServer = new GameServer("game1");
+games.set(gameServer.id, gameServer);
 
 app.post("/api/addone", (req: Request, res: Response) => {
-	console.log("GET /api/addone " + JSON.stringify(req.body));
-	game.addOne();
+	console.log("GET /api/reset " + JSON.stringify(req.body));
+	const gameId: GameId = req.body;
+	
+	const gameServer = games.get(gameId);
+	if (!gameServer) {
+		res.status(400).end();
+		return;
+	}
+	
+	gameServer.game.addOne();
 	res.end();
-	notifyClients();
+	gameServer.notifyClients();
 });
 
 app.post("/api/reset", (req: Request, res: Response) => {
 	console.log("GET /api/reset " + JSON.stringify(req.body));
-	game.resetCounter();
+	
+	if (!(typeof(req.body) === "string")) {
+		res.status(400).end();
+		return;
+	}
+	
+	const gameServer = games.get(req.body);
+	if (!gameServer) {
+		res.status(400).end();
+		return;
+	}
+	
+	gameServer.game.resetCounter();
 	res.end();
-	notifyClients();
+	gameServer.notifyClients();
 });
 
 app.get("/api/state", (req: Request, res: Response) => {
-	console.log("GET /api/state " + req.params.id);
-	res.json(game.getJson());
+	console.log("GET /api/state " + JSON.stringify(req.query));
+	const gameId = req.query.id as string | undefined;
+	if (!gameId) {
+		res.status(404).end();
+		return;
+	}
+	
+	const gameServer = games.get(gameId);
+	if (!gameServer) {
+		res.status(400).end();
+		return;
+	}
+	
+	res.json(gameServer.game.getJson());
 });
 
 app.ws("/api/state", (ws: WebSocket) => {
-	ws.on('close', () => {
-		clients.delete(ws);
+	ws.on("message", (msg: string) => {
+		const gameId: string = JSON.parse(msg);
+		console.log("WS /api/state " + gameId);
+
+		const game = games.get(gameId);
+		if (game) {
+			ws.on("close", () => {
+				game.removeClient(ws);
+			});
+			game.addClient(ws);
+		}
 	});
-	clients.add(ws);
 });
 
 const port = 3000;

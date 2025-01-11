@@ -1,7 +1,7 @@
 import { HttpClient, HttpHeaders } from "@angular/common/http";
 import { Injectable, signal, Signal, WritableSignal } from "@angular/core";
 import { Observable, map, filter } from "rxjs";
-import { webSocket } from 'rxjs/webSocket';
+import { webSocket, WebSocketSubject } from 'rxjs/webSocket';
 
 import { GameId, GameState } from "../../shared/game/game.interface.js";
 import { GameEnd, GameNotification } from "../../shared/game/update.interface.js";
@@ -36,15 +36,21 @@ export class GameInstanceService {
 	private gameEnd: Observable<GameEnd>;
 	
 	constructor(private http: HttpClient, private id: GameId) {
-		const wsSubject = webSocket<GameNotification>("ws://localhost:3000/api/state");
+		const wsSubject: WebSocketSubject<Object> = webSocket("ws://localhost:3000/api/state");
+		wsSubject.next(this.id);
+		
+		const notifications: Observable<GameNotification> =
+			wsSubject.pipe(
+				filter(object => "type" in object),
+				map(object => object as GameNotification));
 		
 		this.gameUpdates = signal({ counter: 0 });
-		wsSubject
+		notifications
 			.pipe(filter(notification => notification.type === "update"),
 			      map(update => update.state))
 			.subscribe(state => this.gameUpdates.set(state));
 		
-		this.gameEnd = wsSubject.pipe(filter(notification => notification.type === "end"));		
+		this.gameEnd = notifications.pipe(filter(notification => notification.type === "end"));
 		this.gameState = this.gameUpdates;
 		
 		// Immediately fetch the current game state.

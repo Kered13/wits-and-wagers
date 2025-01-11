@@ -1,4 +1,4 @@
-import { GameId, GameState } from "./game.interface";
+import { type GameId, type GameState } from "./game.interface";
 
 
 export type GameNotification = GameUpdate | GameEnd;
