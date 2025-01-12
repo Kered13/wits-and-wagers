@@ -1,10 +1,12 @@
-import { ChangeDetectionStrategy, Component, computed, OnDestroy, OnInit, Signal } from "@angular/core";
+import { ChangeDetectionStrategy, Component, computed, effect, Signal } from "@angular/core";
 import { MatButton } from "@angular/material/button";
 import { MatCardModule } from "@angular/material/card";
-import { Subscription } from "rxjs";
+import { Title } from "@angular/platform-browser";
+import { ActivatedRoute, ParamMap } from "@angular/router";
+import { toSignal } from "@angular/core/rxjs-interop";
 
 import { GameInstanceService, GameService } from "./game.service.js";
-import { GameState } from "../../shared/game/game.interface.js";
+import { type GameId } from "../../shared/game/game.interface.js";
 
 
 @Component({
@@ -16,18 +18,23 @@ import { GameState } from "../../shared/game/game.interface.js";
 })
 export class GameComponent {
 	counter: Signal<number>;
-	private gameService: GameInstanceService;
 	
-	constructor(gameService: GameService) {
-		this.gameService = gameService.getGameInstanceService("game1");
-		this.counter = computed(() => this.gameService.gameState().counter);
+	private gameService: Signal<GameInstanceService>;
+	
+	constructor(gameService: GameService, titleService: Title, route: ActivatedRoute) {
+		const params: Signal<ParamMap> = toSignal(route.paramMap, { requireSync: true });
+		
+		this.gameService = computed(() => gameService.getGameInstanceService(params().get("gameId")!));
+		this.counter = computed(() => this.gameService().gameState().counter);
+		
+		effect(() => titleService.setTitle(route.routeConfig!.title! + " - " + this.gameService().gameState().title));
 	}
 	
 	onAddOne(): void {
-		this.gameService.addOne();
+		this.gameService().addOne();
 	}
 	
 	onReset(): void {
-		this.gameService.resetCounter();
+		this.gameService().resetCounter();
 	}
 }

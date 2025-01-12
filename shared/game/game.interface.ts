@@ -8,6 +8,7 @@ export type GameId = InferOutput<typeof GameIdSchema>;
 
 // Represents the state of the game.
 export const GameStateSchema = object({
+	title: string(),
 	counter: number()
 });
 export type GameState = InferOutput<typeof GameStateSchema>;

@@ -1,9 +1,11 @@
-import { object, type InferOutput } from "valibot";
+import { object, string, type InferOutput } from "valibot";
 
 import { GameIdSchema } from "./game.interface.js";
 
 
-export const CreateGameRequestSchema = object({});
+export const CreateGameRequestSchema = object({
+	title: string()
+});
 export type CreateGameRequest = InferOutput<typeof CreateGameRequestSchema>;
 
 

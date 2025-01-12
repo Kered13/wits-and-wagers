@@ -6,7 +6,7 @@ import { HostComponent } from "../host/host.component";
 
 
 export const routes: Routes = [
-	{ path: "", component: HomeComponent },
-	{ path: "host", component: HostComponent },
-	{ path: "game", component: GameComponent }
+	{ title: "Wits & Wagers", path: "", component: HomeComponent },
+	{ title: "Wits & Wagers - Host Game", path: "host", component: HostComponent },
+	{ title: "Wits & Wagers", path: "game/:gameId", component: GameComponent }
 ];

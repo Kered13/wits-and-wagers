@@ -1,8 +1,16 @@
-<mat-card style="max-width: 400px;">
-	<mat-card-header>
-		<h1>Host Game</h1>
-	</mat-card-header>
-	<mat-card-actions>
-		<button mat-raised-button (click)="createGame()">Host New Game</button>
-	</mat-card-actions>
-</mat-card>
+<form [formGroup]="options" (ngSubmit)="createGame()">
+	<mat-card style="max-width: 400px;">
+		<mat-card-header>
+			<h1>Host Game</h1>
+		</mat-card-header>
+		<mat-card-content>
+			<mat-form-field>
+				<mat-label>Title:</mat-label>
+				<input matInput placeholder="Game Name" type="text" formControlName="title" />
+			</mat-form-field>
+		</mat-card-content>
+		<mat-card-actions>
+			<button mat-raised-button type="submit" [disabled]="!options.valid">Host New Game</button>
+		</mat-card-actions>
+	</mat-card>
+</form>

@@ -1,8 +1,10 @@
-import type { GameJson } from "../../shared/game/game.interface.js";
+import { type GameState } from "../../shared/game/game.interface.js";
 
 
 export class Game {
 	private counter: number = 0;
+	
+	constructor(private readonly title: string) {}
 	
 	addOne(): void {
 		this.counter++;
@@ -12,7 +14,10 @@ export class Game {
 		this.counter = 0;
 	}
 	
-	getJson(): GameJson {
-		return {counter: this.counter};
+	getJson(): GameState {
+		return {
+			title: this.title,
+			counter: this.counter
+		};
 	}
 }

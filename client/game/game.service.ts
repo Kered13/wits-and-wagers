@@ -1,9 +1,10 @@
-import { HttpClient, HttpHeaders } from "@angular/common/http";
 import { Injectable, signal, Signal, WritableSignal } from "@angular/core";
 import { Observable, map, filter } from "rxjs";
 import { webSocket, WebSocketSubject } from 'rxjs/webSocket';
-import { is } from "valibot";
+import { assert, is } from "valibot";
 
+import { HttpService } from "../utils/http.service.js";
+import { CreateGameRequestSchema, type CreateGameRequest, type CreateGameResponse } from "../../shared/game/create.interface.js";
 import { type GameId, type GameState } from "../../shared/game/game.interface.js";
 import { type GameEnd, GameNotificationSchema, type GameNotification } from "../../shared/game/update.interface.js";
 
@@ -12,20 +13,24 @@ import { type GameEnd, GameNotificationSchema, type GameNotification } from "../
 export class GameService {
 	private gameInstances: Map<GameId, GameInstanceService> = new Map<GameId, GameInstanceService>();
 	
-	constructor(private http: HttpClient) {}
+	constructor(private http: HttpService) {}
 	
 	private createGameInstanceService(id: GameId): GameInstanceService {
 		return new GameInstanceService(this.http, id);
 	}
 	
 	getGameInstanceService(id: GameId): GameInstanceService {
-		if (this.gameInstances.has(id)) {
-			return this.gameInstances.get(id)!;
+		let gameInstanceService = this.gameInstances.get(id);
+		if (!gameInstanceService) {
+			gameInstanceService = this.createGameInstanceService(id);
+			this.gameInstances.set(id, gameInstanceService);
 		}
-		
-		const gameInstanceService = this.createGameInstanceService(id);
-		this.gameInstances.set(id, gameInstanceService);
 		return gameInstanceService;
+	}
+	
+	createGame(request: CreateGameRequest): Observable<CreateGameResponse> {
+		assert(CreateGameRequestSchema, request);
+		return this.http.postJson<CreateGameResponse>("http://localhost:3000/api/create", request);
 	}
 }
 
@@ -36,14 +41,14 @@ export class GameInstanceService {
 	private gameUpdates: WritableSignal<GameState>;
 	private gameEnd: Observable<GameEnd>;
 	
-	constructor(private http: HttpClient, private id: GameId) {
+	constructor(private http: HttpService, private id: GameId) {
 		const wsSubject: WebSocketSubject<Object> = webSocket("ws://localhost:3000/api/state");
 		wsSubject.next(this.id);
 		
 		const notifications: Observable<GameNotification> =
 			wsSubject.pipe(filter(object => is(GameNotificationSchema, object)));
 		
-		this.gameUpdates = signal({ counter: 0 });
+		this.gameUpdates = signal({ title: "", counter: 0 });
 		notifications
 			.pipe(filter(notification => notification.type === "update"),
 			      map(update => update.state))
@@ -53,7 +58,7 @@ export class GameInstanceService {
 		this.gameState = this.gameUpdates;
 		
 		// Immediately fetch the current game state.
-		this.http.get<GameState>("http://localhost:3000/api/state", { params: { id: this.id }}).subscribe(game => {
+		this.http.get<GameState>("http://localhost:3000/api/state", { id: this.id }).subscribe(game => {
 			this.gameUpdates.set(game);
 		});
 	}
@@ -63,12 +68,10 @@ export class GameInstanceService {
 	}
 	
 	addOne(): void {
-		const headers: HttpHeaders = new HttpHeaders().set("Content-Type", "application/json");
-		this.http.post("http://localhost:3000/api/addone", JSON.stringify(this.id), { headers: headers }).subscribe();
+		this.http.postJson("http://localhost:3000/api/addone", this.id).subscribe();
 	}
 	
 	resetCounter(): void {
-		const headers: HttpHeaders = new HttpHeaders().set("Content-Type", "application/json");
-		this.http.post("http://localhost:3000/api/reset", JSON.stringify(this.id), { headers: headers }).subscribe();
+		this.http.postJson("http://localhost:3000/api/reset", this.id).subscribe();
 	}
 };
