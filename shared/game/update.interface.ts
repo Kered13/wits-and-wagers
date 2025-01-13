@@ -1,6 +1,6 @@
 import { literal, object, variant, type InferOutput } from "valibot";
 
-import { GameIdSchema, GameStateSchema } from "./game.interface";
+import { GameIdSchema, GameStateSchema } from "./game.interface.js";
 
 
 // Represents an update to the game state.

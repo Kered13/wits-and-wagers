@@ -6,15 +6,15 @@ export class Game {
 	
 	constructor(private readonly title: string) {}
 	
-	addOne(): void {
+	public addOne(): void {
 		this.counter++;
 	}
 	
-	resetCounter(): void {
+	public resetCounter(): void {
 		this.counter = 0;
 	}
 	
-	getJson(): GameState {
+	public getJson(): GameState {
 		return {
 			title: this.title,
 			counter: this.counter

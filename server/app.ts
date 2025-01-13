@@ -1,29 +1,37 @@
 import cors from "cors";
 import express, { type Request, type Response } from "express";
 import expressWs from "express-ws";
+import { is } from "valibot";
 import type { WebSocket } from "ws";
 
 import { Game } from "./game/game.js";
-import { type CreateGameRequest, type CreateGameResponse } from "../shared/game/create.interface.js";
-import { type GameId } from "../shared/game/game.interface.js";
-import { type GameUpdate } from "../shared/game/update.interface.js";
+import { CreateGameRequestSchema, type CreateGameResponse } from "../shared/game/create.interface.js";
+import { GameIdSchema, type GameId, type GameState } from "../shared/game/game.interface.js";
+import { HttpError } from "./utils/httperror.js"
 
 
-const expressApp: express.Application = express();
-const app: expressWs.Application = expressWs(expressApp).app;
+const app: expressWs.Application = expressWs(express()).app;
 
 app.use(cors());
 app.use(express.json({ strict: false }));
 app.use(express.static("public"));
 
 
-class GameServer {
-	public readonly game: Game;
-	
+interface Obj<State> {
+	getJson(): State;
+};
+
+interface ObjUpdate<State, Id> {
+	type: "update";
+	id: Id;
+	state: State;
+}
+
+
+class Notifier<State, T extends Obj<State>, Id> {
 	private readonly clients: Set<WebSocket>;
 
-	constructor(public readonly id: GameId, public readonly title: string) {
-		this.game = new Game(title);
+	constructor(public readonly id: Id, public readonly obj: T) {
 		this.clients = new Set();
 	}
 	
@@ -36,12 +44,12 @@ class GameServer {
 	}
 	
 	public notifyClients(): void {
-		const gameUpdate: GameUpdate = {
+		const update: ObjUpdate<State, Id> = {
 			type: "update",
 			id: this.id,
-			state: this.game.getJson()
+			state: this.obj.getJson()
 		};
-		const json = JSON.stringify(gameUpdate);
+		const json = JSON.stringify(update);
 		
 		this.clients.forEach(clientWs => {
 			clientWs.send(json);
@@ -49,70 +57,75 @@ class GameServer {
 	}
 };
 
-const games: Map<GameId, GameServer> = new Map();
-const gameServer = new GameServer("game0", "Test Game");
-games.set(gameServer.id, gameServer);
+class GameNotifier extends Notifier<GameState, Game, GameId> {}
+
+
+const games: Map<GameId, GameNotifier> = new Map();
+const gameNotifier = new GameNotifier("game0", new Game("Test Game"));
+games.set(gameNotifier.id, gameNotifier);
+
+
+app.post("/api/create", (req: Request, res: Response) => {
+	console.log("POST /api/create " + JSON.stringify(req.body));
+	if (!is(CreateGameRequestSchema, req.body)) {
+		throw new HttpError(400, `Invalid CreateGameRequest: ${req.body}`);
+	}
+	
+	const gameNotifier = new GameNotifier("game" + games.size, new Game(req.body.title));
+	games.set(gameNotifier.id, gameNotifier);
+	
+	const response: CreateGameResponse = { id: gameNotifier.id };
+	res.send(response);
+});
 
 app.post("/api/addone", (req: Request, res: Response) => {
 	console.log("GET /api/addone " + JSON.stringify(req.body));
-	const gameId: GameId = req.body;
 	
-	const gameServer = games.get(gameId);
-	if (!gameServer) {
-		res.status(400).end();
-		return;
+	if (!is(GameIdSchema, req.body)) {
+		throw new HttpError(400, `req.body} is not a valid GameId.`);
 	}
 	
-	gameServer.game.addOne();
+	const gameNotifier = games.get(req.body);
+	if (!gameNotifier) {
+		throw new HttpError(404, `GameId ${req.body} not found.`);
+	}
+	
+	gameNotifier.obj.addOne();
 	res.end();
-	gameServer.notifyClients();
+	gameNotifier.notifyClients();
 });
 
 app.post("/api/reset", (req: Request, res: Response) => {
 	console.log("GET /api/reset " + JSON.stringify(req.body));
-	
-	if (!(typeof(req.body) === "string")) {
-		res.status(400).end();
-		return;
+	if (!is(GameIdSchema, req.body)) {
+		throw new HttpError(400, `req.body} is not a valid GameId.`);
 	}
 	
-	const gameServer = games.get(req.body);
-	if (!gameServer) {
-		res.status(400).end();
-		return;
+	const gameNotifier = games.get(req.body);
+	if (!gameNotifier) {
+		throw new HttpError(404, `GameId ${req.body} not found.`);
 	}
 	
-	gameServer.game.resetCounter();
+	gameNotifier.obj.resetCounter();
 	res.end();
-	gameServer.notifyClients();
-});
-
-app.post("/api/create", (req: Request, res: Response) => {
-	console.log("POST /api/create " + JSON.stringify(req.body));
-	const request: CreateGameRequest = req.body;
-	
-	const gameServer = new GameServer("game" + games.size, request.title);
-	games.set(gameServer.id, gameServer);
-	
-	const response: CreateGameResponse = { id: gameServer.id };
-	res.send(response);
+	gameNotifier.notifyClients();
 });
 
 app.get("/api/state", (req: Request, res: Response) => {
 	console.log("GET /api/state " + JSON.stringify(req.query));
-	const gameId = req.query.id as string | undefined;
-	if (!gameId) {
-		res.status(404).end();
-		return;
+	if (!req.query.id) {
+		throw new HttpError(400, `id= must be provided.`);
+	}
+	if (!is(GameIdSchema, req.query.id)) {
+		throw new HttpError(400, `${req.query.id} is not a valid GameId.`);
 	}
 	
-	const gameServer = games.get(gameId);
-	if (!gameServer) {
-		res.status(400).end();
-		return;
+	const gameNotifier = games.get(req.query.id);
+	if (!gameNotifier) {
+		throw new HttpError(404, `GameId ${req.body.id} not found.`);
 	}
 	
-	res.json(gameServer.game.getJson());
+	res.json(gameNotifier.obj.getJson());
 });
 
 app.ws("/api/state", (ws: WebSocket) => {
