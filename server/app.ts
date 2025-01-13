@@ -5,8 +5,12 @@ import { is } from "valibot";
 import type { WebSocket } from "ws";
 
 import { Game } from "./game/game.js";
+import { Lobby } from "./lobby/lobby.js";
 import { CreateGameRequestSchema, type CreateGameResponse } from "../shared/game/create.interface.js";
 import { GameIdSchema, type GameId, type GameState } from "../shared/game/game.interface.js";
+import { LobbyIdSchema, type LobbyId, type LobbyState } from "../shared/lobby/lobby.interface.js";
+import { AddPlayerRequestSchema, } from "../shared/lobby/addplayer.interface.js";
+import { CreateLobbyRequestSchema, type CreateLobbyResponse } from "../shared/lobby/create.interface.js";
 import { HttpError } from "./utils/httperror.js"
 
 
@@ -58,15 +62,71 @@ class Notifier<State, T extends Obj<State>, Id> {
 };
 
 class GameNotifier extends Notifier<GameState, Game, GameId> {}
+class LobbyNotifier extends Notifier<LobbyState, Lobby, LobbyId> {}
 
 
 const games: Map<GameId, GameNotifier> = new Map();
 const gameNotifier = new GameNotifier("game0", new Game("Test Game"));
 games.set(gameNotifier.id, gameNotifier);
 
+const lobbies: Map<LobbyId, LobbyNotifier> = new Map();
 
-app.post("/api/create", (req: Request, res: Response) => {
-	console.log("POST /api/create " + JSON.stringify(req.body));
+
+app.post("/api/lobby/create", (req: Request, res: Response) => {
+	console.log("POST /api/lobby/create " + JSON.stringify(req.body));
+	
+	if (!is(CreateLobbyRequestSchema, req.body)) {
+		throw new HttpError(400, `Invalid CreateLobbyRequest: ${req.body}`);
+	}
+	
+	const lobbyNotifier = new LobbyNotifier("game" + games.size, new Lobby(req.body.title, "Leeroy"));
+	lobbies.set(lobbyNotifier.id, lobbyNotifier);
+	
+	const response: CreateLobbyResponse = { id: lobbyNotifier.id };
+	res.send(response);
+});
+
+app.post("/api/lobby/addplayer", (req: Request, res: Response) => {
+	console.log("GET /api/lobby/addplayer " + JSON.stringify(req.body));
+	
+	if (!is(AddPlayerRequestSchema, req.body)) {
+		throw new HttpError(400, `Invalid AddPlayerRequest: ${req.body}`);
+	}
+	
+	const lobbyNotifier = lobbies.get(req.body.lobbyId);
+	if (!lobbyNotifier) {
+		throw new HttpError(404, `LobbyId ${req.body.lobbyId} not found.`);
+	}
+	
+	lobbyNotifier.obj.addPlayer(req.body.name);
+	res.end();
+	lobbyNotifier.notifyClients();
+});
+
+app.ws("/api/lobby/state", (ws: WebSocket) => {
+	ws.on("message", (msg: string) => {
+		console.log("WS /api/lobby/state " + msg);
+		if (!is(LobbyIdSchema, msg)) {
+			ws.close(400, `${msg} is not a valid LobbyId.`);
+			return;
+		}
+		
+		const lobbyId: LobbyId = JSON.parse(msg);
+		const lobby = lobbies.get(lobbyId);
+		if (!lobby) {
+			ws.close(404, `LobbyId ${lobbyId} not found.`);
+			return;
+		}
+		ws.on("close", () => {
+			
+			lobby.removeClient(ws);
+		});
+		lobby.addClient(ws);
+	});
+});
+
+app.post("/api/game/create", (req: Request, res: Response) => {
+	console.log("POST /api/game/create " + JSON.stringify(req.body));
 	if (!is(CreateGameRequestSchema, req.body)) {
 		throw new HttpError(400, `Invalid CreateGameRequest: ${req.body}`);
 	}
@@ -78,8 +138,8 @@ app.post("/api/create", (req: Request, res: Response) => {
 	res.send(response);
 });
 
-app.post("/api/addone", (req: Request, res: Response) => {
-	console.log("GET /api/addone " + JSON.stringify(req.body));
+app.post("/api/game/addone", (req: Request, res: Response) => {
+	console.log("GET /api/game/addone " + JSON.stringify(req.body));
 	
 	if (!is(GameIdSchema, req.body)) {
 		throw new HttpError(400, `req.body} is not a valid GameId.`);
@@ -95,8 +155,8 @@ app.post("/api/addone", (req: Request, res: Response) => {
 	gameNotifier.notifyClients();
 });
 
-app.post("/api/reset", (req: Request, res: Response) => {
-	console.log("GET /api/reset " + JSON.stringify(req.body));
+app.post("/api/game/reset", (req: Request, res: Response) => {
+	console.log("GET /api/game/reset " + JSON.stringify(req.body));
 	if (!is(GameIdSchema, req.body)) {
 		throw new HttpError(400, `req.body} is not a valid GameId.`);
 	}
@@ -111,8 +171,8 @@ app.post("/api/reset", (req: Request, res: Response) => {
 	gameNotifier.notifyClients();
 });
 
-app.get("/api/state", (req: Request, res: Response) => {
-	console.log("GET /api/state " + JSON.stringify(req.query));
+app.get("/api/game/state", (req: Request, res: Response) => {
+	console.log("GET /api/game/state " + JSON.stringify(req.query));
 	if (!req.query.id) {
 		throw new HttpError(400, `id= must be provided.`);
 	}
@@ -128,7 +188,7 @@ app.get("/api/state", (req: Request, res: Response) => {
 	res.json(gameNotifier.obj.getJson());
 });
 
-app.ws("/api/state", (ws: WebSocket) => {
+app.ws("/api/game/state", (ws: WebSocket) => {
 	ws.on("message", (msg: string) => {
 		const gameId: string = JSON.parse(msg);
 		console.log("WS /api/state " + gameId);

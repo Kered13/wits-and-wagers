@@ -42,7 +42,7 @@ export class GameInstanceService {
 	private gameEnd: Observable<GameEnd>;
 	
 	constructor(private http: HttpService, private id: GameId) {
-		const wsSubject: WebSocketSubject<Object> = webSocket("ws://localhost:3000/api/state");
+		const wsSubject: WebSocketSubject<Object> = webSocket("ws://localhost:3000/api/game/state");
 		wsSubject.next(this.id);
 		
 		const notifications: Observable<GameNotification> =
@@ -58,20 +58,20 @@ export class GameInstanceService {
 		this.gameState = this.gameUpdates;
 		
 		// Immediately fetch the current game state.
-		this.http.get<GameState>("http://localhost:3000/api/state", { id: this.id }).subscribe(game => {
+		this.http.get<GameState>("http://localhost:3000/api/game/state", { id: this.id }).subscribe(game => {
 			this.gameUpdates.set(game);
 		});
 	}
 	
-	getGameEndObservable(): Observable<GameEnd> {
+	public getGameEndObservable(): Observable<GameEnd> {
 		return this.gameEnd;
 	}
 	
-	addOne(): void {
-		this.http.postJson("http://localhost:3000/api/addone", this.id).subscribe();
+	public addOne(): void {
+		this.http.postJson("http://localhost:3000/api/game/addone", this.id).subscribe();
 	}
 	
-	resetCounter(): void {
-		this.http.postJson("http://localhost:3000/api/reset", this.id).subscribe();
+	public resetCounter(): void {
+		this.http.postJson("http://localhost:3000/api/game/reset", this.id).subscribe();
 	}
 };
