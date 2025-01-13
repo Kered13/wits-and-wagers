@@ -12,6 +12,7 @@ import { LobbyIdSchema, type LobbyId, type LobbyState } from "../shared/lobby/lo
 import { AddPlayerRequestSchema, } from "../shared/lobby/addplayer.interface.js";
 import { CreateLobbyRequestSchema, type CreateLobbyResponse } from "../shared/lobby/create.interface.js";
 import { HttpError } from "./utils/httperror.js"
+import { WebSocketUtil } from "./utils/websocket.js";
 
 
 const app: expressWs.Application = expressWs(express()).app;
@@ -33,17 +34,17 @@ interface ObjUpdate<State, Id> {
 
 
 class Notifier<State, T extends Obj<State>, Id> {
-	private readonly clients: Set<WebSocket>;
+	private readonly clients: Set<WebSocketUtil>;
 
 	constructor(public readonly id: Id, public readonly obj: T) {
 		this.clients = new Set();
 	}
 	
-	public addClient(clientWs: WebSocket): void {
+	public addClient(clientWs: WebSocketUtil): void {
 		this.clients.add(clientWs);
 	}
 	
-	public removeClient(clientWs: WebSocket): void {
+	public removeClient(clientWs: WebSocketUtil): void {
 		this.clients.delete(clientWs);
 	}
 	
@@ -53,10 +54,8 @@ class Notifier<State, T extends Obj<State>, Id> {
 			id: this.id,
 			state: this.obj.getJson()
 		};
-		const json = JSON.stringify(update);
-		
 		this.clients.forEach(clientWs => {
-			clientWs.send(json);
+			clientWs.send(update);
 		});
 	}
 };
@@ -103,27 +102,27 @@ app.post("/api/lobby/addplayer", (req: Request, res: Response) => {
 	lobbyNotifier.notifyClients();
 });
 
-app.ws("/api/lobby/state", (ws: WebSocket) => {
-	ws.on("message", (msg: string) => {
-		console.log("WS /api/lobby/state " + msg);
+app.ws("/api/lobby/state", (webSocket: WebSocket) => {
+	const ws = new WebSocketUtil(webSocket);
+	ws.onMethod("register", (msg: unknown) => {
+		console.log("WS /api/lobby/state " + JSON.stringify(msg));
+		
 		if (!is(LobbyIdSchema, msg)) {
-			ws.close(400, `${msg} is not a valid LobbyId.`);
-			return;
+			throw new HttpError(400, `${msg} is not a valid GameId.`);
 		}
 		
-		const lobbyId: LobbyId = JSON.parse(msg);
+		const lobbyId: LobbyId = msg;
 		const lobby = lobbies.get(lobbyId);
 		if (!lobby) {
-			ws.close(404, `LobbyId ${lobbyId} not found.`);
-			return;
+			throw new HttpError(404, `LobbyId ${lobbyId} not found.`);
 		}
-		ws.on("close", () => {
-			
+		ws.onClose(() => {
 			lobby.removeClient(ws);
 		});
 		lobby.addClient(ws);
 	});
 });
+
 
 app.post("/api/game/create", (req: Request, res: Response) => {
 	console.log("POST /api/game/create " + JSON.stringify(req.body));
@@ -173,6 +172,7 @@ app.post("/api/game/reset", (req: Request, res: Response) => {
 
 app.get("/api/game/state", (req: Request, res: Response) => {
 	console.log("GET /api/game/state " + JSON.stringify(req.query));
+
 	if (!req.query.id) {
 		throw new HttpError(400, `id= must be provided.`);
 	}
@@ -188,18 +188,24 @@ app.get("/api/game/state", (req: Request, res: Response) => {
 	res.json(gameNotifier.obj.getJson());
 });
 
-app.ws("/api/game/state", (ws: WebSocket) => {
-	ws.on("message", (msg: string) => {
-		const gameId: string = JSON.parse(msg);
-		console.log("WS /api/state " + gameId);
-
-		const game = games.get(gameId);
-		if (game) {
-			ws.on("close", () => {
-				game.removeClient(ws);
-			});
-			game.addClient(ws);
+app.ws("/api/game/state", (webSocket: WebSocket) => {
+	const ws = new WebSocketUtil(webSocket);
+	ws.onMethod("register", (msg: unknown) => {
+		console.log("WS /api/game/state " + JSON.stringify(msg));
+		
+		if (!is(GameIdSchema, msg)) {
+			throw new HttpError(400, `${msg} is not a valid GameId.`);
 		}
+		
+		const gameId: GameId = msg;
+		const game = games.get(gameId);
+		if (!game) {
+			throw new HttpError(404, `GameId ${gameId} not found.`);
+		}
+		ws.onClose(() => {
+			game.removeClient(ws);
+		});
+		game.addClient(ws);
 	});
 });
 

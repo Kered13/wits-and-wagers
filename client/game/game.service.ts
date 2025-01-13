@@ -43,7 +43,10 @@ export class GameInstanceService {
 	
 	constructor(private http: HttpService, private id: GameId) {
 		const wsSubject: WebSocketSubject<Object> = webSocket("ws://localhost:3000/api/game/state");
-		wsSubject.next(this.id);
+		wsSubject.next({
+			method: "register",
+			payload: this.id
+		});
 		
 		const notifications: Observable<GameNotification> =
 			wsSubject.pipe(filter(object => is(GameNotificationSchema, object)));

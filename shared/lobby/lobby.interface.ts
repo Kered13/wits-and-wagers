@@ -1,9 +1,9 @@
-import { array, custom, nonEmpty, object, pipe, string, type InferOutput } from "valibot";
+import { array, nonEmpty, object, pipe, regex, string, type InferOutput } from "valibot";
 
 
-const RgbSchema = custom<string>((input) =>
-	typeof input === "string" ? /^#(?:[\da-f]{3,4}|[\da-f]{6}|[\da-f]{8})$/iu.test(input) : false
-);
+const RgbSchema = pipe(
+	string(),
+	regex(/^#(?:[\da-f]{3,4}|[\da-f]{6}|[\da-f]{8})$/iu));
 
 
 // ID and join code of the lobby. This will become the GameId.
