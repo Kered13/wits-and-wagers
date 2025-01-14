@@ -108,13 +108,12 @@ app.ws("/api/lobby/state", (webSocket: WebSocket) => {
 		console.log("WS /api/lobby/state " + JSON.stringify(msg));
 		
 		if (!is(LobbyIdSchema, msg)) {
-			throw new HttpError(400, `${msg} is not a valid GameId.`);
+			throw new HttpError(400, `${msg} is not a valid LobbyId.`);
 		}
 		
-		const lobbyId: LobbyId = msg;
-		const lobby = lobbies.get(lobbyId);
+		const lobby = lobbies.get(msg);
 		if (!lobby) {
-			throw new HttpError(404, `LobbyId ${lobbyId} not found.`);
+			throw new HttpError(404, `LobbyId ${msg} not found.`);
 		}
 		ws.onClose(() => {
 			lobby.removeClient(ws);
@@ -126,12 +125,18 @@ app.ws("/api/lobby/state", (webSocket: WebSocket) => {
 
 app.post("/api/game/create", (req: Request, res: Response) => {
 	console.log("POST /api/game/create " + JSON.stringify(req.body));
-	if (!is(CreateGameRequestSchema, req.body)) {
-		throw new HttpError(400, `Invalid CreateGameRequest: ${req.body}`);
+	if (!is(LobbyIdSchema, req.body)) {
+		throw new HttpError(400, `${req.body} is not a valid LobbyId.`);
 	}
 	
-	const gameNotifier = new GameNotifier("game" + games.size, new Game(req.body.title));
+	const lobby = lobbies.get(req.body);
+	if (!lobby) {
+		throw new HttpError(404, `LobbyId ${req.body} not found.`);
+	}
+	
+	const gameNotifier = new GameNotifier(lobby.id, lobby.state.createGame());
 	games.set(gameNotifier.id, gameNotifier);
+	lobbies.delete(lobby.id);
 	
 	const response: CreateGameResponse = { id: gameNotifier.id };
 	res.send(response);
