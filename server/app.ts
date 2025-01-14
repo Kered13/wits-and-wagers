@@ -5,7 +5,7 @@ import { is } from "valibot";
 import type { WebSocket } from "ws";
 
 import { Game } from "./game/game.js";
-import { Lobby } from "./lobby/lobby.js";
+import { Lobby, LobbyPlayer } from "./lobby/lobby.js";
 import { CreateGameRequestSchema, type CreateGameResponse } from "../shared/game/create.interface.js";
 import { GameIdSchema, type GameId, type GameState } from "../shared/game/game.interface.js";
 import { LobbyIdSchema, type LobbyId, type LobbyState } from "../shared/lobby/lobby.interface.js";
@@ -22,21 +22,21 @@ app.use(express.json({ strict: false }));
 app.use(express.static("public"));
 
 
-interface Obj<State> {
-	getJson(): State;
+interface State<T> {
+	getJson(): T;
 };
 
-interface ObjUpdate<State, Id> {
+interface StateUpdate<T, Id> {
 	type: "update";
 	id: Id;
-	state: State;
+	state: T;
 }
 
 
-class Notifier<State, T extends Obj<State>, Id> {
+class Notifier<T, S extends State<T>, Id> {
 	private readonly clients: Set<WebSocketUtil>;
 
-	constructor(public readonly id: Id, public readonly obj: T) {
+	constructor(public readonly id: Id, public readonly state: S) {
 		this.clients = new Set();
 	}
 	
@@ -49,10 +49,10 @@ class Notifier<State, T extends Obj<State>, Id> {
 	}
 	
 	public notifyClients(): void {
-		const update: ObjUpdate<State, Id> = {
+		const update: StateUpdate<T, Id> = {
 			type: "update",
 			id: this.id,
-			state: this.obj.getJson()
+			state: this.state.getJson()
 		};
 		this.clients.forEach(clientWs => {
 			clientWs.send(update);
@@ -97,8 +97,8 @@ app.post("/api/lobby/addplayer", (req: Request, res: Response) => {
 		throw new HttpError(404, `LobbyId ${req.body.lobbyId} not found.`);
 	}
 	
-	lobbyNotifier.obj.addPlayer(req.body.name);
-	res.end();
+	const player: LobbyPlayer = lobbyNotifier.state.addPlayer(req.body.name);
+	res.send(player.privateId);
 	lobbyNotifier.notifyClients();
 });
 
@@ -149,7 +149,7 @@ app.post("/api/game/addone", (req: Request, res: Response) => {
 		throw new HttpError(404, `GameId ${req.body} not found.`);
 	}
 	
-	gameNotifier.obj.addOne();
+	gameNotifier.state.addOne();
 	res.end();
 	gameNotifier.notifyClients();
 });
@@ -165,7 +165,7 @@ app.post("/api/game/reset", (req: Request, res: Response) => {
 		throw new HttpError(404, `GameId ${req.body} not found.`);
 	}
 	
-	gameNotifier.obj.resetCounter();
+	gameNotifier.state.resetCounter();
 	res.end();
 	gameNotifier.notifyClients();
 });
@@ -185,7 +185,7 @@ app.get("/api/game/state", (req: Request, res: Response) => {
 		throw new HttpError(404, `GameId ${req.body.id} not found.`);
 	}
 	
-	res.json(gameNotifier.obj.getJson());
+	res.json(gameNotifier.state.getJson());
 });
 
 app.ws("/api/game/state", (webSocket: WebSocket) => {
