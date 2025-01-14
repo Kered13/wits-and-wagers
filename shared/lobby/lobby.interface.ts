@@ -12,8 +12,11 @@ export type LobbyId = InferOutput<typeof LobbyIdSchema>;
 
 
 export const PlayerSchema = object({
-	id: pipe(string(), nonEmpty()),
+	// An ID used to uniquely identify the user.
+	publicId: pipe(string(), nonEmpty()),
+	// Display name for the user. Not unique.
 	name: pipe(string(), nonEmpty()),
+	// The color for the user. Unique within a lobby or game.
 	color: RgbSchema
 });
 export type Player = InferOutput<typeof PlayerSchema>;

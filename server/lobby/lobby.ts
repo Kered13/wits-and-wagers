@@ -1,11 +1,24 @@
 import { assert } from "valibot";
 
 import { Game } from "../game/game.js";
-import { PlayerSchema, type LobbyState, type Player } from "../../shared/lobby/lobby.interface.js";
+import { PlayerSchema, type LobbyState } from "../../shared/lobby/lobby.interface.js";
+
+
+export class LobbyPlayer {
+	constructor(
+		// An ID used to authenticate the user in RPCs.
+		public readonly privateId: string,
+		// An ID used to uniquely identify the user.
+		public readonly publicId: string,
+		// Display name for the user. Not unique.
+		public readonly name: string,
+		// The color for the user. Unique within a lobby or game.
+		public readonly color: string) {}
+};
 
 
 export class Lobby {
-	private readonly players: Player[] = [];
+	private readonly players: LobbyPlayer[] = [];
 	
 	constructor(
 		public readonly title: string,
@@ -13,19 +26,21 @@ export class Lobby {
 			this.addPlayer(host);
 		}
 	
-	public addPlayer(name: string): Player {
+	public addPlayer(name: string): LobbyPlayer {
+		const { privateId, publicId } = this.generatePlayerIds();
 		this.players.push({
-			id: this.generatePlayerId(),
+			privateId: privateId,
+			publicId: publicId,
 			name: name,
 			color: this.generateColor()
 		});
-		const player: Player = this.players[this.players.length - 1]!;
+		const player: LobbyPlayer = this.players[this.players.length - 1]!;
 		assert(PlayerSchema, player);
 		return player;
 	}
 	
-	public removePlayer(id: string): void {
-		const i = this.players.findIndex(player => player.id === id);
+	public removePlayer(privateId: string): void {
+		const i = this.players.findIndex(player => player.privateId === privateId);
 		this.players.splice(i, 1);
 	}
 	
@@ -37,13 +52,20 @@ export class Lobby {
 		return {
 			title: this.title,
 			host: this.host,
-			players: this.players
+			players: this.players.map(player => ({
+				publicId: player.publicId,
+				name: player.name,
+				color: player.color
+			}))
 		};
 	}
 	
-	private generatePlayerId(): string {
+	private generatePlayerIds() {
 		// TODO
-		return this.players.length.toString();
+		return {
+			privateId: this.players.length.toString(),
+			publicId: this.players.length.toString()
+		};
 	}
 	
 	private generateColor(): string {
