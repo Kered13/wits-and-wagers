@@ -1,3 +1,4 @@
+import * as uuid from "uuid";
 import { assert } from "valibot";
 
 import { Game } from "../game/game.js";
@@ -63,10 +64,9 @@ export class Lobby {
 	}
 	
 	private generatePlayerIds() {
-		// TODO
 		return {
-			privateId: this.players.length.toString(),
-			publicId: this.players.length.toString()
+			privateId: uuid.v4(),
+			publicId: uuid.v4()
 		};
 	}
 	
