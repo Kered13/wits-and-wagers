@@ -25,7 +25,7 @@ export class HostComponent {
 	
 	constructor(private readonly lobbyService: LobbyService, private readonly router: Router, route: ActivatedRoute) {
 		const data = toSignal(route.data, { requireSync: true });
-		this.username = computed(() => data()["username"]);
+		this.username = computed(() => data().username);
 	}
 	
 	createLobby(): void {
