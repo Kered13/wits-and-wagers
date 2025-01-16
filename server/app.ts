@@ -124,7 +124,7 @@ app.get("/api/lobby/state", (req: Request, res: Response) => {
 	
 	const lobbyNotifier = lobbies.get(req.query.id);
 	if (!lobbyNotifier) {
-		throw new HttpError(404, `LobbyId ${req.body.id} not found.`);
+		throw new HttpError(404, `LobbyId ${req.query.id} not found.`);
 	}
 	
 	res.json(lobbyNotifier.state.toJson());
@@ -215,7 +215,7 @@ app.get("/api/game/state", (req: Request, res: Response) => {
 	
 	const gameNotifier = games.get(req.query.id);
 	if (!gameNotifier) {
-		throw new HttpError(404, `GameId ${req.body.id} not found.`);
+		throw new HttpError(404, `GameId ${req.query.id} not found.`);
 	}
 	
 	res.json(gameNotifier.state.toJson());
