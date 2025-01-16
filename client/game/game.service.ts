@@ -30,7 +30,7 @@ export class GameService {
 	
 	createGame(request: CreateGameRequest): Observable<CreateGameResponse> {
 		assert(CreateGameRequestSchema, request);
-		return this.http.postJson<CreateGameResponse>("http://localhost:3000/api/create", request);
+		return this.http.postJson<CreateGameResponse>("http://localhost:3000/api/game/create", request);
 	}
 }
 
@@ -38,8 +38,8 @@ export class GameService {
 export class GameInstanceService {
 	public readonly gameState: Signal<GameState>;
 	
-	private gameUpdates: WritableSignal<GameState>;
-	private gameEnd: Observable<GameEnd>;
+	private readonly gameUpdates: WritableSignal<GameState>;
+	private readonly gameEnd: Observable<GameEnd>;
 	
 	constructor(private http: HttpService, private id: GameId) {
 		const wsSubject: WebSocketSubject<Object> = webSocket("ws://localhost:3000/api/game/state");

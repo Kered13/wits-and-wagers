@@ -19,11 +19,13 @@ export class LobbyPlayer {
 
 export class Lobby {
 	private readonly players: LobbyPlayer[] = [];
+	// Public ID of the host for this lobby.
+	private readonly host: string;
 	
 	constructor(
-		public readonly title: string,
-		public readonly host: string) {
-			this.addPlayer(host);
+		private readonly title: string,
+		hostName: string) {
+			this.host = this.addPlayer(hostName).publicId;
 		}
 	
 	public addPlayer(name: string): LobbyPlayer {

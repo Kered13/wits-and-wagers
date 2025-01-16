@@ -78,7 +78,7 @@ app.post("/api/lobby/create", (req: Request, res: Response) => {
 		throw new HttpError(400, `Invalid CreateLobbyRequest: ${req.body}`);
 	}
 	
-	const lobbyNotifier = new LobbyNotifier("game" + games.size, new Lobby(req.body.title, "Leeroy"));
+	const lobbyNotifier = new LobbyNotifier("game" + lobbies.size, new Lobby(req.body.title, req.body.host));
 	lobbies.set(lobbyNotifier.id, lobbyNotifier);
 	
 	const response: CreateLobbyResponse = { id: lobbyNotifier.id };
@@ -100,6 +100,24 @@ app.post("/api/lobby/addplayer", (req: Request, res: Response) => {
 	const player: LobbyPlayer = lobbyNotifier.state.addPlayer(req.body.name);
 	res.send(player.privateId);
 	lobbyNotifier.notifyClients();
+});
+
+app.get("/api/lobby/state", (req: Request, res: Response) => {
+	console.log("GET /api/lobby/state " + JSON.stringify(req.query));
+	
+	if (!req.query.id) {
+		throw new HttpError(400, `id= must be provided.`);
+	}
+	if (!is(GameIdSchema, req.query.id)) {
+		throw new HttpError(400, `${req.query.id} is not a valid LobbyId.`);
+	}
+	
+	const lobbyNotifier = lobbies.get(req.query.id);
+	if (!lobbyNotifier) {
+		throw new HttpError(404, `LobbyId ${req.body.id} not found.`);
+	}
+	
+	res.json(lobbyNotifier.state.getJson());
 });
 
 app.ws("/api/lobby/state", (webSocket: WebSocket) => {

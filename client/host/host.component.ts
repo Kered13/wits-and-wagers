@@ -1,11 +1,12 @@
-import { ChangeDetectionStrategy, Component } from "@angular/core";
+import { ChangeDetectionStrategy, Component, computed, Signal } from "@angular/core";
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
 import { MatButton } from "@angular/material/button";
 import { MatCardModule } from "@angular/material/card";
 import { MatInputModule } from '@angular/material/input';
-import { Router } from "@angular/router";
+import { ActivatedRoute, Router } from "@angular/router";
 
-import { GameService } from "../game/game.service";
+import { LobbyService } from "../lobby/lobby.service";
+import { toSignal } from "@angular/core/rxjs-interop";
 
 
 @Component({
@@ -20,10 +21,20 @@ export class HostComponent {
 		title: new FormControl("", Validators.required),
 	});
 	
-	constructor(private readonly gameService: GameService, private readonly router: Router) {}
+	private readonly username: Signal<string>;
 	
-	createGame(): void {
-		this.gameService.createGame({ title: this.options.value.title! })
-			.subscribe(response => this.router.navigate(["game", response.id]));
+	constructor(private readonly lobbyService: LobbyService, private readonly router: Router, route: ActivatedRoute) {
+		const data = toSignal(route.data, { requireSync: true });
+		this.username = computed(() => data()["username"]);
+	}
+	
+	createLobby(): void {
+		if (this.options.valid) {
+			this.lobbyService.createLobby({ title: this.options.value.title!, host: this.username() })
+				.subscribe(response => {
+					localStorage.setItem("gameId", response.id);
+					this.router.navigate(["lobby", response.id]);
+				});
+		}
 	}
 }

@@ -1,0 +1,63 @@
+import { Injectable, signal, Signal, WritableSignal } from "@angular/core";
+import { Observable, map, filter } from "rxjs";
+import { webSocket, WebSocketSubject } from 'rxjs/webSocket';
+import { assert, is } from "valibot";
+
+import { HttpService } from "../utils/http.service.js";
+import { CreateLobbyRequestSchema, type CreateLobbyRequest, type CreateLobbyResponse } from "../../shared/lobby/create.interface.js";
+import { type LobbyId, type LobbyState } from "../../shared/lobby/lobby.interface.js";
+import { LobbyNotificationSchema, type LobbyNotification } from "../../shared/lobby/update.interface.js";
+
+
+@Injectable({providedIn: "root"})
+export class LobbyService {
+	private lobbyInstances: Map<LobbyId, LobbyInstanceService> = new Map<LobbyId, LobbyInstanceService>();
+	
+	constructor(private http: HttpService) {}
+	
+	private createLobbyInstanceService(id: LobbyId): LobbyInstanceService {
+		return new LobbyInstanceService(this.http, id);
+	}
+	
+	getLobbyInstanceService(id: LobbyId): LobbyInstanceService {
+		let lobbyInstanceService = this.lobbyInstances.get(id);
+		if (!lobbyInstanceService) {
+			lobbyInstanceService = this.createLobbyInstanceService(id);
+			this.lobbyInstances.set(id, lobbyInstanceService);
+		}
+		return lobbyInstanceService;
+	}
+	
+	createLobby(request: CreateLobbyRequest): Observable<CreateLobbyResponse> {
+		assert(CreateLobbyRequestSchema, request);
+		return this.http.postJson<CreateLobbyResponse>("http://localhost:3000/api/lobby/create", request);
+	}
+}
+
+
+export class LobbyInstanceService {
+	public readonly lobbyState: Signal<LobbyState>;
+	
+	private lobbyUpdates: WritableSignal<LobbyState>;
+	
+	constructor(private http: HttpService, private id: LobbyId) {
+		const wsSubject: WebSocketSubject<Object> = webSocket("ws://localhost:3000/api/lobby/state");
+		wsSubject.next(this.id);
+		
+		const notifications: Observable<LobbyNotification> =
+			wsSubject.pipe(filter(object => is(LobbyNotificationSchema, object)));
+		
+		this.lobbyUpdates = signal({ title: "", host: "", players: []});
+		notifications
+			.pipe(filter(notification => notification.type === "update"),
+			      map(update => update.state))
+			.subscribe(state => this.lobbyUpdates.set(state));
+		
+		this.lobbyState = this.lobbyUpdates;
+		
+		// Immediately fetch the current lobby state.
+		this.http.get<LobbyState>("http://localhost:3000/api/lobby/state", { id: this.id }).subscribe(lobby => {
+			this.lobbyUpdates.set(lobby);
+		});
+	}
+};

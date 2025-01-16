@@ -1,0 +1,15 @@
+<mat-card style="max-width: 400px;">
+	<mat-card-header>
+		<h1>{{ lobby().title }}</h1>
+	</mat-card-header>
+	<mat-card-content>
+		@for (player of lobby().players; track player.publicId) {
+			<p [style.font-weight]="(player.publicId === lobby().host) ? 'bold' : 'normal'">
+				{{ player.name }}
+			</p>
+		}
+	</mat-card-content>
+	<mat-card-actions>
+		<button mat-raised-button (click)="beginGame()">Begin Game</button>
+	</mat-card-actions>
+</mat-card>
