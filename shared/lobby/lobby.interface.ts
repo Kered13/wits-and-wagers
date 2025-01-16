@@ -1,4 +1,5 @@
 import { array, nonEmpty, object, pipe, regex, string, type InferOutput } from "valibot";
+import { PublicIdSchema } from "../player.js";
 
 
 const RgbSchema = pipe(
@@ -13,7 +14,7 @@ export type LobbyId = InferOutput<typeof LobbyIdSchema>;
 
 export const LobbyPlayerJsonSchema = object({
 	// An ID used to uniquely identify the user.
-	publicId: pipe(string(), nonEmpty()),
+	publicId: PublicIdSchema,
 	// Display name for the user. Not unique.
 	name: pipe(string(), nonEmpty()),
 	// The color for the user. Unique within a lobby or game.
@@ -24,8 +25,11 @@ export type LobbyPlayerJson = InferOutput<typeof LobbyPlayerJsonSchema>;
 
 // Represents the state of the lobby.
 export const LobbyJsonSchema = object({
+	// Title of the lobby and subsequent game.
 	title: pipe(string(), nonEmpty()),
+	// Public ID of the host.
 	host: pipe(string(), nonEmpty()),
+	// The public information of each player in the lobby.
 	players: array(LobbyPlayerJsonSchema)
 });
 export type LobbyJson = InferOutput<typeof LobbyJsonSchema>;

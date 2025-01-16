@@ -8,6 +8,7 @@ export type GameId = InferOutput<typeof GameIdSchema>;
 
 // Represents the state of the game.
 export const GameJsonSchema = object({
+	// The title of the game.
 	title: pipe(string(), nonEmpty()),
 	counter: number()
 });

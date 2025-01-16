@@ -1,7 +1,7 @@
 import cors from "cors";
 import express, { type Request, type Response } from "express";
 import expressWs from "express-ws";
-import { is } from "valibot";
+import { assert, is } from "valibot";
 import type { WebSocket } from "ws";
 
 import { Game } from "./game/game.js";
@@ -9,8 +9,8 @@ import { Lobby, LobbyPlayer } from "./lobby/lobby.js";
 import { CreateGameRequestSchema, type CreateGameResponse } from "../shared/game/create.interface.js";
 import { GameIdSchema, type GameId, type GameJson } from "../shared/game/game.interface.js";
 import { LobbyIdSchema, type LobbyId, type LobbyJson } from "../shared/lobby/lobby.interface.js";
-import { AddPlayerRequestSchema, } from "../shared/lobby/addplayer.interface.js";
-import { CreateLobbyRequestSchema, type CreateLobbyResponse } from "../shared/lobby/create.interface.js";
+import { AddPlayerRequestSchema, AddPlayerResponseSchema, type AddPlayerResponse, } from "../shared/lobby/addplayer.interface.js";
+import { CreateLobbyRequestSchema, CreateLobbyResponseSchema, type CreateLobbyResponse } from "../shared/lobby/create.interface.js";
 import { HttpError } from "./utils/httperror.js"
 import { WebSocketUtil } from "./utils/websocket.js";
 
@@ -81,7 +81,11 @@ app.post("/api/lobby/create", (req: Request, res: Response) => {
 	const lobbyNotifier = new LobbyNotifier("game" + lobbies.size, new Lobby(req.body.title, req.body.host));
 	lobbies.set(lobbyNotifier.id, lobbyNotifier);
 	
-	const response: CreateLobbyResponse = { id: lobbyNotifier.id };
+	const response: CreateLobbyResponse = {
+		id: lobbyNotifier.id,
+		host: lobbyNotifier.state.getHost().toPrivateJson()
+	};
+	assert(CreateLobbyResponseSchema, response);
 	res.send(response);
 });
 
@@ -97,8 +101,14 @@ app.post("/api/lobby/addplayer", (req: Request, res: Response) => {
 		throw new HttpError(404, `LobbyId ${req.body.lobbyId} not found.`);
 	}
 	
-	const player: LobbyPlayer = lobbyNotifier.state.addPlayer(req.body.name);
+	const player = lobbyNotifier.state.addPlayer(req.body.name);
+	
+	const response: AddPlayerResponse = {
+		player: player.toPrivateJson()
+	};
+	assert(AddPlayerResponseSchema, response);
 	res.send(player.privateId);
+	
 	lobbyNotifier.notifyClients();
 });
 

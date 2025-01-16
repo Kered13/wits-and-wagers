@@ -1,16 +1,23 @@
 import { nonEmpty, object, pipe, string, type InferOutput } from "valibot";
 
 import { LobbyIdSchema } from "./lobby.interface.js";
+import { PrivatePlayerSchema } from "../player.js";
 
 
+// Creates a new lobby and adds the host to it.
 export const CreateLobbyRequestSchema = object({
+	// Name of the lobby and subsequent game.
 	title: pipe(string(), nonEmpty()),
+	// Name of the host player.
 	host: pipe(string(), nonEmpty())
 });
 export type CreateLobbyRequest = InferOutput<typeof CreateLobbyRequestSchema>;
 
 
 export const CreateLobbyResponseSchema = object({
-	id: LobbyIdSchema
+	// ID of the lobby and subsequent game.
+	id: LobbyIdSchema,
+	// Private player information for the host.
+	host: PrivatePlayerSchema
 });
 export type CreateLobbyResponse = InferOutput<typeof CreateLobbyResponseSchema>;
