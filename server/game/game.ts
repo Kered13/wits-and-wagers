@@ -1,7 +1,8 @@
 import { type GameJson } from "../../shared/game/game.js";
+import type { Serializable } from "../utils/serializable.js";
 
 
-export class Game {
+export class Game implements Serializable<GameJson> {
 	private counter: number = 0;
 	
 	constructor(private readonly title: string) {}

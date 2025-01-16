@@ -5,13 +5,14 @@ import { assert, is } from "valibot";
 import type { WebSocket } from "ws";
 
 import { Game } from "./game/game.js";
-import { Lobby, LobbyPlayer } from "./lobby/lobby.js";
-import { CreateGameRequestSchema, type CreateGameResponse } from "../shared/game/create.js";
+import { Lobby } from "./lobby/lobby.js";
+import { type CreateGameResponse } from "../shared/game/create.js";
 import { GameIdSchema, type GameId, type GameJson } from "../shared/game/game.js";
 import { LobbyIdSchema, type LobbyId, type LobbyJson } from "../shared/lobby/lobby.js";
 import { AddPlayerRequestSchema, AddPlayerResponseSchema, type AddPlayerResponse, } from "../shared/lobby/addplayer.js";
 import { CreateLobbyRequestSchema, CreateLobbyResponseSchema, type CreateLobbyResponse } from "../shared/lobby/create.js";
 import { HttpError } from "./utils/httperror.js"
+import { Notifier } from "./utils/notifier.js";
 import { WebSocketUtil } from "./utils/websocket.js";
 
 
@@ -21,44 +22,6 @@ app.use(cors());
 app.use(express.json({ strict: false }));
 app.use(express.static("public"));
 
-
-interface Serializable<T> {
-	toJson(): T;
-};
-
-interface StateUpdate<T, Id> {
-	type: "update";
-	id: Id;
-	state: T;
-}
-
-
-class Notifier<T, S extends Serializable<T>, Id> {
-	private readonly clients: Set<WebSocketUtil>;
-
-	constructor(public readonly id: Id, public readonly state: S) {
-		this.clients = new Set();
-	}
-	
-	public addClient(clientWs: WebSocketUtil): void {
-		this.clients.add(clientWs);
-	}
-	
-	public removeClient(clientWs: WebSocketUtil): void {
-		this.clients.delete(clientWs);
-	}
-	
-	public notifyClients(): void {
-		const update: StateUpdate<T, Id> = {
-			type: "update",
-			id: this.id,
-			state: this.state.toJson()
-		};
-		this.clients.forEach(clientWs => {
-			clientWs.send(update);
-		});
-	}
-};
 
 class GameNotifier extends Notifier<GameJson, Game, GameId> {}
 class LobbyNotifier extends Notifier<LobbyJson, Lobby, LobbyId> {}

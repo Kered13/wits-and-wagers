@@ -1,12 +1,12 @@
 import * as uuid from "uuid";
-import { assert } from "valibot";
 
 import { Game } from "../game/game.js";
 import { type LobbyPlayerJson, type LobbyJson } from "../../shared/lobby/lobby.js";
 import type { PrivatePlayer } from "../../shared/player.js";
+import type { Serializable } from "../utils/serializable.js";
 
 
-export class LobbyPlayer {
+export class LobbyPlayer implements Serializable<LobbyPlayerJson> {
 	constructor(
 		// An ID used to authenticate the user in RPCs.
 		public readonly privateId: string,
@@ -34,7 +34,7 @@ export class LobbyPlayer {
 };
 
 
-export class Lobby {
+export class Lobby implements Serializable<LobbyJson> {
 	private readonly players: LobbyPlayer[] = [];
 	// Public ID of the host for this lobby.
 	private readonly host: LobbyPlayer;
