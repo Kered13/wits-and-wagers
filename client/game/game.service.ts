@@ -5,7 +5,7 @@ import { assert, is } from "valibot";
 
 import { HttpService } from "../utils/http.service.js";
 import { CreateGameRequestSchema, type CreateGameRequest, type CreateGameResponse } from "../../shared/game/create.interface.js";
-import { type GameId, type GameState } from "../../shared/game/game.interface.js";
+import { type GameId, type GameJson } from "../../shared/game/game.interface.js";
 import { type GameEnd, GameNotificationSchema, type GameNotification } from "../../shared/game/update.interface.js";
 
 
@@ -36,9 +36,9 @@ export class GameService {
 
 
 export class GameInstanceService {
-	public readonly gameState: Signal<GameState>;
+	public readonly gameState: Signal<GameJson>;
 	
-	private readonly gameUpdates: WritableSignal<GameState>;
+	private readonly gameUpdates: WritableSignal<GameJson>;
 	private readonly gameEnd: Observable<GameEnd>;
 	
 	constructor(private http: HttpService, private id: GameId) {
@@ -61,7 +61,7 @@ export class GameInstanceService {
 		this.gameState = this.gameUpdates;
 		
 		// Immediately fetch the current game state.
-		this.http.get<GameState>("http://localhost:3000/api/game/state", { id: this.id }).subscribe(game => {
+		this.http.get<GameJson>("http://localhost:3000/api/game/state", { id: this.id }).subscribe(game => {
 			this.gameUpdates.set(game);
 		});
 	}

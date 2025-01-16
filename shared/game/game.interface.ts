@@ -1,14 +1,14 @@
-import { number, object, string, type InferOutput } from "valibot";
+import { nonEmpty, number, object, pipe, string, type InferOutput } from "valibot";
 
 
 // ID and join code of the game.
-export const GameIdSchema = string();
+export const GameIdSchema = pipe(string(), nonEmpty());
 export type GameId = InferOutput<typeof GameIdSchema>;
 
 
 // Represents the state of the game.
-export const GameStateSchema = object({
-	title: string(),
+export const GameJsonSchema = object({
+	title: pipe(string(), nonEmpty()),
 	counter: number()
 });
-export type GameState = InferOutput<typeof GameStateSchema>;
+export type GameJson = InferOutput<typeof GameJsonSchema>;

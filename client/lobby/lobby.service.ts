@@ -5,7 +5,7 @@ import { assert, is } from "valibot";
 
 import { HttpService } from "../utils/http.service.js";
 import { CreateLobbyRequestSchema, type CreateLobbyRequest, type CreateLobbyResponse } from "../../shared/lobby/create.interface.js";
-import { type LobbyId, type LobbyState } from "../../shared/lobby/lobby.interface.js";
+import { type LobbyId, type LobbyJson } from "../../shared/lobby/lobby.interface.js";
 import { LobbyNotificationSchema, type LobbyNotification } from "../../shared/lobby/update.interface.js";
 
 
@@ -36,9 +36,9 @@ export class LobbyService {
 
 
 export class LobbyInstanceService {
-	public readonly lobbyState: Signal<LobbyState>;
+	public readonly lobbyState: Signal<LobbyJson>;
 	
-	private lobbyUpdates: WritableSignal<LobbyState>;
+	private lobbyUpdates: WritableSignal<LobbyJson>;
 	
 	constructor(private http: HttpService, private id: LobbyId) {
 		const wsSubject: WebSocketSubject<Object> = webSocket("ws://localhost:3000/api/lobby/state");
@@ -56,7 +56,7 @@ export class LobbyInstanceService {
 		this.lobbyState = this.lobbyUpdates;
 		
 		// Immediately fetch the current lobby state.
-		this.http.get<LobbyState>("http://localhost:3000/api/lobby/state", { id: this.id }).subscribe(lobby => {
+		this.http.get<LobbyJson>("http://localhost:3000/api/lobby/state", { id: this.id }).subscribe(lobby => {
 			this.lobbyUpdates.set(lobby);
 		});
 	}

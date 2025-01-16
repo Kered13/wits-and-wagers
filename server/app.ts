@@ -7,8 +7,8 @@ import type { WebSocket } from "ws";
 import { Game } from "./game/game.js";
 import { Lobby, LobbyPlayer } from "./lobby/lobby.js";
 import { CreateGameRequestSchema, type CreateGameResponse } from "../shared/game/create.interface.js";
-import { GameIdSchema, type GameId, type GameState } from "../shared/game/game.interface.js";
-import { LobbyIdSchema, type LobbyId, type LobbyState } from "../shared/lobby/lobby.interface.js";
+import { GameIdSchema, type GameId, type GameJson } from "../shared/game/game.interface.js";
+import { LobbyIdSchema, type LobbyId, type LobbyJson } from "../shared/lobby/lobby.interface.js";
 import { AddPlayerRequestSchema, } from "../shared/lobby/addplayer.interface.js";
 import { CreateLobbyRequestSchema, type CreateLobbyResponse } from "../shared/lobby/create.interface.js";
 import { HttpError } from "./utils/httperror.js"
@@ -22,8 +22,8 @@ app.use(express.json({ strict: false }));
 app.use(express.static("public"));
 
 
-interface State<T> {
-	getJson(): T;
+interface Serializable<T> {
+	toJson(): T;
 };
 
 interface StateUpdate<T, Id> {
@@ -33,7 +33,7 @@ interface StateUpdate<T, Id> {
 }
 
 
-class Notifier<T, S extends State<T>, Id> {
+class Notifier<T, S extends Serializable<T>, Id> {
 	private readonly clients: Set<WebSocketUtil>;
 
 	constructor(public readonly id: Id, public readonly state: S) {
@@ -52,7 +52,7 @@ class Notifier<T, S extends State<T>, Id> {
 		const update: StateUpdate<T, Id> = {
 			type: "update",
 			id: this.id,
-			state: this.state.getJson()
+			state: this.state.toJson()
 		};
 		this.clients.forEach(clientWs => {
 			clientWs.send(update);
@@ -60,8 +60,8 @@ class Notifier<T, S extends State<T>, Id> {
 	}
 };
 
-class GameNotifier extends Notifier<GameState, Game, GameId> {}
-class LobbyNotifier extends Notifier<LobbyState, Lobby, LobbyId> {}
+class GameNotifier extends Notifier<GameJson, Game, GameId> {}
+class LobbyNotifier extends Notifier<LobbyJson, Lobby, LobbyId> {}
 
 
 const games: Map<GameId, GameNotifier> = new Map();
@@ -117,7 +117,7 @@ app.get("/api/lobby/state", (req: Request, res: Response) => {
 		throw new HttpError(404, `LobbyId ${req.body.id} not found.`);
 	}
 	
-	res.json(lobbyNotifier.state.getJson());
+	res.json(lobbyNotifier.state.toJson());
 });
 
 app.ws("/api/lobby/state", (webSocket: WebSocket) => {
@@ -208,7 +208,7 @@ app.get("/api/game/state", (req: Request, res: Response) => {
 		throw new HttpError(404, `GameId ${req.body.id} not found.`);
 	}
 	
-	res.json(gameNotifier.state.getJson());
+	res.json(gameNotifier.state.toJson());
 });
 
 app.ws("/api/game/state", (webSocket: WebSocket) => {

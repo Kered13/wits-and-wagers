@@ -1,4 +1,4 @@
-import { type GameState } from "../../shared/game/game.interface.js";
+import { type GameJson } from "../../shared/game/game.interface.js";
 
 
 export class Game {
@@ -14,7 +14,7 @@ export class Game {
 		this.counter = 0;
 	}
 	
-	public getJson(): GameState {
+	public toJson(): GameJson {
 		return {
 			title: this.title,
 			counter: this.counter

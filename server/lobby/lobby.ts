@@ -2,7 +2,7 @@ import * as uuid from "uuid";
 import { assert } from "valibot";
 
 import { Game } from "../game/game.js";
-import { PlayerSchema, type LobbyState } from "../../shared/lobby/lobby.interface.js";
+import { LobbyPlayerJsonSchema, type LobbyPlayerJson, type LobbyJson } from "../../shared/lobby/lobby.interface.js";
 
 
 export class LobbyPlayer {
@@ -15,6 +15,14 @@ export class LobbyPlayer {
 		public readonly name: string,
 		// The color for the user. Unique within a lobby or game.
 		public readonly color: string) {}
+	
+	public toJson(): LobbyPlayerJson {
+		return {
+			publicId: this.publicId,
+			name: this.name,
+			color: this.color
+		};
+	}
 };
 
 
@@ -31,14 +39,8 @@ export class Lobby {
 	
 	public addPlayer(name: string): LobbyPlayer {
 		const { privateId, publicId } = this.generatePlayerIds();
-		this.players.push({
-			privateId: privateId,
-			publicId: publicId,
-			name: name,
-			color: this.generateColor()
-		});
+		this.players.push(new LobbyPlayer(privateId, publicId, name, this.generateColor()));
 		const player: LobbyPlayer = this.players[this.players.length - 1]!;
-		assert(PlayerSchema, player);
 		return player;
 	}
 	
@@ -51,15 +53,11 @@ export class Lobby {
 		return new Game(this.title);
 	}
 	
-	public getJson(): LobbyState {
+	public toJson(): LobbyJson {
 		return {
 			title: this.title,
 			host: this.host,
-			players: this.players.map(player => ({
-				publicId: player.publicId,
-				name: player.name,
-				color: player.color
-			}))
+			players: this.players.map(player => player.toJson())
 		};
 	}
 	

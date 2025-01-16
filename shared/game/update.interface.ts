@@ -1,13 +1,13 @@
 import { literal, object, variant, type InferOutput } from "valibot";
 
-import { GameIdSchema, GameStateSchema } from "./game.interface.js";
+import { GameIdSchema, GameJsonSchema } from "./game.interface.js";
 
 
 // Represents an update to the game state.
 export const GameUpdateSchema = object({
 	type: literal("update"),
 	id: GameIdSchema,
-	state: GameStateSchema
+	state: GameJsonSchema
 });
 export type GameUpdate = InferOutput<typeof GameUpdateSchema>;
 
