@@ -4,9 +4,9 @@ import { webSocket, WebSocketSubject } from 'rxjs/webSocket';
 import { assert, is } from "valibot";
 
 import { HttpService } from "../utils/http.service.js";
-import { CreateGameRequestSchema, type CreateGameRequest, type CreateGameResponse } from "../../shared/game/create.interface.js";
-import { type GameId, type GameJson } from "../../shared/game/game.interface.js";
-import { type GameEnd, GameNotificationSchema, type GameNotification } from "../../shared/game/update.interface.js";
+import { CreateGameRequestSchema, type CreateGameRequest, type CreateGameResponse } from "../../shared/game/create.js";
+import { type GameId, type GameJson } from "../../shared/game/game.js";
+import { type GameEnd, GameNotificationSchema, type GameNotification } from "../../shared/game/update.js";
 
 
 @Injectable({providedIn: "root"})

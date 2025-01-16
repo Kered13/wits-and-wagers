@@ -1,7 +1,7 @@
 import { object, string, type InferOutput } from "valibot";
 
-import { GameIdSchema } from "./game.interface.js";
-import { LobbyIdSchema } from "../lobby/lobby.interface.js";
+import { GameIdSchema } from "./game.js";
+import { LobbyIdSchema } from "../lobby/lobby.js";
 
 
 // Create a new game from the given lobby.

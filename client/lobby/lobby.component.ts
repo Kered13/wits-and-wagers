@@ -8,7 +8,7 @@ import { ActivatedRoute, ParamMap, Router } from "@angular/router";
 import { toSignal } from "@angular/core/rxjs-interop";
 
 import { LobbyInstanceService, LobbyService } from "./lobby.service.js";
-import { LobbyId, LobbyJson } from "../../shared/lobby/lobby.interface.js";
+import { LobbyId, LobbyJson } from "../../shared/lobby/lobby.js";
 import { GameService } from "../game/game.service.js";
 
 

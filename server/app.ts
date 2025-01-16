@@ -6,11 +6,11 @@ import type { WebSocket } from "ws";
 
 import { Game } from "./game/game.js";
 import { Lobby, LobbyPlayer } from "./lobby/lobby.js";
-import { CreateGameRequestSchema, type CreateGameResponse } from "../shared/game/create.interface.js";
-import { GameIdSchema, type GameId, type GameJson } from "../shared/game/game.interface.js";
-import { LobbyIdSchema, type LobbyId, type LobbyJson } from "../shared/lobby/lobby.interface.js";
-import { AddPlayerRequestSchema, AddPlayerResponseSchema, type AddPlayerResponse, } from "../shared/lobby/addplayer.interface.js";
-import { CreateLobbyRequestSchema, CreateLobbyResponseSchema, type CreateLobbyResponse } from "../shared/lobby/create.interface.js";
+import { CreateGameRequestSchema, type CreateGameResponse } from "../shared/game/create.js";
+import { GameIdSchema, type GameId, type GameJson } from "../shared/game/game.js";
+import { LobbyIdSchema, type LobbyId, type LobbyJson } from "../shared/lobby/lobby.js";
+import { AddPlayerRequestSchema, AddPlayerResponseSchema, type AddPlayerResponse, } from "../shared/lobby/addplayer.js";
+import { CreateLobbyRequestSchema, CreateLobbyResponseSchema, type CreateLobbyResponse } from "../shared/lobby/create.js";
 import { HttpError } from "./utils/httperror.js"
 import { WebSocketUtil } from "./utils/websocket.js";
 

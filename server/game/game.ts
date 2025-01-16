@@ -1,4 +1,4 @@
-import { type GameJson } from "../../shared/game/game.interface.js";
+import { type GameJson } from "../../shared/game/game.js";
 
 
 export class Game {

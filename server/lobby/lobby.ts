@@ -2,7 +2,7 @@ import * as uuid from "uuid";
 import { assert } from "valibot";
 
 import { Game } from "../game/game.js";
-import { type LobbyPlayerJson, type LobbyJson } from "../../shared/lobby/lobby.interface.js";
+import { type LobbyPlayerJson, type LobbyJson } from "../../shared/lobby/lobby.js";
 import type { PrivatePlayer } from "../../shared/player.js";
 
 

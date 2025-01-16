@@ -1,6 +1,6 @@
 import { nonEmpty, object, pipe, string, type InferOutput } from "valibot";
 
-import { LobbyIdSchema } from "./lobby.interface.js";
+import { LobbyIdSchema } from "./lobby.js";
 import { PrivatePlayerSchema } from "../player.js";
 
 

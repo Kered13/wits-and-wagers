@@ -4,9 +4,9 @@ import { webSocket, WebSocketSubject } from 'rxjs/webSocket';
 import { assert, is } from "valibot";
 
 import { HttpService } from "../utils/http.service.js";
-import { CreateLobbyRequestSchema, type CreateLobbyRequest, type CreateLobbyResponse } from "../../shared/lobby/create.interface.js";
-import { type LobbyId, type LobbyJson } from "../../shared/lobby/lobby.interface.js";
-import { LobbyNotificationSchema, type LobbyNotification } from "../../shared/lobby/update.interface.js";
+import { CreateLobbyRequestSchema, type CreateLobbyRequest, type CreateLobbyResponse } from "../../shared/lobby/create.js";
+import { type LobbyId, type LobbyJson } from "../../shared/lobby/lobby.js";
+import { LobbyNotificationSchema, type LobbyNotification } from "../../shared/lobby/update.js";
 
 
 @Injectable({providedIn: "root"})

@@ -1,6 +1,6 @@
 import { literal, object, variant, type InferOutput } from "valibot";
 
-import { LobbyIdSchema, LobbyJsonSchema } from "./lobby.interface.js";
+import { LobbyIdSchema, LobbyJsonSchema } from "./lobby.js";
 
 
 // Represents an update to the lobby state.

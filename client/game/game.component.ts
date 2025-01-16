@@ -6,7 +6,6 @@ import { ActivatedRoute, ParamMap, Router } from "@angular/router";
 import { toSignal } from "@angular/core/rxjs-interop";
 
 import { GameInstanceService, GameService } from "./game.service.js";
-import { type GameId } from "../../shared/game/game.interface.js";
 
 
 @Component({
@@ -19,7 +18,6 @@ import { type GameId } from "../../shared/game/game.interface.js";
 export class GameComponent {
 	counter: Signal<number>;
 	
-	private readonly username: string = "this should never be read";
 	private readonly gameService: Signal<GameInstanceService>;
 	
 	constructor(gameService: GameService, titleService: Title, route: ActivatedRoute, router: Router) {
@@ -30,13 +28,6 @@ export class GameComponent {
 		this.counter = computed(() => game().counter);
 		
 		effect(() => titleService.setTitle(route.routeConfig!.title! + " - " + game().title));
-		
-		const username = localStorage.getItem("username");
-		if (!username) {
-			router.navigate([]);
-			return;
-		}
-		this.username = username;
 	}
 	
 	onAddOne(): void {
