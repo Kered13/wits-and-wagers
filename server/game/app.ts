@@ -71,24 +71,6 @@ export class GameApp {
 		gameNotifier.notifyClients();
 	}
 	
-	private getState(req: Request, res: Response): void {
-		console.log("GET /api/game/state " + JSON.stringify(req.query));
-		
-		if (!req.query.id) {
-			throw new HttpError(400, `id= must be provided.`);
-		}
-		if (!is(GameIdSchema, req.query.id)) {
-			throw new HttpError(400, `${req.query.id} is not a valid GameId.`);
-		}
-		
-		const gameNotifier = this.games.get(req.query.id);
-		if (!gameNotifier) {
-			throw new HttpError(404, `GameId ${req.query.id} not found.`);
-		}
-		
-		res.json(gameNotifier.state.toJson());
-	}
-	
 	private wsState(webSocket: WebSocket) {
 		const ws = new WebSocketUtil(webSocket);
 		ws.onMethod("register", (msg: unknown) => {
@@ -116,7 +98,6 @@ export class GameApp {
 			.post("/create", (req, res) => this.create(req, res))
 			.post("/addone", (req, res) => this.addOne(req, res))
 			.post("/reset", (req, res) => this.reset(req, res))
-			.get("/state", (req, res) => this.getState(req, res))
 			.ws("/state", ws => this.wsState(ws));
 	}
 }

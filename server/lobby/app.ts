@@ -63,24 +63,6 @@ export class LobbyApp {
 		lobbyNotifier.notifyClients();
 	}
 	
-	private getState(req: Request, res: Response): void {
-		console.log("GET /api/lobby/state " + JSON.stringify(req.query));
-		
-		if (!req.query.id) {
-			throw new HttpError(400, `id= must be provided.`);
-		}
-		if (!is(LobbyIdSchema, req.query.id)) {
-			throw new HttpError(400, `${req.query.id} is not a valid LobbyId.`);
-		}
-		
-		const lobbyNotifier = this.lobbies.get(req.query.id);
-		if (!lobbyNotifier) {
-			throw new HttpError(404, `LobbyId ${req.query.id} not found.`);
-		}
-		
-		res.json(lobbyNotifier.state.toJson());
-	}
-	
 	private wsState(webSocket: WebSocket): void {
 		const ws = new WebSocketUtil(webSocket);
 		ws.onMethod("register", (msg: unknown) => {
@@ -106,7 +88,6 @@ export class LobbyApp {
 		return express.Router()
 			.post("/create", (req, res) => this.create(req, res))
 			.post("/addplayer", (req, res) => this.addplayer(req, res))
-			.get("/state", (req, res) => this.getState(req, res))
 			.ws("/state", ws => this.wsState(ws));
 	}
 }
