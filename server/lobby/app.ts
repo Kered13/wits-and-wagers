@@ -22,6 +22,11 @@ export class LobbyApp {
 		return this.lobbies.get(lobbyId);
 	}
 	
+	// TODO
+	private createLobbyId(): string {
+		return "game" + this.lobbies.size;
+	}
+	
 	private create(req: Request, res: Response): void {
 		console.log("POST /api/lobby/create " + JSON.stringify(req.body));
 		
@@ -29,7 +34,7 @@ export class LobbyApp {
 			throw new HttpError(400, `Invalid CreateLobbyRequest: ${req.body}`);
 		}
 		
-		const lobbyNotifier = new LobbyNotifier("game" + this.lobbies.size, new Lobby(req.body.title, req.body.host));
+		const lobbyNotifier = new LobbyNotifier(this.createLobbyId(), new Lobby(req.body.title, req.body.host));
 		this.lobbies.set(lobbyNotifier.id, lobbyNotifier);
 		
 		const response: CreateLobbyResponse = {
