@@ -53,7 +53,7 @@ app.post("/api/lobby/create", (req: Request, res: Response) => {
 });
 
 app.post("/api/lobby/addplayer", (req: Request, res: Response) => {
-	console.log("GET /api/lobby/addplayer " + JSON.stringify(req.body));
+	console.log("POST /api/lobby/addplayer " + JSON.stringify(req.body));
 	
 	if (!is(AddPlayerRequestSchema, req.body)) {
 		throw new HttpError(400, `Invalid AddPlayerRequest: ${req.body}`);
@@ -70,7 +70,7 @@ app.post("/api/lobby/addplayer", (req: Request, res: Response) => {
 		player: player.toPrivateJson()
 	};
 	assert(AddPlayerResponseSchema, response);
-	res.send(player.privateId);
+	res.send(response);
 	
 	lobbyNotifier.notifyClients();
 });
@@ -135,7 +135,7 @@ app.post("/api/game/create", (req: Request, res: Response) => {
 });
 
 app.post("/api/game/addone", (req: Request, res: Response) => {
-	console.log("GET /api/game/addone " + JSON.stringify(req.body));
+	console.log("POST /api/game/addone " + JSON.stringify(req.body));
 	
 	if (!is(GameIdSchema, req.body)) {
 		throw new HttpError(400, `req.body} is not a valid GameId.`);
@@ -152,7 +152,7 @@ app.post("/api/game/addone", (req: Request, res: Response) => {
 });
 
 app.post("/api/game/reset", (req: Request, res: Response) => {
-	console.log("GET /api/game/reset " + JSON.stringify(req.body));
+	console.log("POST /api/game/reset " + JSON.stringify(req.body));
 	if (!is(GameIdSchema, req.body)) {
 		throw new HttpError(400, `req.body} is not a valid GameId.`);
 	}

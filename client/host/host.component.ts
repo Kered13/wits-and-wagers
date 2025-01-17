@@ -32,6 +32,8 @@ export class HostComponent {
 		if (this.options.valid) {
 			this.lobbyService.createLobby({ title: this.options.value.title!, host: this.username() })
 				.subscribe(response => {
+					localStorage.setItem("publicId", response.host.publicId);
+					localStorage.setItem("privateId", response.host.privateId);
 					localStorage.setItem("gameId", response.id);
 					this.router.navigate(["lobby", response.id]);
 				});

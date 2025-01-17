@@ -5,6 +5,8 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatInputModule } from "@angular/material/input";
 import { Router } from "@angular/router";
 
+import { LobbyService } from "../lobby/lobby.service";
+
 
 @Component({
 	selector: "app-home",
@@ -17,7 +19,7 @@ export class HomeComponent {
 	username: string;
 	joinCode: string;
 	
-	constructor(private router: Router) {
+	constructor(private readonly lobbyService: LobbyService, private router: Router) {
 		this.username = localStorage.getItem("username") || "";
 		this.joinCode = localStorage.getItem("gameId") || "";
 	}
@@ -33,7 +35,15 @@ export class HomeComponent {
 		if (this.username && this.joinCode) {
 			localStorage.setItem("username", this.username);
 			localStorage.setItem("gameId", this.joinCode);
-			this.router.navigate(["game", this.joinCode]);
+			
+			this.lobbyService
+				.getLobbyInstanceService(this.joinCode)
+				.addPlayer(this.username)
+				.subscribe(player => {
+					localStorage.setItem("publicId", player.publicId);
+					localStorage.setItem("privateId", player.privateId);
+					this.router.navigate(["lobby", this.joinCode]);
+				});
 		}
 	}
 }

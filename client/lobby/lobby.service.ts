@@ -60,4 +60,9 @@ export class LobbyInstanceService {
 		
 		this.lobbyState = this.lobbyUpdates;
 	}
+	
+	public addPlayer(name: string): Observable<PrivatePlayer> {
+		return this.http.postJson<AddPlayerResponse>("http://localhost:3000/api/lobby/addplayer", { lobbyId: this.id, name: name })
+			.pipe(map(response => response.player));
+	}
 };
