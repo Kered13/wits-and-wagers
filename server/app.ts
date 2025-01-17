@@ -6,20 +6,18 @@ import expressWs from "express-ws";
 import { LobbyApp } from "./lobby/app.js"
 import { GameApp } from "./game/app.js"
 
-const app: expressWs.Application = expressWs(express()).app;
 
-app.use(cors());
-app.use(express.json({ strict: false }));
-app.use(express.static("public"));
+const PORT = 3000;
 
 const lobbyApp = new LobbyApp();
 const gameApp = new GameApp(lobbyApp);
 
-app.use("/api/lobby", lobbyApp.getRouter());
-app.use("/api/game", gameApp.getRouter());
-
-const port = 3000;
-
-app.listen(port, () => {
-	console.log("Server is running on port " + port);
-});
+expressWs(express()).app
+	.use(cors())
+	.use(express.json({ strict: false }))
+	.use(express.static("public"))
+	.use("/api/lobby", lobbyApp.getRouter())
+	.use("/api/game", gameApp.getRouter())
+	.listen(PORT, () => {
+		console.log("Server is running on port " + PORT);
+	});
