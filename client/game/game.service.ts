@@ -59,11 +59,6 @@ export class GameInstanceService {
 		
 		this.gameEnd = notifications.pipe(filter(notification => notification.type === "end"));
 		this.gameState = this.gameUpdates;
-		
-		// Immediately fetch the current game state.
-		this.http.get<GameJson>("http://localhost:3000/api/game/state", { id: this.id }).subscribe(game => {
-			this.gameUpdates.set(game);
-		});
 	}
 	
 	public getGameEndObservable(): Observable<GameEnd> {

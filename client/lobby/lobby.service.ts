@@ -4,9 +4,11 @@ import { webSocket, WebSocketSubject } from 'rxjs/webSocket';
 import { assert, is } from "valibot";
 
 import { HttpService } from "../utils/http.service.js";
+import { type AddPlayerRequest, type AddPlayerResponse } from "../../shared/lobby/addplayer.js";
 import { CreateLobbyRequestSchema, type CreateLobbyRequest, type CreateLobbyResponse } from "../../shared/lobby/create.js";
 import { type LobbyId, type LobbyJson } from "../../shared/lobby/lobby.js";
 import { LobbyNotificationSchema, type LobbyNotification } from "../../shared/lobby/update.js";
+import { PrivatePlayer } from "../../shared/player.js";
 
 
 @Injectable({providedIn: "root"})
@@ -42,7 +44,10 @@ export class LobbyInstanceService {
 	
 	constructor(private http: HttpService, private id: LobbyId) {
 		const wsSubject: WebSocketSubject<Object> = webSocket("ws://localhost:3000/api/lobby/state");
-		wsSubject.next(this.id);
+		wsSubject.next({
+			method: "register",
+			payload: this.id
+		});
 		
 		const notifications: Observable<LobbyNotification> =
 			wsSubject.pipe(filter(object => is(LobbyNotificationSchema, object)));
@@ -54,10 +59,5 @@ export class LobbyInstanceService {
 			.subscribe(state => this.lobbyUpdates.set(state));
 		
 		this.lobbyState = this.lobbyUpdates;
-		
-		// Immediately fetch the current lobby state.
-		this.http.get<LobbyJson>("http://localhost:3000/api/lobby/state", { id: this.id }).subscribe(lobby => {
-			this.lobbyUpdates.set(lobby);
-		});
 	}
 };

@@ -109,6 +109,7 @@ app.ws("/api/lobby/state", (webSocket: WebSocket) => {
 		ws.onClose(() => {
 			lobby.removeClient(ws);
 		});
+		lobby.notifyClient(ws);
 		lobby.addClient(ws);
 	});
 });
@@ -201,6 +202,7 @@ app.ws("/api/game/state", (webSocket: WebSocket) => {
 		ws.onClose(() => {
 			game.removeClient(ws);
 		});
+		game.notifyClient(ws);
 		game.addClient(ws);
 	});
 });

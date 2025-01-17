@@ -21,84 +21,36 @@ export class WebSocketUtil {
 		this.ws.send(JSON.stringify(payload));
 		return this;
 	}
-	
-	public respond<T>(payload: T): this {
-		const response: WebSocketSuccess<T> = {
-			type: "success",
-			status: 200,
-			payload: payload
-		};
-		this.send(response);
-		return this;
-	}
-	
-	public error(error: HttpError): this {
-		const response: WebSocketError = {
-			type: "error",
-			status: error.status,
-			message: error.message
-		};
-		this.send(response);
-		return this;
-	}
+
 	
 	public onMethod<Res>(method: string, handler: (request: unknown) => Res): this {
 		this.ws.on("message", (msg: string) => {
-			try {
-				const json = JSON.parse(msg);
-				if (!is(WebSocketRequestSchema, json)) {
-					throw new HttpError(400, `Bad Request: ${msg}`);
-				}
-				
-				if (json.method !== method) {
-					// Ignore. This may be handled by other method handlers.
-					return;
-				}
-				this.respond(handler(json.payload));
-			} catch (error: unknown) { 
-				this.handleException(error);
+			const json = JSON.parse(msg);
+			if (!is(WebSocketRequestSchema, json)) {
+				throw new HttpError(400, `Bad Request: ${msg}`);
 			}
+			
+			if (json.method !== method) {
+				// Ignore. This may be handled by other method handlers.
+				return;
+			}
+			handler(json.payload);
 		});
 		return this;
 	};
 	
 	public onMessage(handler: (msg: string) => void): this {
-		this.ws.on("message", (msg: string) => {
-			try {
-				handler(msg);
-			} catch (error: unknown) {
-				this.handleException(error);
-			}
-		});
+		this.ws.on("message", handler);
 		return this;
 	}
 	
 	public onOpen(handler: () => void): this {
-		this.ws.on("open", () => {
-			try {
-				handler();
-			} catch (error: unknown) {
-				this.handleException(error);
-			}
-		});
+		this.ws.on("open", handler);
 		return this;
 	}
 	
 	public onClose(handler: () => void): this {
-		this.ws.on("close", () => {
-			try {
-				handler();
-			} catch (error: unknown) {
-				this.handleException(error);
-			}
-		});
+		this.ws.on("close", handler);
 		return this;
-	}
-	
-	private handleException(error: unknown) {
-		if (!(error instanceof HttpError)) {
-			throw error;
-		}
-		this.error(error);
 	}
 }
