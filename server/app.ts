@@ -28,9 +28,6 @@ class LobbyNotifier extends Notifier<LobbyJson, Lobby, LobbyId> {}
 
 
 const games: Map<GameId, GameNotifier> = new Map();
-const gameNotifier = new GameNotifier("game0", new Game("Test Game"));
-games.set(gameNotifier.id, gameNotifier);
-
 const lobbies: Map<LobbyId, LobbyNotifier> = new Map();
 
 
