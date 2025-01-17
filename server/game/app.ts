@@ -19,101 +19,104 @@ export class GameApp {
 	
 	constructor(private readonly lobbyApp: LobbyApp) {}
 	
-	public getRouter() : Router {
-		const router = express.Router();
+	private create(req: Request, res: Response): void {
+		console.log("POST /api/game/create " + JSON.stringify(req.body));
+		if (!is(LobbyIdSchema, req.body)) {
+			throw new HttpError(400, `${req.body} is not a valid LobbyId.`);
+		}
 		
-		router.post("/create", (req: Request, res: Response) => {
-			console.log("POST /api/game/create " + JSON.stringify(req.body));
-			if (!is(LobbyIdSchema, req.body)) {
-				throw new HttpError(400, `${req.body} is not a valid LobbyId.`);
+		const lobby = this.lobbyApp.getLobby(req.body);
+		if (!lobby) {
+			throw new HttpError(404, `LobbyId ${req.body} not found.`);
+		}
+		
+		const gameNotifier = new GameNotifier(lobby.id, lobby.state.createGame());
+		this.games.set(gameNotifier.id, gameNotifier);
+		this.lobbyApp.lobbies.delete(lobby.id);
+		
+		const response: CreateGameResponse = { id: gameNotifier.id };
+		res.send(response);
+	}
+	
+	private addOne(req: Request, res: Response): void {
+		console.log("POST /api/game/addone " + JSON.stringify(req.body));
+		
+		if (!is(GameIdSchema, req.body)) {
+			throw new HttpError(400, `req.body} is not a valid GameId.`);
+		}
+	
+		const gameNotifier = this.games.get(req.body);
+		if (!gameNotifier) {
+			throw new HttpError(404, `GameId ${req.body} not found.`);
+		}
+	
+		gameNotifier.state.addOne();
+		res.end();
+		gameNotifier.notifyClients();
+	}
+	
+	private reset(req: Request, res: Response): void {
+		console.log("POST /api/game/reset " + JSON.stringify(req.body));
+		if (!is(GameIdSchema, req.body)) {
+			throw new HttpError(400, `req.body} is not a valid GameId.`);
+		}
+		
+		const gameNotifier = this.games.get(req.body);
+		if (!gameNotifier) {
+			throw new HttpError(404, `GameId ${req.body} not found.`);
+		}
+		
+		gameNotifier.state.resetCounter();
+		res.end();
+		gameNotifier.notifyClients();
+	}
+	
+	private getState(req: Request, res: Response): void {
+		console.log("GET /api/game/state " + JSON.stringify(req.query));
+		
+		if (!req.query.id) {
+			throw new HttpError(400, `id= must be provided.`);
+		}
+		if (!is(GameIdSchema, req.query.id)) {
+			throw new HttpError(400, `${req.query.id} is not a valid GameId.`);
+		}
+		
+		const gameNotifier = this.games.get(req.query.id);
+		if (!gameNotifier) {
+			throw new HttpError(404, `GameId ${req.query.id} not found.`);
+		}
+		
+		res.json(gameNotifier.state.toJson());
+	}
+	
+	private wsState(webSocket: WebSocket) {
+		const ws = new WebSocketUtil(webSocket);
+		ws.onMethod("register", (msg: unknown) => {
+			console.log("WS /api/game/state " + JSON.stringify(msg));
+			
+			if (!is(GameIdSchema, msg)) {
+				throw new HttpError(400, `${msg} is not a valid GameId.`);
 			}
-
-			const lobby = this.lobbyApp.getLobby(req.body);
-			if (!lobby) {
-				throw new HttpError(404, `LobbyId ${req.body} not found.`);
+			
+			const gameId: GameId = msg;
+			const game = this.games.get(gameId);
+			if (!game) {
+				throw new HttpError(404, `GameId ${gameId} not found.`);
 			}
-
-			const gameNotifier = new GameNotifier(lobby.id, lobby.state.createGame());
-			this.games.set(gameNotifier.id, gameNotifier);
-			this.lobbyApp.lobbies.delete(lobby.id);
-
-			const response: CreateGameResponse = { id: gameNotifier.id };
-			res.send(response);
-		});
-
-		router.post("/addone", (req: Request, res: Response) => {
-			console.log("POST /api/game/addone " + JSON.stringify(req.body));
-
-			if (!is(GameIdSchema, req.body)) {
-				throw new HttpError(400, `req.body} is not a valid GameId.`);
-			}
-
-			const gameNotifier = this.games.get(req.body);
-			if (!gameNotifier) {
-				throw new HttpError(404, `GameId ${req.body} not found.`);
-			}
-
-			gameNotifier.state.addOne();
-			res.end();
-			gameNotifier.notifyClients();
-		});
-
-		router.post("/reset", (req: Request, res: Response) => {
-			console.log("POST /api/game/reset " + JSON.stringify(req.body));
-			if (!is(GameIdSchema, req.body)) {
-				throw new HttpError(400, `req.body} is not a valid GameId.`);
-			}
-
-			const gameNotifier = this.games.get(req.body);
-			if (!gameNotifier) {
-				throw new HttpError(404, `GameId ${req.body} not found.`);
-			}
-
-			gameNotifier.state.resetCounter();
-			res.end();
-			gameNotifier.notifyClients();
-		});
-
-		router.get("/state", (req: Request, res: Response) => {
-			console.log("GET /api/game/state " + JSON.stringify(req.query));
-
-			if (!req.query.id) {
-				throw new HttpError(400, `id= must be provided.`);
-			}
-			if (!is(GameIdSchema, req.query.id)) {
-				throw new HttpError(400, `${req.query.id} is not a valid GameId.`);
-			}
-
-			const gameNotifier = this.games.get(req.query.id);
-			if (!gameNotifier) {
-				throw new HttpError(404, `GameId ${req.query.id} not found.`);
-			}
-
-			res.json(gameNotifier.state.toJson());
-		});
-
-		router.ws("/state", (webSocket: WebSocket) => {
-			const ws = new WebSocketUtil(webSocket);
-			ws.onMethod("register", (msg: unknown) => {
-				console.log("WS /api/game/state " + JSON.stringify(msg));
-
-				if (!is(GameIdSchema, msg)) {
-					throw new HttpError(400, `${msg} is not a valid GameId.`);
-				}
-
-				const gameId: GameId = msg;
-				const game = this.games.get(gameId);
-				if (!game) {
-					throw new HttpError(404, `GameId ${gameId} not found.`);
-				}
-				ws.onClose(() => {
-					game.removeClient(ws);
-				});
-				game.notifyClient(ws);
-				game.addClient(ws);
+			ws.onClose(() => {
+				game.removeClient(ws);
 			});
+			game.notifyClient(ws);
+			game.addClient(ws);
 		});
-		
-		return router;
+	}
+	
+	public getRouter() : Router {
+		return express.Router()
+			.post("/create", (req, res) => this.create(req, res))
+			.post("/addone", (req, res) => this.addOne(req, res))
+			.post("/reset", (req, res) => this.reset(req, res))
+			.get("/state", (req, res) => this.getState(req, res))
+			.ws("/state", ws => this.wsState(ws));
 	}
 }

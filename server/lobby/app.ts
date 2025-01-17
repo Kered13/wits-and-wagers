@@ -22,88 +22,91 @@ export class LobbyApp {
 		return this.lobbies.get(lobbyId);
 	}
 	
-	public getRouter(): Router {
-		const router = express.Router();
-		router.post("/create", (req: Request, res: Response) => {
-			console.log("POST /api/lobby/create " + JSON.stringify(req.body));
-
-			if (!is(CreateLobbyRequestSchema, req.body)) {
-				throw new HttpError(400, `Invalid CreateLobbyRequest: ${req.body}`);
-			}
-
-			const lobbyNotifier = new LobbyNotifier("game" + this.lobbies.size, new Lobby(req.body.title, req.body.host));
-			this.lobbies.set(lobbyNotifier.id, lobbyNotifier);
-
-			const response: CreateLobbyResponse = {
-				id: lobbyNotifier.id,
-				host: lobbyNotifier.state.getHost().toPrivateJson()
-			};
-			assert(CreateLobbyResponseSchema, response);
-			res.send(response);
-		});
-
-		router.post("/addplayer", (req: Request, res: Response) => {
-			console.log("POST /api/lobby/addplayer " + JSON.stringify(req.body));
-
-			if (!is(AddPlayerRequestSchema, req.body)) {
-				throw new HttpError(400, `Invalid AddPlayerRequest: ${req.body}`);
-			}
-
-			const lobbyNotifier = this.lobbies.get(req.body.lobbyId);
-			if (!lobbyNotifier) {
-				throw new HttpError(404, `LobbyId ${req.body.lobbyId} not found.`);
-			}
-
-			const player = lobbyNotifier.state.addPlayer(req.body.name);
-
-			const response: AddPlayerResponse = {
-				player: player.toPrivateJson()
-			};
-			assert(AddPlayerResponseSchema, response);
-			res.send(response);
-
-			lobbyNotifier.notifyClients();
-		});
-
-		router.get("/state", (req: Request, res: Response) => {
-			console.log("GET /api/lobby/state " + JSON.stringify(req.query));
-
-			if (!req.query.id) {
-				throw new HttpError(400, `id= must be provided.`);
-			}
-			if (!is(LobbyIdSchema, req.query.id)) {
-				throw new HttpError(400, `${req.query.id} is not a valid LobbyId.`);
-			}
-
-			const lobbyNotifier = this.lobbies.get(req.query.id);
-			if (!lobbyNotifier) {
-				throw new HttpError(404, `LobbyId ${req.query.id} not found.`);
-			}
-
-			res.json(lobbyNotifier.state.toJson());
-		});
-
-		router.ws("/state", (webSocket: WebSocket) => {
-			const ws = new WebSocketUtil(webSocket);
-			ws.onMethod("register", (msg: unknown) => {
-				console.log("WS /api/lobby/state " + JSON.stringify(msg));
-
-				if (!is(LobbyIdSchema, msg)) {
-					throw new HttpError(400, `${msg} is not a valid LobbyId.`);
-				}
-
-				const lobby = this.lobbies.get(msg);
-				if (!lobby) {
-					throw new HttpError(404, `LobbyId ${msg} not found.`);
-				}
-				ws.onClose(() => {
-					lobby.removeClient(ws);
-				});
-				lobby.notifyClient(ws);
-				lobby.addClient(ws);
-			});
-		});
+	private create(req: Request, res: Response): void {
+		console.log("POST /api/lobby/create " + JSON.stringify(req.body));
 		
-		return router;
+		if (!is(CreateLobbyRequestSchema, req.body)) {
+			throw new HttpError(400, `Invalid CreateLobbyRequest: ${req.body}`);
+		}
+		
+		const lobbyNotifier = new LobbyNotifier("game" + this.lobbies.size, new Lobby(req.body.title, req.body.host));
+		this.lobbies.set(lobbyNotifier.id, lobbyNotifier);
+		
+		const response: CreateLobbyResponse = {
+			id: lobbyNotifier.id,
+			host: lobbyNotifier.state.getHost().toPrivateJson()
+		};
+		assert(CreateLobbyResponseSchema, response);
+		res.send(response);
+	}
+	
+	private addplayer(req: Request, res: Response): void {
+		console.log("POST /api/lobby/addplayer " + JSON.stringify(req.body));
+		
+		if (!is(AddPlayerRequestSchema, req.body)) {
+			throw new HttpError(400, `Invalid AddPlayerRequest: ${req.body}`);
+		}
+		
+		const lobbyNotifier = this.lobbies.get(req.body.lobbyId);
+		if (!lobbyNotifier) {
+			throw new HttpError(404, `LobbyId ${req.body.lobbyId} not found.`);
+		}
+		
+		const player = lobbyNotifier.state.addPlayer(req.body.name);
+		
+		const response: AddPlayerResponse = {
+			player: player.toPrivateJson()
+		};
+		assert(AddPlayerResponseSchema, response);
+		res.send(response);
+		
+		lobbyNotifier.notifyClients();
+	}
+	
+	private getState(req: Request, res: Response): void {
+		console.log("GET /api/lobby/state " + JSON.stringify(req.query));
+		
+		if (!req.query.id) {
+			throw new HttpError(400, `id= must be provided.`);
+		}
+		if (!is(LobbyIdSchema, req.query.id)) {
+			throw new HttpError(400, `${req.query.id} is not a valid LobbyId.`);
+		}
+		
+		const lobbyNotifier = this.lobbies.get(req.query.id);
+		if (!lobbyNotifier) {
+			throw new HttpError(404, `LobbyId ${req.query.id} not found.`);
+		}
+		
+		res.json(lobbyNotifier.state.toJson());
+	}
+	
+	private wsState(webSocket: WebSocket): void {
+		const ws = new WebSocketUtil(webSocket);
+		ws.onMethod("register", (msg: unknown) => {
+			console.log("WS /api/lobby/state " + JSON.stringify(msg));
+			
+			if (!is(LobbyIdSchema, msg)) {
+				throw new HttpError(400, `${msg} is not a valid LobbyId.`);
+			}
+			
+			const lobby = this.lobbies.get(msg);
+			if (!lobby) {
+				throw new HttpError(404, `LobbyId ${msg} not found.`);
+			}
+			ws.onClose(() => {
+				lobby.removeClient(ws);
+			});
+			lobby.notifyClient(ws);
+			lobby.addClient(ws);
+		});
+	}
+	
+	public getRouter(): Router {
+		return express.Router()
+			.post("/create", (req, res) => this.create(req, res))
+			.post("/addplayer", (req, res) => this.addplayer(req, res))
+			.get("/state", (req, res) => this.getState(req, res))
+			.ws("/state", ws => this.wsState(ws));
 	}
 }
