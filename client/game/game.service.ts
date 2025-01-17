@@ -30,7 +30,7 @@ export class GameService {
 	
 	createGame(request: CreateGameRequest): Observable<CreateGameResponse> {
 		assert(CreateGameRequestSchema, request);
-		return this.http.postJson<CreateGameResponse>("http://localhost:3000/api/game/create", request);
+		return this.http.postJson<CreateGameRequest, CreateGameResponse>("http://localhost:3000/api/game/create", request);
 	}
 }
 
@@ -66,10 +66,10 @@ export class GameInstanceService {
 	}
 	
 	public addOne(): void {
-		this.http.postJson("http://localhost:3000/api/game/addone", this.id).subscribe();
+		this.http.postJson<GameId, void>("http://localhost:3000/api/game/addone", this.id).subscribe();
 	}
 	
 	public resetCounter(): void {
-		this.http.postJson("http://localhost:3000/api/game/reset", this.id).subscribe();
+		this.http.postJson<GameId, void>("http://localhost:3000/api/game/reset", this.id).subscribe();
 	}
 };

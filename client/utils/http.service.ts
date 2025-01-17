@@ -16,8 +16,8 @@ export class HttpService {
 		return this.http.get<T>(url, { params: queryParams || {} });
 	}
 	
-	postJson<T>(url: string, body: any): Observable<T> {
+	postJson<Req, Res>(url: string, body: Req): Observable<Res> {
 		const headers: HttpHeaders = new HttpHeaders().set("Content-Type", "application/json");
-		return this.http.post<T>(url, JSON.stringify(body), { headers: headers });
+		return this.http.post<Res>(url, JSON.stringify(body), { headers: headers });
 	}
 }

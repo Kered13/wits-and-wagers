@@ -32,7 +32,7 @@ export class LobbyService {
 	
 	createLobby(request: CreateLobbyRequest): Observable<CreateLobbyResponse> {
 		assert(CreateLobbyRequestSchema, request);
-		return this.http.postJson<CreateLobbyResponse>("http://localhost:3000/api/lobby/create", request);
+		return this.http.postJson<CreateLobbyRequest, CreateLobbyResponse>("http://localhost:3000/api/lobby/create", request);
 	}
 }
 
@@ -62,7 +62,7 @@ export class LobbyInstanceService {
 	}
 	
 	public addPlayer(name: string): Observable<PrivatePlayer> {
-		return this.http.postJson<AddPlayerResponse>("http://localhost:3000/api/lobby/addplayer", { lobbyId: this.id, name: name })
+		return this.http.postJson<AddPlayerRequest, AddPlayerResponse>("http://localhost:3000/api/lobby/addplayer", { lobbyId: this.id, name: name })
 			.pipe(map(response => response.player));
 	}
 };
