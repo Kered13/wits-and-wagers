@@ -3,7 +3,7 @@ import { Observable, map, filter } from "rxjs";
 import { webSocket, WebSocketSubject } from 'rxjs/webSocket';
 import { assert, is } from "valibot";
 
-import { HttpService } from "../utils/http.service.js";
+import { BackendService } from "../utils/backend.service.js";
 import { CreateGameRequestSchema, type CreateGameRequest, type CreateGameResponse } from "../../shared/game/create.js";
 import { type GameId, type GameJson } from "../../shared/game/game.js";
 import { type GameEnd, GameNotificationSchema, type GameNotification } from "../../shared/game/update.js";
@@ -13,7 +13,7 @@ import { type GameEnd, GameNotificationSchema, type GameNotification } from "../
 export class GameService {
 	private gameInstances: Map<GameId, GameInstanceService> = new Map<GameId, GameInstanceService>();
 	
-	constructor(private http: HttpService) {}
+	constructor(private http: BackendService) {}
 	
 	private createGameInstanceService(id: GameId): GameInstanceService {
 		return new GameInstanceService(this.http, id);
@@ -30,7 +30,7 @@ export class GameService {
 	
 	createGame(request: CreateGameRequest): Observable<CreateGameResponse> {
 		assert(CreateGameRequestSchema, request);
-		return this.http.postJson<CreateGameRequest, CreateGameResponse>("http://localhost:3000/api/game/create", request);
+		return this.http.postJson<CreateGameRequest, CreateGameResponse>("/api/game/create", request);
 	}
 }
 
@@ -41,7 +41,7 @@ export class GameInstanceService {
 	private readonly gameUpdates: WritableSignal<GameJson>;
 	private readonly gameEnd: Observable<GameEnd>;
 	
-	constructor(private http: HttpService, private id: GameId) {
+	constructor(private backend: BackendService, private id: GameId) {
 		const wsSubject: WebSocketSubject<Object> = webSocket("ws://localhost:3000/api/game/state");
 		wsSubject.next({
 			method: "register",
@@ -66,10 +66,10 @@ export class GameInstanceService {
 	}
 	
 	public addOne(): void {
-		this.http.postJson<GameId, void>("http://localhost:3000/api/game/addone", this.id).subscribe();
+		this.backend.postJson<GameId, void>("/api/game/addone", this.id).subscribe();
 	}
 	
 	public resetCounter(): void {
-		this.http.postJson<GameId, void>("http://localhost:3000/api/game/reset", this.id).subscribe();
+		this.backend.postJson<GameId, void>("/api/game/reset", this.id).subscribe();
 	}
 };

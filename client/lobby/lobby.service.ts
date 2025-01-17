@@ -3,7 +3,7 @@ import { Observable, map, filter } from "rxjs";
 import { webSocket, WebSocketSubject } from 'rxjs/webSocket';
 import { assert, is } from "valibot";
 
-import { HttpService } from "../utils/http.service.js";
+import { BackendService } from "../utils/backend.service.js";
 import { type AddPlayerRequest, type AddPlayerResponse } from "../../shared/lobby/addplayer.js";
 import { CreateLobbyRequestSchema, type CreateLobbyRequest, type CreateLobbyResponse } from "../../shared/lobby/create.js";
 import { type LobbyId, type LobbyJson } from "../../shared/lobby/lobby.js";
@@ -15,10 +15,10 @@ import { PrivatePlayer } from "../../shared/player.js";
 export class LobbyService {
 	private lobbyInstances: Map<LobbyId, LobbyInstanceService> = new Map<LobbyId, LobbyInstanceService>();
 	
-	constructor(private http: HttpService) {}
+	constructor(private backend: BackendService) {}
 	
 	private createLobbyInstanceService(id: LobbyId): LobbyInstanceService {
-		return new LobbyInstanceService(this.http, id);
+		return new LobbyInstanceService(this.backend, id);
 	}
 	
 	getLobbyInstanceService(id: LobbyId): LobbyInstanceService {
@@ -32,7 +32,7 @@ export class LobbyService {
 	
 	createLobby(request: CreateLobbyRequest): Observable<CreateLobbyResponse> {
 		assert(CreateLobbyRequestSchema, request);
-		return this.http.postJson<CreateLobbyRequest, CreateLobbyResponse>("http://localhost:3000/api/lobby/create", request);
+		return this.backend.postJson<CreateLobbyRequest, CreateLobbyResponse>("/api/lobby/create", request);
 	}
 }
 
@@ -42,7 +42,7 @@ export class LobbyInstanceService {
 	
 	private lobbyUpdates: WritableSignal<LobbyJson>;
 	
-	constructor(private http: HttpService, private id: LobbyId) {
+	constructor(private http: BackendService, private id: LobbyId) {
 		const wsSubject: WebSocketSubject<Object> = webSocket("ws://localhost:3000/api/lobby/state");
 		wsSubject.next({
 			method: "register",
@@ -62,7 +62,7 @@ export class LobbyInstanceService {
 	}
 	
 	public addPlayer(name: string): Observable<PrivatePlayer> {
-		return this.http.postJson<AddPlayerRequest, AddPlayerResponse>("http://localhost:3000/api/lobby/addplayer", { lobbyId: this.id, name: name })
+		return this.http.postJson<AddPlayerRequest, AddPlayerResponse>("/api/lobby/addplayer", { lobbyId: this.id, name: name })
 			.pipe(map(response => response.player));
 	}
 };
