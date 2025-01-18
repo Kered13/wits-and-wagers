@@ -1,4 +1,4 @@
-import { nonEmpty, object, pipe, string, type InferOutput } from "valibot";
+import { nonEmpty, pipe, strictObject, string, type InferOutput } from "valibot";
 
 
 export const PublicIdSchema = pipe(string(), nonEmpty());
@@ -11,7 +11,7 @@ export type PrivateId = InferOutput<typeof PrivateIdSchema>;
 
 // Player information including private information that should only be sent to
 // that player.
-export const PrivatePlayerSchema = object({
+export const PrivatePlayerSchema = strictObject({
 	name: pipe(string(), nonEmpty()),
 	publicId: PublicIdSchema,
 	privateId: PrivateIdSchema

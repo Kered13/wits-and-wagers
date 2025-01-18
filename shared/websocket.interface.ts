@@ -1,7 +1,7 @@
-import { any, check, literal, nonEmpty, number, object, pipe, string, union, variant, type GenericSchema } from "valibot";
+import { any, check, literal, nonEmpty, number, pipe, strictObject, string, variant } from "valibot";
 
 
-export const WebSocketRequestSchema = object({
+export const WebSocketRequestSchema = strictObject({
 	method: pipe(string(), nonEmpty()),
 	payload: any()
 });
@@ -11,7 +11,7 @@ export type WebSocketRequest<T> = {
 };
 
 
-export const WebSocketSuccessSchema = object({
+export const WebSocketSuccessSchema = strictObject({
 	type: literal("success"),
 	status: pipe(number(), check(status => 200 <= status && status < 300)),
 	payload: any()
@@ -23,7 +23,7 @@ export type WebSocketSuccess<T> = {
 };
 
 
-export const WebSocketErrorSchema = object({
+export const WebSocketErrorSchema = strictObject({
 	type: literal("error"),
 	status: pipe(number(), check(status => 400 <= status && status < 600)),
 	message: string()

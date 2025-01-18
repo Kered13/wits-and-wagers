@@ -1,10 +1,10 @@
-import { literal, object, variant, type InferOutput } from "valibot";
+import { literal, strictObject, variant, type InferOutput } from "valibot";
 
 import { LobbyIdSchema, LobbyJsonSchema } from "./lobby.js";
 
 
 // Represents an update to the lobby state.
-export const LobbyUpdateSchema = object({
+export const LobbyUpdateSchema = strictObject({
 	type: literal("update"),
 	id: LobbyIdSchema,
 	state: LobbyJsonSchema

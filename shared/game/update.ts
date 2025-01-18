@@ -1,10 +1,10 @@
-import { literal, object, variant, type InferOutput } from "valibot";
+import { literal, strictObject, variant, type InferOutput } from "valibot";
 
 import { GameIdSchema, GameJsonSchema } from "./game.js";
 
 
 // Represents an update to the game state.
-export const GameUpdateSchema = object({
+export const GameUpdateSchema = strictObject({
 	type: literal("update"),
 	id: GameIdSchema,
 	state: GameJsonSchema
@@ -14,7 +14,7 @@ export type GameUpdate = InferOutput<typeof GameUpdateSchema>;
 
 // Indicates the end of the game. After sending a GameEnd notification, no other
 // notifications may be sent for this game.
-export const GameEndSchema = object({
+export const GameEndSchema = strictObject({
 	type: literal("end"),
 	id: GameIdSchema
 });
