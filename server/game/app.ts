@@ -42,7 +42,7 @@ export class GameApp {
 		console.log("POST /api/game/addone " + JSON.stringify(req.body));
 		
 		if (!is(GameIdSchema, req.body)) {
-			throw new HttpError(400, `req.body} is not a valid GameId.`);
+			throw new HttpError(400, `${req.body} is not a valid GameId.`);
 		}
 	
 		const gameNotifier = this.games.get(req.body);
@@ -58,7 +58,7 @@ export class GameApp {
 	private reset(req: Request, res: Response): void {
 		console.log("POST /api/game/reset " + JSON.stringify(req.body));
 		if (!is(GameIdSchema, req.body)) {
-			throw new HttpError(400, `req.body} is not a valid GameId.`);
+			throw new HttpError(400, `${req.body} is not a valid GameId.`);
 		}
 		
 		const gameNotifier = this.games.get(req.body);
