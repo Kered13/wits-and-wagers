@@ -33,12 +33,12 @@ export const routes: Routes = [
 		title: "Wits & Wagers",
 		path: "lobby/:lobbyId",
 		component: LobbyComponent,
-		resolve: { ...getLocalStorage("username") }
+		resolve: { ...getLocalStorage("username", "publicId", "privateId") }
 	},
 	{
 		title: "Wits & Wagers",
 		path: "game/:gameId",
 		component: GameComponent,
-		resolve: { ... getLocalStorage("username") }
+		resolve: { ... getLocalStorage("username", "publicId", "privateId") }
 	}
 ];

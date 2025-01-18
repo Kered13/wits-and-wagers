@@ -10,6 +10,7 @@ import { toSignal } from "@angular/core/rxjs-interop";
 import { LobbyInstanceService, LobbyService } from "./lobby.service.js";
 import { LobbyId, LobbyJson } from "../../shared/lobby/lobby.js";
 import { GameService } from "../game/game.service.js";
+import { PrivatePlayer } from "../../shared/player.js";
 
 
 @Component({
@@ -20,7 +21,8 @@ import { GameService } from "../game/game.service.js";
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class LobbyComponent {
-	private lobbyService: Signal<LobbyInstanceService>;
+	private readonly lobbyService: Signal<LobbyInstanceService>;
+	private readonly player: Signal<PrivatePlayer>;
 	
 	readonly lobbyId: Signal<LobbyId>;
 	readonly lobby: Signal<LobbyJson>;
@@ -31,8 +33,14 @@ export class LobbyComponent {
 			lobbyService: LobbyService,
 			titleService: Title,
 			route: ActivatedRoute) {
-		const params: Signal<ParamMap> = toSignal(route.paramMap, { requireSync: true });
+		const data = toSignal(route.data, { requireSync: true });
+		this.player = computed(() => ({
+			name: data().username,
+			publicId: data().publicId,
+			privateId: data().privateId
+		}));
 		
+		const params: Signal<ParamMap> = toSignal(route.paramMap, { requireSync: true });
 		this.lobbyId = computed(() => params().get("lobbyId")!);
 		this.lobbyService = computed(() => lobbyService.getLobbyInstanceService(this.lobbyId()));
 		this.lobby = computed(() => this.lobbyService().lobbyState());

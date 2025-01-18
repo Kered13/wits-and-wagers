@@ -5,8 +5,9 @@ import { assert, is } from "valibot";
 
 import { BackendService } from "../utils/backend.service.js";
 import { CreateGameRequestSchema, type CreateGameRequest, type CreateGameResponse } from "../../shared/game/create.js";
-import { type GameId, type GameJson } from "../../shared/game/game.js";
+import { AddOneRequest, ResetRequest, type GameId, type GameJson } from "../../shared/game/game.js";
 import { type GameEnd, GameNotificationSchema, type GameNotification } from "../../shared/game/update.js";
+import { PrivateId, PrivatePlayer } from "../../shared/player.js";
 
 
 @Injectable({providedIn: "root"})
@@ -51,7 +52,7 @@ export class GameInstanceService {
 		const notifications: Observable<GameNotification> =
 			wsSubject.pipe(filter(object => is(GameNotificationSchema, object)));
 		
-		this.gameUpdates = signal({ title: "", counter: 0 });
+		this.gameUpdates = signal({ title: "", players: [] });
 		notifications
 			.pipe(filter(notification => notification.type === "update"),
 			      map(update => update.state))
@@ -65,11 +66,17 @@ export class GameInstanceService {
 		return this.gameEnd;
 	}
 	
-	public addOne(): void {
-		this.backend.postJson<GameId, void>("/api/game/addone", this.id).subscribe();
+	public addOne(player: PrivatePlayer): void {
+		this.backend.postJson<AddOneRequest, void>("/api/game/addone", {
+				gameId: this.id,
+				privateId: player.privateId })
+			.subscribe();
 	}
 	
-	public resetCounter(): void {
-		this.backend.postJson<GameId, void>("/api/game/reset", this.id).subscribe();
+	public resetCounter(player: PrivatePlayer): void {
+		this.backend.postJson<ResetRequest, void>("/api/game/reset", {
+				gameId: this.id,
+				privateId: player.privateId })
+			.subscribe();
 	}
 };

@@ -1,10 +1,7 @@
 import { array, nonEmpty, pipe, regex, strictObject, string, type InferOutput } from "valibot";
+
 import { PublicIdSchema } from "../player.js";
-
-
-const RgbSchema = pipe(
-	string(),
-	regex(/^#(?:[\da-f]{3,4}|[\da-f]{6}|[\da-f]{8})$/iu));
+import { RgbSchema } from "../rgb.js";
 
 
 // ID and join code of the lobby. This will become the GameId.

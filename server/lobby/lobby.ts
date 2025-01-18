@@ -19,15 +19,16 @@ export class LobbyPlayer implements Serializable<LobbyPlayerJson> {
 	
 	public toJson(): LobbyPlayerJson {
 		return {
-			publicId: this.publicId,
 			name: this.name,
+			publicId: this.publicId,
 			color: this.color
 		};
 	}
 	
 	public toPrivateJson(): PrivatePlayer {
 		return {
-			...this.toJson(),
+			name: this.name,
+			publicId: this.publicId,
 			privateId: this.privateId
 		};
 	}
@@ -62,7 +63,7 @@ export class Lobby implements Serializable<LobbyJson> {
 	}
 	
 	public createGame(): Game {
-		return new Game(this.title);
+		return new Game(this.title, this.players);
 	}
 	
 	public toJson(): LobbyJson {

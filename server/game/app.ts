@@ -8,7 +8,7 @@ import { HttpError } from "../utils/httperror.js";
 import { Notifier } from "../utils/notifier.js";
 import { WebSocketUtil } from "../utils/websocket.js";
 import { type CreateGameResponse } from "../../shared/game/create.js";
-import { GameIdSchema, type GameId, type GameJson } from "../../shared/game/game.js";
+import { AddOneRequestSchema, GameIdSchema, ResetRequestSchema, type AddOneRequest, type GameId, type GameJson } from "../../shared/game/game.js";
 import { LobbyIdSchema } from "../../shared/lobby/lobby.js";
 
 
@@ -41,32 +41,34 @@ export class GameApp {
 	private addOne(req: Request, res: Response): void {
 		console.log("POST /api/game/addone " + JSON.stringify(req.body));
 		
-		if (!is(GameIdSchema, req.body)) {
+		if (!is(AddOneRequestSchema, req.body)) {
 			throw new HttpError(400, `${req.body} is not a valid GameId.`);
 		}
 	
-		const gameNotifier = this.games.get(req.body);
+		const request: AddOneRequest = req.body;
+		const gameNotifier = this.games.get(request.gameId);
 		if (!gameNotifier) {
-			throw new HttpError(404, `GameId ${req.body} not found.`);
+			throw new HttpError(404, `GameId ${request.gameId} not found.`);
 		}
 	
-		gameNotifier.state.addOne();
+		gameNotifier.state.addOne(request.privateId);
 		res.end();
 		gameNotifier.notifyClients();
 	}
 	
 	private reset(req: Request, res: Response): void {
 		console.log("POST /api/game/reset " + JSON.stringify(req.body));
-		if (!is(GameIdSchema, req.body)) {
+		if (!is(ResetRequestSchema, req.body)) {
 			throw new HttpError(400, `${req.body} is not a valid GameId.`);
 		}
 		
-		const gameNotifier = this.games.get(req.body);
+		const request: AddOneRequest = req.body;
+		const gameNotifier = this.games.get(request.gameId);
 		if (!gameNotifier) {
-			throw new HttpError(404, `GameId ${req.body} not found.`);
+			throw new HttpError(404, `GameId ${request.gameId} not found.`);
 		}
 		
-		gameNotifier.state.resetCounter();
+		gameNotifier.state.resetCounter(request.privateId);
 		res.end();
 		gameNotifier.notifyClients();
 	}

@@ -13,7 +13,7 @@ import { PrivatePlayer } from "../../shared/player.js";
 
 @Injectable({providedIn: "root"})
 export class LobbyService {
-	private lobbyInstances: Map<LobbyId, LobbyInstanceService> = new Map<LobbyId, LobbyInstanceService>();
+	private readonly lobbyInstances: Map<LobbyId, LobbyInstanceService> = new Map<LobbyId, LobbyInstanceService>();
 	
 	constructor(private backend: BackendService) {}
 	
