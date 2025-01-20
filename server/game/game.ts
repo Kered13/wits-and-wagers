@@ -1,9 +1,10 @@
 import { type LobbyPlayer } from "../lobby/lobby.js";
 import { HttpError } from "../utils/httperror.js";
 import { type Serializable } from "../utils/serializable.js";
-import { type GameJson, type GamePlayerJson } from "../../shared/game/game.js";
+import { type GameId, type GameJson, type GamePlayerJson } from "../../shared/game/game.js";
 import { type PrivateId, type PublicId } from "../../shared/player.js";
 import { type Rgb } from "../../shared/rgb.js";
+import type { GameUpdate } from "../../shared/game/update.js";
 
 
 class GamePlayer implements Serializable<GamePlayerJson> {
@@ -43,8 +44,15 @@ class GamePlayer implements Serializable<GamePlayerJson> {
 export class Game implements Serializable<GameJson> {
 	private readonly players: GamePlayer[];
 	
-	constructor(private readonly title: string, lobbyPlayers: LobbyPlayer[]) {
+	constructor(
+			private readonly id: GameId,
+			private readonly title: string,
+			lobbyPlayers: LobbyPlayer[]) {
 		this.players = lobbyPlayers.map(player => new GamePlayer(player));
+	}
+	
+	public getId(): GameId {
+		return this.id;
 	}
 	
 	public addOne(id: PrivateId): void {
@@ -59,6 +67,14 @@ export class Game implements Serializable<GameJson> {
 		return {
 			title: this.title,
 			players: this.players.map(player => player.toJson())
+		};
+	}
+	
+	public makeUpdate(): GameUpdate {
+		return {
+			type: "update",
+			id: this.id,
+			state: this.toJson()
 		};
 	}
 	

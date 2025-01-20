@@ -10,32 +10,44 @@ import { WebSocketUtil } from "../utils/websocket.js";
 import { type CreateGameResponse } from "../../shared/game/create.js";
 import { AddOneRequestSchema, GameIdSchema, ResetRequestSchema, type AddOneRequest, type GameId, type GameJson } from "../../shared/game/game.js";
 import { LobbyIdSchema } from "../../shared/lobby/lobby.js";
+import type { GameNotification } from "../../shared/game/update.js";
 
 
-class GameNotifier extends Notifier<GameJson, Game, GameId> {}
+class GameNotifier extends Notifier<GameNotification> {}
+
+
+type GameData = {
+	game: Game,
+	notifier: GameNotifier
+};
+
 
 export class GameApp {
-	private readonly games: Map<GameId, GameNotifier> = new Map();
+	private readonly games: Map<GameId, GameData> = new Map();
 	
 	constructor(private readonly lobbyApp: LobbyApp) {}
 	
-	private create(req: Request, res: Response): void {
+	public getGame(id: GameId): GameData {
+		const data = this.games.get(id);
+		if (!data) {
+			throw new HttpError(404, `GameId ${id} not found.`);
+		}
+		return data;
+	}
+	
+	private create(req: Request, _: Response): void {
 		console.log("POST /api/game/create " + JSON.stringify(req.body));
 		if (!is(LobbyIdSchema, req.body)) {
 			throw new HttpError(400, `${req.body} is not a valid LobbyId.`);
 		}
 		
-		const lobby = this.lobbyApp.getLobby(req.body);
-		if (!lobby) {
-			throw new HttpError(404, `LobbyId ${req.body} not found.`);
-		}
+		const { lobby, notifier: lobbyNotifier } = this.lobbyApp.getLobby(req.body);
+		this.lobbyApp.removeLobby(lobby);
 		
-		const gameNotifier = new GameNotifier(lobby.id, lobby.state.createGame());
-		this.games.set(gameNotifier.id, gameNotifier);
-		this.lobbyApp.lobbies.delete(lobby.id);
+		const game = lobby.createGame();
+		this.games.set(game.getId(), { game: game, notifier: new GameNotifier() });
 		
-		const response: CreateGameResponse = { id: gameNotifier.id };
-		res.send(response);
+		lobbyNotifier.notifyClients(lobby.makeBeginGame());
 	}
 	
 	private addOne(req: Request, res: Response): void {
@@ -44,16 +56,12 @@ export class GameApp {
 		if (!is(AddOneRequestSchema, req.body)) {
 			throw new HttpError(400, `${req.body} is not a valid GameId.`);
 		}
-	
-		const request: AddOneRequest = req.body;
-		const gameNotifier = this.games.get(request.gameId);
-		if (!gameNotifier) {
-			throw new HttpError(404, `GameId ${request.gameId} not found.`);
-		}
-	
-		gameNotifier.state.addOne(request.privateId);
+		
+		const { game, notifier } = this.getGame(req.body.gameId);
+		game.addOne(req.body.privateId);
+		
 		res.end();
-		gameNotifier.notifyClients();
+		notifier.notifyClients(game.makeUpdate());
 	}
 	
 	private reset(req: Request, res: Response): void {
@@ -62,15 +70,11 @@ export class GameApp {
 			throw new HttpError(400, `${req.body} is not a valid GameId.`);
 		}
 		
-		const request: AddOneRequest = req.body;
-		const gameNotifier = this.games.get(request.gameId);
-		if (!gameNotifier) {
-			throw new HttpError(404, `GameId ${request.gameId} not found.`);
-		}
+		const { game, notifier } = this.getGame(req.body.gameId);
+		game.resetCounter(req.body.privateId);
 		
-		gameNotifier.state.resetCounter(request.privateId);
 		res.end();
-		gameNotifier.notifyClients();
+		notifier.notifyClients(game.makeUpdate());
 	}
 	
 	private wsState(webSocket: WebSocket) {
@@ -83,15 +87,13 @@ export class GameApp {
 			}
 			
 			const gameId: GameId = msg;
-			const game = this.games.get(gameId);
-			if (!game) {
-				throw new HttpError(404, `GameId ${gameId} not found.`);
-			}
+			const { game, notifier } = this.getGame(gameId);
+			notifier.addClient(ws);
+			notifier.notifyClient(ws, game.makeUpdate());
+			
 			ws.onClose(() => {
-				game.removeClient(ws);
+				notifier.removeClient(ws);
 			});
-			game.notifyClient(ws);
-			game.addClient(ws);
 		});
 	}
 	

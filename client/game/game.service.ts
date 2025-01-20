@@ -1,4 +1,4 @@
-import { Injectable, signal, Signal, WritableSignal } from "@angular/core";
+import { Injectable, Signal } from "@angular/core";
 import { Observable, map, filter } from "rxjs";
 import { webSocket, WebSocketSubject } from 'rxjs/webSocket';
 import { assert, is } from "valibot";
@@ -8,6 +8,7 @@ import { CreateGameRequestSchema, type CreateGameRequest, type CreateGameRespons
 import { AddOneRequest, ResetRequest, type GameId, type GameJson } from "../../shared/game/game.js";
 import { type GameEnd, GameNotificationSchema, type GameNotification } from "../../shared/game/update.js";
 import { PrivateId, PrivatePlayer } from "../../shared/player.js";
+import { toSignal } from "@angular/core/rxjs-interop";
 
 
 @Injectable({providedIn: "root"})
@@ -37,9 +38,7 @@ export class GameService {
 
 
 export class GameInstanceService {
-	public readonly gameState: Signal<GameJson>;
-	
-	private readonly gameUpdates: WritableSignal<GameJson>;
+	private readonly gameUpdate: Observable<GameJson>;
 	private readonly gameEnd: Observable<GameEnd>;
 	
 	constructor(private backend: BackendService, private id: GameId) {
@@ -52,18 +51,11 @@ export class GameInstanceService {
 		const notifications: Observable<GameNotification> =
 			wsSubject.pipe(filter(object => is(GameNotificationSchema, object)));
 		
-		this.gameUpdates = signal({ title: "", players: [] });
-		notifications
-			.pipe(filter(notification => notification.type === "update"),
-			      map(update => update.state))
-			.subscribe(state => this.gameUpdates.set(state));
+		this.gameUpdate = notifications.pipe(
+				filter(notification => notification.type === "update"),
+				map(update => update.state));
 		
 		this.gameEnd = notifications.pipe(filter(notification => notification.type === "end"));
-		this.gameState = this.gameUpdates;
-	}
-	
-	public getGameEndObservable(): Observable<GameEnd> {
-		return this.gameEnd;
 	}
 	
 	public addOne(player: PrivatePlayer): void {
@@ -78,5 +70,13 @@ export class GameInstanceService {
 				gameId: this.id,
 				privateId: player.privateId })
 			.subscribe();
+	}
+	
+	public onGameUpdate(): Observable<GameJson> {
+		return this.gameUpdate;
+	}
+	
+	public onGameEnd(): Observable<GameEnd> {
+		return this.gameEnd;
 	}
 };

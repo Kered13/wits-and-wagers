@@ -1,5 +1,5 @@
-import { Injectable, signal, Signal, WritableSignal } from "@angular/core";
-import { Observable, map, filter } from "rxjs";
+import { Injectable, Signal } from "@angular/core";
+import { Observable, map, filter, first } from "rxjs";
 import { webSocket, WebSocketSubject } from 'rxjs/webSocket';
 import { assert, is } from "valibot";
 
@@ -9,6 +9,8 @@ import { CreateLobbyRequestSchema, type CreateLobbyRequest, type CreateLobbyResp
 import { type LobbyId, type LobbyJson } from "../../shared/lobby/lobby.js";
 import { LobbyNotificationSchema, type LobbyNotification } from "../../shared/lobby/update.js";
 import { PrivatePlayer } from "../../shared/player.js";
+import { GameId } from "../../shared/game/game.js";
+import { toSignal } from "@angular/core/rxjs-interop";
 
 
 @Injectable({providedIn: "root"})
@@ -38,9 +40,8 @@ export class LobbyService {
 
 
 export class LobbyInstanceService {
-	public readonly lobbyState: Signal<LobbyJson>;
-	
-	private lobbyUpdates: WritableSignal<LobbyJson>;
+	private readonly lobbyUpdate: Observable<LobbyJson>;
+	private readonly beginGame: Observable<GameId>;
 	
 	constructor(private http: BackendService, private id: LobbyId) {
 		const wsSubject: WebSocketSubject<Object> = webSocket("ws://localhost:3000/api/lobby/state");
@@ -52,17 +53,26 @@ export class LobbyInstanceService {
 		const notifications: Observable<LobbyNotification> =
 			wsSubject.pipe(filter(object => is(LobbyNotificationSchema, object)));
 		
-		this.lobbyUpdates = signal({ title: "", host: "", players: []});
-		notifications
-			.pipe(filter(notification => notification.type === "update"),
-			      map(update => update.state))
-			.subscribe(state => this.lobbyUpdates.set(state));
+		this.lobbyUpdate = notifications.pipe(
+			filter(notification => notification.type === "update"),
+			map(update => update.state));
 		
-		this.lobbyState = this.lobbyUpdates;
+		this.beginGame = notifications.pipe(
+			filter(notification => notification.type === "begin-game"),
+			map(update => update.gameId),
+			first())
 	}
 	
 	public addPlayer(name: string): Observable<PrivatePlayer> {
 		return this.http.postJson<AddPlayerRequest, AddPlayerResponse>("/api/lobby/addplayer", { lobbyId: this.id, name: name })
 			.pipe(map(response => response.player));
+	}
+	
+	public onLobbyUpdate(): Observable<LobbyJson> {
+		return this.lobbyUpdate;
+	}
+	
+	public onBeginGame(): Observable<GameId> {
+		return this.beginGame;
 	}
 };

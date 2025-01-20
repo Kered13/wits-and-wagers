@@ -1,9 +1,10 @@
 import * as uuid from "uuid";
 
 import { Game } from "../game/game.js";
-import { type LobbyPlayerJson, type LobbyJson } from "../../shared/lobby/lobby.js";
+import { type LobbyPlayerJson, type LobbyJson, type LobbyId } from "../../shared/lobby/lobby.js";
 import type { PrivatePlayer } from "../../shared/player.js";
 import type { Serializable } from "../utils/serializable.js";
+import type { LobbyBeginGame, LobbyCanceled, LobbyUpdate } from "../../shared/lobby/update.js";
 
 
 export class LobbyPlayer implements Serializable<LobbyPlayerJson> {
@@ -37,13 +38,17 @@ export class LobbyPlayer implements Serializable<LobbyPlayerJson> {
 
 export class Lobby implements Serializable<LobbyJson> {
 	private readonly players: LobbyPlayer[] = [];
-	// Public ID of the host for this lobby.
 	private readonly host: LobbyPlayer;
 	
 	constructor(
+			private readonly id: LobbyId,
 			private readonly title: string,
 			hostName: string) {
 		this.host = this.addPlayer(hostName);
+	}
+	
+	public getId(): LobbyId {
+		return this.id;
 	}
 	
 	public getHost(): LobbyPlayer {
@@ -63,7 +68,7 @@ export class Lobby implements Serializable<LobbyJson> {
 	}
 	
 	public createGame(): Game {
-		return new Game(this.title, this.players);
+		return new Game(this.id, this.title, this.players);
 	}
 	
 	public toJson(): LobbyJson {
@@ -71,6 +76,29 @@ export class Lobby implements Serializable<LobbyJson> {
 			title: this.title,
 			host: this.host.publicId,
 			players: this.players.map(player => player.toJson())
+		};
+	}
+	
+	public makeUpdate(): LobbyUpdate {
+		return {
+			type: "update",
+			id: this.id,
+			state: this.toJson()
+		};
+	}
+	
+	public makeBeginGame(): LobbyBeginGame {
+		return {
+			type: "begin-game",
+			id: this.id,
+			gameId: this.id
+		};
+	}
+	
+	public makeCancel(lobby: Lobby): LobbyCanceled {
+		return {
+			type: "canceled",
+			id: this.id,
 		};
 	}
 	

@@ -1,20 +1,10 @@
-import type { Serializable } from "./serializable.js";
 import type { WebSocketUtil } from "./websocket.js";
 
 
-interface StateUpdate<T, Id> {
-	type: "update";
-	id: Id;
-	state: T;
-}
-
-
-export class Notifier<T, S extends Serializable<T>, Id> {
-	private readonly clients: Set<WebSocketUtil>;
+export class Notifier<N> {
+	private readonly clients: Set<WebSocketUtil> = new Set();
 	
-	constructor(public readonly id: Id, public readonly state: S) {
-		this.clients = new Set();
-	}
+	constructor() {}
 	
 	public addClient(clientWs: WebSocketUtil): void {
 		this.clients.add(clientWs);
@@ -25,24 +15,12 @@ export class Notifier<T, S extends Serializable<T>, Id> {
 	}
 	
 	// Notify all registered clients.
-	public notifyClients(): void {
-		const update: StateUpdate<T, Id> = {
-			type: "update",
-			id: this.id,
-			state: this.state.toJson()
-		};
-		this.clients.forEach(clientWs => {
-			clientWs.send(update);
-		});
+	public notifyClients(notification: N): void {
+		this.clients.forEach(ws => this.notifyClient(ws, notification));
 	}
 	
 	// Notify a single client.
-	public notifyClient(ws: WebSocketUtil): void {
-		const update: StateUpdate<T, Id> = {
-			type: "update",
-			id: this.id,
-			state: this.state.toJson()
-		};
-		ws.send(update);
+	public notifyClient(ws: WebSocketUtil, notification: N): void {
+		ws.send(notification);
 	}
 };

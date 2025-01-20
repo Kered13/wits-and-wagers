@@ -11,6 +11,7 @@ import { LobbyInstanceService, LobbyService } from "./lobby.service.js";
 import { LobbyId, LobbyJson } from "../../shared/lobby/lobby.js";
 import { GameService } from "../game/game.service.js";
 import { PrivatePlayer } from "../../shared/player.js";
+import { firstValueFrom, map, Observable, switchMap } from "rxjs";
 
 
 @Component({
@@ -21,7 +22,6 @@ import { PrivatePlayer } from "../../shared/player.js";
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class LobbyComponent {
-	private readonly lobbyService: Signal<LobbyInstanceService>;
 	private readonly player: Signal<PrivatePlayer>;
 	
 	readonly lobbyId: Signal<LobbyId>;
@@ -33,24 +33,32 @@ export class LobbyComponent {
 			lobbyService: LobbyService,
 			titleService: Title,
 			route: ActivatedRoute) {
-		const data = toSignal(route.data, { requireSync: true });
-		this.player = computed(() => ({
-			name: data().username,
-			publicId: data().publicId,
-			privateId: data().privateId
-		}));
+		this.player = toSignal(
+			route.data.pipe(map(data => ({
+				name: data.username,
+				publicId: data.publicId,
+				privateId: data.privateId
+			}))),
+			{ requireSync: true });
 		
-		const params: Signal<ParamMap> = toSignal(route.paramMap, { requireSync: true });
-		this.lobbyId = computed(() => params().get("lobbyId")!);
-		this.lobbyService = computed(() => lobbyService.getLobbyInstanceService(this.lobbyId()));
-		this.lobby = computed(() => this.lobbyService().lobbyState());
+		this.lobbyId = toSignal(
+			route.paramMap.pipe(map(params => params.get("lobbyId")!)),
+			{ requireSync: true });
+		// Don't use this.lobbyId here because it may not have updated yet.
+		const instanceService = route.paramMap.pipe(
+			map(params => lobbyService.getLobbyInstanceService(params.get("lobbyId")!)));
+		this.lobby = toSignal(
+			instanceService.pipe(switchMap(service => service.onLobbyUpdate())),
+			{ initialValue: { title: "", host: "", players: [] }});
 		
 		const title = toSignal(route.title);
 		effect(() => titleService.setTitle(title() + " - " + this.lobby().title));
+		
+		firstValueFrom(instanceService.pipe(switchMap(service => service.onBeginGame())))
+			.then(gameId => this.router.navigate(["game", gameId]));
 	}
 	
 	beginGame(): void {
-		this.gameService.createGame(this.lobbyId())
-			.subscribe(response => this.router.navigate(["game", response.id]));
+		this.gameService.createGame(this.lobbyId()).subscribe();
 	}
 }

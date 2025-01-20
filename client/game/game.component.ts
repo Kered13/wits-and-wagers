@@ -8,6 +8,7 @@ import { toSignal } from "@angular/core/rxjs-interop";
 import { GameInstanceService, GameService } from "./game.service.js";
 import { PrivatePlayer } from "../../shared/player.js";
 import { GameJson, GamePlayerJson } from "../../shared/game/game.js";
+import { map, switchMap } from "rxjs";
 
 
 @Component({
@@ -30,10 +31,14 @@ export class GameComponent {
 			publicId: data().publicId,
 			privateId: data().privateId
 		}));
-
-		const params: Signal<ParamMap> = toSignal(route.paramMap, { requireSync: true });
-		this.gameService = computed(() => gameService.getGameInstanceService(params().get("gameId")!));
-		this.game = computed(() => this.gameService().gameState());
+		
+		const instanceService = route.paramMap.pipe(
+			map(params => gameService.getGameInstanceService(params.get("gameId")!)));
+		
+		this.gameService = toSignal(instanceService, { requireSync: true });
+		this.game = toSignal(
+			instanceService.pipe(switchMap(service => service.onGameUpdate())),
+			{ initialValue: { title: "", players: [] }});
 		
 		effect(() => titleService.setTitle(route.routeConfig!.title! + " - " + this.game().title));
 	}
