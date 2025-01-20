@@ -3,13 +3,10 @@ import { is } from "valibot";
 import type { WebSocket } from "ws";
 
 import { Game } from "./game.js";
-import type { LobbyApp } from "../lobby/app.js";
 import { HttpError } from "../utils/httperror.js";
 import { Notifier } from "../utils/notifier.js";
 import { WebSocketUtil } from "../utils/websocket.js";
-import { type CreateGameResponse } from "../../shared/game/create.js";
-import { AddOneRequestSchema, GameIdSchema, ResetRequestSchema, type AddOneRequest, type GameId, type GameJson } from "../../shared/game/game.js";
-import { LobbyIdSchema } from "../../shared/lobby/lobby.js";
+import { AddOneRequestSchema, GameIdSchema, ResetRequestSchema, type GameId } from "../../shared/game/game.js";
 import type { GameNotification } from "../../shared/game/update.js";
 
 
@@ -25,9 +22,7 @@ type GameData = {
 export class GameApp {
 	private readonly games: Map<GameId, GameData> = new Map();
 	
-	constructor(private readonly lobbyApp: LobbyApp) {}
-	
-	public getGame(id: GameId): GameData {
+	private getGame(id: GameId): GameData {
 		const data = this.games.get(id);
 		if (!data) {
 			throw new HttpError(404, `GameId ${id} not found.`);
@@ -35,19 +30,8 @@ export class GameApp {
 		return data;
 	}
 	
-	private create(req: Request, _: Response): void {
-		console.log("POST /api/game/create " + JSON.stringify(req.body));
-		if (!is(LobbyIdSchema, req.body)) {
-			throw new HttpError(400, `${req.body} is not a valid LobbyId.`);
-		}
-		
-		const { lobby, notifier: lobbyNotifier } = this.lobbyApp.getLobby(req.body);
-		this.lobbyApp.removeLobby(lobby);
-		
-		const game = lobby.createGame();
+	public addGame(game: Game): void {
 		this.games.set(game.getId(), { game: game, notifier: new GameNotifier() });
-		
-		lobbyNotifier.notifyClients(lobby.makeBeginGame());
 	}
 	
 	private addOne(req: Request, res: Response): void {
@@ -99,7 +83,6 @@ export class GameApp {
 	
 	public getRouter() : Router {
 		return express.Router()
-			.post("/create", (req, res) => this.create(req, res))
 			.post("/addone", (req, res) => this.addOne(req, res))
 			.post("/reset", (req, res) => this.reset(req, res))
 			.ws("/state", ws => this.wsState(ws));

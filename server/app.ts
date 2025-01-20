@@ -9,8 +9,8 @@ import { GameApp } from "./game/app.js"
 
 const PORT = 3000;
 
-const lobbyApp = new LobbyApp();
-const gameApp = new GameApp(lobbyApp);
+const gameApp = new GameApp();
+const lobbyApp = new LobbyApp(gameApp);
 
 expressWs(express()).app
 	.use(cors())

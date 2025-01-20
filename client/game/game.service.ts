@@ -1,14 +1,12 @@
-import { Injectable, Signal } from "@angular/core";
+import { Injectable } from "@angular/core";
 import { Observable, map, filter } from "rxjs";
 import { webSocket, WebSocketSubject } from 'rxjs/webSocket';
-import { assert, is } from "valibot";
+import { is } from "valibot";
 
 import { BackendService } from "../utils/backend.service.js";
-import { CreateGameRequestSchema, type CreateGameRequest, type CreateGameResponse } from "../../shared/game/create.js";
 import { AddOneRequest, ResetRequest, type GameId, type GameJson } from "../../shared/game/game.js";
 import { type GameEnd, GameNotificationSchema, type GameNotification } from "../../shared/game/update.js";
-import { PrivateId, PrivatePlayer } from "../../shared/player.js";
-import { toSignal } from "@angular/core/rxjs-interop";
+import { PrivatePlayer } from "../../shared/player.js";
 
 
 @Injectable({providedIn: "root"})
@@ -28,11 +26,6 @@ export class GameService {
 			this.gameInstances.set(id, gameInstanceService);
 		}
 		return gameInstanceService;
-	}
-	
-	createGame(request: CreateGameRequest): Observable<CreateGameResponse> {
-		assert(CreateGameRequestSchema, request);
-		return this.http.postJson<CreateGameRequest, CreateGameResponse>("/api/game/create", request);
 	}
 }
 

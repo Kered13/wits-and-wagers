@@ -2,12 +2,12 @@ import { ChangeDetectionStrategy, Component, computed, effect, Signal } from "@a
 import { MatButton } from "@angular/material/button";
 import { MatCardModule } from "@angular/material/card";
 import { Title } from "@angular/platform-browser";
-import { ActivatedRoute, ParamMap, Router } from "@angular/router";
+import { ActivatedRoute, Router } from "@angular/router";
 import { toSignal } from "@angular/core/rxjs-interop";
 
 import { GameInstanceService, GameService } from "./game.service.js";
 import { PrivatePlayer } from "../../shared/player.js";
-import { GameJson, GamePlayerJson } from "../../shared/game/game.js";
+import { GameJson } from "../../shared/game/game.js";
 import { map, switchMap } from "rxjs";
 
 

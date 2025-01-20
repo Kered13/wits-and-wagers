@@ -3,13 +3,15 @@ import { assert, is } from "valibot";
 import type { WebSocket } from "ws";
 
 import { Lobby } from "./lobby.js";
+import type { GameApp } from "../game/app.js";
 import { HttpError } from "../utils/httperror.js";
 import { Notifier } from "../utils/notifier.js";
 import { WebSocketUtil } from "../utils/websocket.js";
 import { LobbyIdSchema, type LobbyId } from "../../shared/lobby/lobby.js";
-import { AddPlayerRequestSchema, AddPlayerResponseSchema, type AddPlayerResponse, } from "../../shared/lobby/addplayer.js";
+import { AddPlayerRequestSchema, type AddPlayerResponse, } from "../../shared/lobby/addplayer.js";
+import { BeginGameRequestSchema } from "../../shared/lobby/begin.js";
 import { CreateLobbyRequestSchema, CreateLobbyResponseSchema, type CreateLobbyResponse } from "../../shared/lobby/create.js";
-import type { LobbyBeginGame, LobbyCanceled, LobbyNotification, LobbyUpdate } from "../../shared/lobby/update.js";
+import type { LobbyNotification } from "../../shared/lobby/update.js";
 
 
 class LobbyNotifier extends Notifier<LobbyNotification> {}
@@ -27,7 +29,9 @@ export class LobbyApp {
 	
 	private lobbyCounter: number = 0;
 	
-	public getLobby(id: LobbyId): LobbyData {
+	constructor(private readonly gameApp: GameApp) {}
+	
+	private getLobby(id: LobbyId): LobbyData {
 		const data = this.lobbies.get(id);
 		if (!data) {
 			throw new HttpError(404, `LobbyId ${id} not found.`);
@@ -35,7 +39,7 @@ export class LobbyApp {
 		return data;
 	}
 	
-	public removeLobby(lobby: Lobby): void {
+	private removeLobby(lobby: Lobby): void {
 		this.lobbies.delete(lobby.getId());
 	}
 	
@@ -80,6 +84,22 @@ export class LobbyApp {
 		notifier.notifyClients(lobby.makeUpdate());
 	}
 	
+	private beginGame(req: Request, res: Response): void {
+		console.log("POST /api/lobby/begin " + JSON.stringify(req.body));
+		if (!is(BeginGameRequestSchema, req.body)) {
+			throw new HttpError(400, `${req.body} is not a valid LobbyId.`);
+		}
+		
+		const { lobby, notifier } = this.getLobby(req.body);
+		this.removeLobby(lobby);
+		
+		const game = lobby.createGame();
+		this.gameApp.addGame(game);
+		
+		res.end();
+		notifier.notifyClients(lobby.makeBeginGame());
+	}
+	
 	private wsState(webSocket: WebSocket): void {
 		const ws = new WebSocketUtil(webSocket);
 		ws.onMethod("register", (msg: unknown) => {
@@ -103,6 +123,7 @@ export class LobbyApp {
 		return express.Router()
 			.post("/create", (req, res) => this.create(req, res))
 			.post("/addplayer", (req, res) => this.addplayer(req, res))
+			.post("/begin", (req, res) => this.beginGame(req, res))
 			.ws("/state", ws => this.wsState(ws));
 	}
 }

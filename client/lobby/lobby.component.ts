@@ -1,17 +1,16 @@
-import { ChangeDetectionStrategy, Component, computed, effect, Signal } from "@angular/core";
+import { ChangeDetectionStrategy, Component, effect, Signal } from "@angular/core";
 import { ReactiveFormsModule } from "@angular/forms";
 import { MatButton } from "@angular/material/button";
 import { MatCardModule } from "@angular/material/card";
 import { MatInputModule } from '@angular/material/input';
 import { Title } from "@angular/platform-browser";
-import { ActivatedRoute, ParamMap, Router } from "@angular/router";
+import { ActivatedRoute, Router } from "@angular/router";
 import { toSignal } from "@angular/core/rxjs-interop";
 
 import { LobbyInstanceService, LobbyService } from "./lobby.service.js";
 import { LobbyId, LobbyJson } from "../../shared/lobby/lobby.js";
-import { GameService } from "../game/game.service.js";
 import { PrivatePlayer } from "../../shared/player.js";
-import { firstValueFrom, map, Observable, switchMap } from "rxjs";
+import { firstValueFrom, map, switchMap } from "rxjs";
 
 
 @Component({
@@ -23,12 +22,12 @@ import { firstValueFrom, map, Observable, switchMap } from "rxjs";
 })
 export class LobbyComponent {
 	private readonly player: Signal<PrivatePlayer>;
+	private readonly lobbyService: Signal<LobbyInstanceService>;
 	
 	readonly lobbyId: Signal<LobbyId>;
 	readonly lobby: Signal<LobbyJson>;
 	
 	constructor(
-			private readonly gameService: GameService,
 			private readonly router: Router,
 			lobbyService: LobbyService,
 			titleService: Title,
@@ -44,9 +43,12 @@ export class LobbyComponent {
 		this.lobbyId = toSignal(
 			route.paramMap.pipe(map(params => params.get("lobbyId")!)),
 			{ requireSync: true });
+		
 		// Don't use this.lobbyId here because it may not have updated yet.
 		const instanceService = route.paramMap.pipe(
 			map(params => lobbyService.getLobbyInstanceService(params.get("lobbyId")!)));
+		
+		this.lobbyService = toSignal(instanceService, { requireSync: true });
 		this.lobby = toSignal(
 			instanceService.pipe(switchMap(service => service.onLobbyUpdate())),
 			{ initialValue: { title: "", host: "", players: [] }});
@@ -59,6 +61,6 @@ export class LobbyComponent {
 	}
 	
 	beginGame(): void {
-		this.gameService.createGame(this.lobbyId()).subscribe();
+		this.lobbyService().beginGame().subscribe();
 	}
 }
