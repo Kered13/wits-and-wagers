@@ -5,6 +5,7 @@ import { MatCardModule } from "@angular/material/card";
 import { MatInputModule } from '@angular/material/input';
 import { ActivatedRoute, Router } from "@angular/router";
 
+import { GAME_ID, PRIVATE_ID, PUBLIC_ID } from "../app/localstorage.keys";
 import { LobbyService } from "../lobby/lobby.service";
 import { toSignal } from "@angular/core/rxjs-interop";
 
@@ -32,9 +33,9 @@ export class HostComponent {
 		if (this.options.valid) {
 			this.lobbyService.createLobby({ title: this.options.value.title!, host: this.username() })
 				.subscribe(response => {
-					localStorage.setItem("publicId", response.host.publicId);
-					localStorage.setItem("privateId", response.host.privateId);
-					localStorage.setItem("gameId", response.id);
+					localStorage.setItem(PUBLIC_ID, response.host.publicId);
+					localStorage.setItem(PRIVATE_ID, response.host.privateId);
+					localStorage.setItem(GAME_ID, response.id);
 					this.router.navigate(["lobby", response.id]);
 				});
 		}

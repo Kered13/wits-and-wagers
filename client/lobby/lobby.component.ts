@@ -11,6 +11,7 @@ import { LobbyInstanceService, LobbyService } from "./lobby.service.js";
 import { LobbyId, LobbyJson } from "../../shared/lobby/lobby.js";
 import { PrivatePlayer } from "../../shared/player.js";
 import { firstValueFrom, map, switchMap } from "rxjs";
+import { GAME_ID } from "../app/localstorage.keys.js";
 
 
 @Component({
@@ -58,7 +59,7 @@ export class LobbyComponent {
 		
 		instanceService.pipe(switchMap(service => service.onCanceled()))
 			.subscribe(gameId => {
-				localStorage.removeItem("gameId");
+				localStorage.removeItem(GAME_ID);
 				this.router.navigate([""]);
 			});
 		
