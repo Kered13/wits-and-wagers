@@ -5,6 +5,7 @@ import type { WebSocket } from "ws";
 import { Game } from "./game.js";
 import { HttpError } from "../utils/httperror.js";
 import { Notifier } from "../utils/notifier.js";
+import { verifyRequest } from "../utils/verifyrequest.js";
 import { WebSocketUtil } from "../utils/websocket.js";
 import { AddOneRequestSchema, GameIdSchema, ResetRequestSchema, type GameId } from "../../shared/game/game.js";
 import type { GameNotification } from "../../shared/game/notifications.js";
@@ -37,11 +38,10 @@ export class GameApp {
 	private addOne(req: Request, res: Response): void {
 		console.log("POST /api/game/addone " + JSON.stringify(req.body));
 		
-		if (!is(AddOneRequestSchema, req.body)) {
-			throw new HttpError(400, `${req.body} is not a valid GameId.`);
-		}
+		const request = verifyRequest(
+			req.body, AddOneRequestSchema, `Invalid AddOneRequest: ${req.body}`);
 		
-		const { game, notifier } = this.getGame(req.body.gameId);
+		const { game, notifier } = this.getGame(request.gameId);
 		game.addOne(req.body.privateId);
 		
 		res.end();
@@ -50,12 +50,12 @@ export class GameApp {
 	
 	private reset(req: Request, res: Response): void {
 		console.log("POST /api/game/reset " + JSON.stringify(req.body));
-		if (!is(ResetRequestSchema, req.body)) {
-			throw new HttpError(400, `${req.body} is not a valid GameId.`);
-		}
 		
-		const { game, notifier } = this.getGame(req.body.gameId);
-		game.resetCounter(req.body.privateId);
+		const request = verifyRequest(
+			req.body, ResetRequestSchema, `Invalid ResetRequest: ${req.body}`);
+		
+		const { game, notifier } = this.getGame(request.gameId);
+		game.resetCounter(request.privateId);
 		
 		res.end();
 		notifier.notifyClients(game.makeUpdate());
@@ -66,11 +66,9 @@ export class GameApp {
 		ws.onMethod("register", (msg: unknown) => {
 			console.log("WS /api/game/state " + JSON.stringify(msg));
 			
-			if (!is(GameIdSchema, msg)) {
-				throw new HttpError(400, `${msg} is not a valid GameId.`);
-			}
+			const gameId = verifyRequest(
+				msg, GameIdSchema, `${msg} is not a valid GameId.`);
 			
-			const gameId: GameId = msg;
 			const { game, notifier } = this.getGame(gameId);
 			notifier.addClient(ws);
 			notifier.notifyClient(ws, game.makeUpdate());

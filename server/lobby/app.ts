@@ -1,11 +1,12 @@
 import express, { Router, type Request, type Response } from "express";
-import { assert, is } from "valibot";
+import { assert } from "valibot";
 import type { WebSocket } from "ws";
 
 import { Lobby } from "./lobby.js";
 import type { GameApp } from "../game/app.js";
 import { HttpError } from "../utils/httperror.js";
 import { Notifier } from "../utils/notifier.js";
+import { verifyRequest } from "../utils/verifyrequest.js";
 import { WebSocketUtil } from "../utils/websocket.js";
 import { LobbyIdSchema, type LobbyId } from "../../shared/lobby/lobby.js";
 import { AddPlayerRequestSchema, type AddPlayerResponse, } from "../../shared/lobby/addplayer.js";
@@ -13,6 +14,7 @@ import { BeginGameRequestSchema } from "../../shared/lobby/begin.js";
 import { CancelLobbyRequestSchema } from "../../shared/lobby/cancel.js";
 import { CreateLobbyRequestSchema, CreateLobbyResponseSchema, type CreateLobbyResponse } from "../../shared/lobby/create.js";
 import type { LobbyNotification } from "../../shared/lobby/notifications.js";
+import type { PrivateId } from "../../shared/player.js";
 
 
 class LobbyNotifier extends Notifier<LobbyNotification> {}
@@ -31,6 +33,12 @@ export class LobbyApp {
 	private lobbyCounter: number = 0;
 	
 	constructor(private readonly gameApp: GameApp) {}
+	
+	private verifyHost(lobby: Lobby, requester: PrivateId): void {
+		if (!lobby.isHost(requester)) {
+			throw new HttpError(403, "Only the lobby host may begin the game.");
+		}
+	}
 	
 	private getLobby(id: LobbyId): LobbyData {
 		const data = this.lobbies.get(id);
@@ -52,11 +60,10 @@ export class LobbyApp {
 	private create(req: Request, res: Response): void {
 		console.log("POST /api/lobby/create " + JSON.stringify(req.body));
 		
-		if (!is(CreateLobbyRequestSchema, req.body)) {
-			throw new HttpError(400, `Invalid CreateLobbyRequest: ${req.body}`);
-		}
+		const request = verifyRequest(
+			req.body, CreateLobbyRequestSchema, `Invalid CreateLobbyRequest: ${req.body}`);
 		
-		const lobby = new Lobby(this.createLobbyId(), req.body.title, req.body.host);
+		const lobby = new Lobby(this.createLobbyId(), request.title, request.host);
 		this.lobbies.set(lobby.getId(), { lobby: lobby, notifier: new LobbyNotifier });
 		
 		const response: CreateLobbyResponse = {
@@ -70,12 +77,11 @@ export class LobbyApp {
 	private addplayer(req: Request, res: Response): void {
 		console.log("POST /api/lobby/addplayer " + JSON.stringify(req.body));
 		
-		if (!is(AddPlayerRequestSchema, req.body)) {
-			throw new HttpError(400, `Invalid AddPlayerRequest: ${req.body}`);
-		}
+		const request = verifyRequest(
+			req.body, AddPlayerRequestSchema, `Invalid AddPlayerRequest: ${req.body}`);
 		
-		const { lobby, notifier } = this.getLobby(req.body.lobbyId);
-		const player = lobby.addPlayer(req.body.name);
+		const { lobby, notifier } = this.getLobby(request.lobbyId);
+		const player = lobby.addPlayer(request.name);
 		
 		const response: AddPlayerResponse = {
 			player: player.toPrivateJson()
@@ -87,14 +93,12 @@ export class LobbyApp {
 	
 	private beginGame(req: Request, res: Response): void {
 		console.log("POST /api/lobby/begin " + JSON.stringify(req.body));
-		if (!is(BeginGameRequestSchema, req.body)) {
-			throw new HttpError(400, `${req.body} is not a valid LobbyId.`);
-		}
 		
-		const { lobby, notifier } = this.getLobby(req.body.lobbyId);
-		if (!lobby.isHost(req.body.requester)) {
-			throw new HttpError(403, "Only the lobby host may begin the game.");
-		}
+		const request = verifyRequest(
+			req.body, BeginGameRequestSchema, `Invalid BeginGameRequest: ${req.body}`);
+		
+		const { lobby, notifier } = this.getLobby(request.lobbyId);
+		this.verifyHost(lobby, request.requester);
 		
 		this.removeLobby(lobby);
 		this.gameApp.addGame(lobby.beginGame());
@@ -105,15 +109,13 @@ export class LobbyApp {
 	
 	private cancel(req: Request, res: Response): void {
 		console.log("POST /api/lobby/cancel " + JSON.stringify(req.body));
-		if (!is(CancelLobbyRequestSchema, req.body)) {
-			throw new HttpError(400, `${req.body} is not a valid LobbyId.`);
-		}
 		
-		const { lobby, notifier } = this.getLobby(req.body.lobbyId);
-		if (!lobby.isHost(req.body.requester)) {
-			throw new HttpError(403, "Only the lobby host may begin the game.");
-		}
-
+		const request = verifyRequest(
+			req.body, CancelLobbyRequestSchema, `Invalid CancelLobbyRequest: ${req.body}`);
+		
+		const { lobby, notifier } = this.getLobby(request.lobbyId);
+		this.verifyHost(lobby, request.requester);
+		
 		this.removeLobby(lobby);
 		
 		res.end();
@@ -125,11 +127,10 @@ export class LobbyApp {
 		ws.onMethod("register", (msg: unknown) => {
 			console.log("WS /api/lobby/state " + JSON.stringify(msg));
 			
-			if (!is(LobbyIdSchema, msg)) {
-				throw new HttpError(400, `${msg} is not a valid LobbyId.`);
-			}
+			const lobbyId = verifyRequest(
+				msg, LobbyIdSchema, `${msg} is not a valid LobbyId.`);
 			
-			const { lobby, notifier } = this.getLobby(msg);
+			const { lobby, notifier } = this.getLobby(lobbyId);
 			notifier.addClient(ws);
 			notifier.notifyClient(ws, lobby.makeUpdate());
 			
