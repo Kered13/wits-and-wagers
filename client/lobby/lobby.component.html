@@ -10,7 +10,9 @@
 		}
 	</mat-card-content>
 	<mat-card-actions>
-		<button mat-raised-button (click)="beginGame()">Begin Game</button>
-		<button mat-raised-button (click)="cancelLobby()">Cancel</button>
+		@if (player().publicId == lobby().host) {
+			<button mat-raised-button (click)="beginGame()">Begin Game</button>
+			<button mat-raised-button (click)="cancelLobby()">Cancel</button>
+		}
 	</mat-card-actions>
 </mat-card>

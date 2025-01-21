@@ -22,11 +22,11 @@ import { GAME_ID } from "../app/localstorage.keys.js";
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class LobbyComponent {
-	private readonly player: Signal<PrivatePlayer>;
 	private readonly lobbyService: Signal<LobbyInstanceService>;
 	
 	readonly lobbyId: Signal<LobbyId>;
 	readonly lobby: Signal<LobbyJson>;
+	readonly player: Signal<PrivatePlayer>;
 	
 	constructor(
 			private readonly router: Router,
@@ -67,10 +67,10 @@ export class LobbyComponent {
 	}
 	
 	beginGame(): void {
-		this.lobbyService().beginGame().subscribe();
+		this.lobbyService().beginGame(this.player()).subscribe();
 	}
 	
 	cancelLobby(): void {
-		this.lobbyService().cancelLobby().subscribe();
+		this.lobbyService().cancelLobby(this.player()).subscribe();
 	}
 }

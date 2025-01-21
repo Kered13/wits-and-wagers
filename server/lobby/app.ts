@@ -91,11 +91,13 @@ export class LobbyApp {
 			throw new HttpError(400, `${req.body} is not a valid LobbyId.`);
 		}
 		
-		const { lobby, notifier } = this.getLobby(req.body);
-		this.removeLobby(lobby);
+		const { lobby, notifier } = this.getLobby(req.body.lobbyId);
+		if (!lobby.isHost(req.body.requester)) {
+			throw new HttpError(403, "Only the lobby host may begin the game.");
+		}
 		
-		const game = lobby.createGame();
-		this.gameApp.addGame(game);
+		this.removeLobby(lobby);
+		this.gameApp.addGame(lobby.beginGame());
 		
 		res.end();
 		notifier.notifyClients(lobby.makeBeginGame());
@@ -107,7 +109,11 @@ export class LobbyApp {
 			throw new HttpError(400, `${req.body} is not a valid LobbyId.`);
 		}
 		
-		const { lobby, notifier } = this.getLobby(req.body);
+		const { lobby, notifier } = this.getLobby(req.body.lobbyId);
+		if (!lobby.isHost(req.body.requester)) {
+			throw new HttpError(403, "Only the lobby host may begin the game.");
+		}
+
 		this.removeLobby(lobby);
 		
 		res.end();

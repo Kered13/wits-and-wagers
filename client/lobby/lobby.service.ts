@@ -66,7 +66,7 @@ export class LobbyInstanceService {
 		
 		this.canceled = notifications.pipe(
 			filter(notification => notification.type == "canceled"),
-			map(_ => { return }),
+			map(_ => undefined),
 			first());
 	}
 	
@@ -75,12 +75,18 @@ export class LobbyInstanceService {
 			.pipe(map(response => response.player));
 	}
 	
-	public beginGame(): Observable<void> {
-		return this.http.postJson<BeginGameRequest, void>("/api/lobby/begin", this.id);
+	public beginGame(requester: PrivatePlayer): Observable<void> {
+		return this.http.postJson<BeginGameRequest, void>("/api/lobby/begin", {
+			lobbyId: this.id,
+			requester: requester.privateId
+		});
 	}
 	
-	public cancelLobby(): Observable<void> {
-		return this.http.postJson<CancelLobbyRequest, void>("/api/lobby/cancel", this.id);
+	public cancelLobby(requester: PrivatePlayer): Observable<void> {
+		return this.http.postJson<CancelLobbyRequest, void>("/api/lobby/cancel", {
+			lobbyId: this.id,
+			requester: requester.privateId
+		});
 	}
 	
 	public onLobbyUpdate(): Observable<LobbyJson> {

@@ -2,7 +2,7 @@ import * as uuid from "uuid";
 
 import { Game } from "../game/game.js";
 import { type LobbyPlayerJson, type LobbyJson, type LobbyId } from "../../shared/lobby/lobby.js";
-import type { PrivatePlayer } from "../../shared/player.js";
+import type { PrivateId, PrivatePlayer } from "../../shared/player.js";
 import type { Serializable } from "../utils/serializable.js";
 import type { LobbyBeginGame, LobbyCanceled, LobbyUpdate } from "../../shared/lobby/notifications.js";
 
@@ -50,6 +50,10 @@ export class Lobby implements Serializable<LobbyJson> {
 	public getId(): LobbyId {
 		return this.id;
 	}
+
+	public isHost(requester: PrivateId): boolean {
+		return requester === this.host.privateId;
+	}
 	
 	public getHost(): LobbyPlayer {
 		return this.host;
@@ -67,7 +71,7 @@ export class Lobby implements Serializable<LobbyJson> {
 		this.players.splice(i, 1);
 	}
 	
-	public createGame(): Game {
+	public beginGame(): Game {
 		return new Game(this.id, this.title, this.players);
 	}
 	
