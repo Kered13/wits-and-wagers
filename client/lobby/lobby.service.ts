@@ -9,7 +9,7 @@ import { type BeginGameRequest } from "../../shared/lobby/begin.js";
 import { type CancelLobbyRequest } from "../../shared/lobby/cancel.js";
 import { CreateLobbyRequestSchema, type CreateLobbyRequest, type CreateLobbyResponse } from "../../shared/lobby/create.js";
 import { type LobbyId, type LobbyJson } from "../../shared/lobby/lobby.js";
-import { LobbyNotificationSchema, type LobbyNotification } from "../../shared/lobby/update.js";
+import { LobbyNotificationSchema, type LobbyNotification } from "../../shared/lobby/notifications.js";
 import { PrivatePlayer } from "../../shared/player.js";
 import { GameId } from "../../shared/game/game.js";
 

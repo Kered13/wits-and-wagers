@@ -12,7 +12,7 @@ import { AddPlayerRequestSchema, type AddPlayerResponse, } from "../../shared/lo
 import { BeginGameRequestSchema } from "../../shared/lobby/begin.js";
 import { CancelLobbyRequestSchema } from "../../shared/lobby/cancel.js";
 import { CreateLobbyRequestSchema, CreateLobbyResponseSchema, type CreateLobbyResponse } from "../../shared/lobby/create.js";
-import type { LobbyNotification } from "../../shared/lobby/update.js";
+import type { LobbyNotification } from "../../shared/lobby/notifications.js";
 
 
 class LobbyNotifier extends Notifier<LobbyNotification> {}

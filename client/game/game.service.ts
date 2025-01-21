@@ -5,7 +5,7 @@ import { is } from "valibot";
 
 import { BackendService } from "../utils/backend.service.js";
 import { AddOneRequest, ResetRequest, type GameId, type GameJson } from "../../shared/game/game.js";
-import { type GameEnd, GameNotificationSchema, type GameNotification } from "../../shared/game/update.js";
+import { type GameEnd, GameNotificationSchema, type GameNotification } from "../../shared/game/notifications.js";
 import { PrivatePlayer } from "../../shared/player.js";
 
 

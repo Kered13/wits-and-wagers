@@ -4,7 +4,7 @@ import { type Serializable } from "../utils/serializable.js";
 import { type GameId, type GameJson, type GamePlayerJson } from "../../shared/game/game.js";
 import { type PrivateId, type PublicId } from "../../shared/player.js";
 import { type Rgb } from "../../shared/rgb.js";
-import type { GameUpdate } from "../../shared/game/update.js";
+import type { GameUpdate } from "../../shared/game/notifications.js";
 
 
 class GamePlayer implements Serializable<GamePlayerJson> {

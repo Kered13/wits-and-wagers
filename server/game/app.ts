@@ -7,7 +7,7 @@ import { HttpError } from "../utils/httperror.js";
 import { Notifier } from "../utils/notifier.js";
 import { WebSocketUtil } from "../utils/websocket.js";
 import { AddOneRequestSchema, GameIdSchema, ResetRequestSchema, type GameId } from "../../shared/game/game.js";
-import type { GameNotification } from "../../shared/game/update.js";
+import type { GameNotification } from "../../shared/game/notifications.js";
 
 
 class GameNotifier extends Notifier<GameNotification> {}

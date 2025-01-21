@@ -4,7 +4,7 @@ import { Game } from "../game/game.js";
 import { type LobbyPlayerJson, type LobbyJson, type LobbyId } from "../../shared/lobby/lobby.js";
 import type { PrivatePlayer } from "../../shared/player.js";
 import type { Serializable } from "../utils/serializable.js";
-import type { LobbyBeginGame, LobbyCanceled, LobbyUpdate } from "../../shared/lobby/update.js";
+import type { LobbyBeginGame, LobbyCanceled, LobbyUpdate } from "../../shared/lobby/notifications.js";
 
 
 export class LobbyPlayer implements Serializable<LobbyPlayerJson> {
