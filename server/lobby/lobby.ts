@@ -95,7 +95,7 @@ export class Lobby implements Serializable<LobbyJson> {
 		};
 	}
 	
-	public makeCancel(lobby: Lobby): LobbyCanceled {
+	public makeCancel(): LobbyCanceled {
 		return {
 			type: "canceled",
 			id: this.id,

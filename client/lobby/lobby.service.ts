@@ -1,11 +1,12 @@
 import { Injectable } from "@angular/core";
-import { Observable, map, filter, first } from "rxjs";
+import { Observable, map, filter, first, firstValueFrom } from "rxjs";
 import { webSocket, WebSocketSubject } from 'rxjs/webSocket';
 import { assert, is } from "valibot";
 
 import { BackendService } from "../utils/backend.service.js";
 import { type AddPlayerRequest, type AddPlayerResponse } from "../../shared/lobby/addplayer.js";
 import { type BeginGameRequest } from "../../shared/lobby/begin.js";
+import { type CancelLobbyRequest } from "../../shared/lobby/cancel.js";
 import { CreateLobbyRequestSchema, type CreateLobbyRequest, type CreateLobbyResponse } from "../../shared/lobby/create.js";
 import { type LobbyId, type LobbyJson } from "../../shared/lobby/lobby.js";
 import { LobbyNotificationSchema, type LobbyNotification } from "../../shared/lobby/update.js";
@@ -41,7 +42,8 @@ export class LobbyService {
 
 export class LobbyInstanceService {
 	private readonly lobbyUpdate: Observable<LobbyJson>;
-	private readonly beginGameObs: Observable<GameId>;
+	private readonly begin: Observable<GameId>;
+	private readonly canceled: Observable<void>;
 	
 	constructor(private http: BackendService, private id: LobbyId) {
 		const wsSubject: WebSocketSubject<Object> = webSocket("ws://localhost:3000/api/lobby/state");
@@ -57,10 +59,15 @@ export class LobbyInstanceService {
 			filter(notification => notification.type === "update"),
 			map(update => update.state));
 		
-		this.beginGameObs = notifications.pipe(
+		this.begin = notifications.pipe(
 			filter(notification => notification.type === "begin-game"),
 			map(update => update.gameId),
-			first())
+			first());
+		
+		this.canceled = notifications.pipe(
+			filter(notification => notification.type == "canceled"),
+			map(_ => { return }),
+			first());
 	}
 	
 	public addPlayer(name: string): Observable<PrivatePlayer> {
@@ -72,11 +79,19 @@ export class LobbyInstanceService {
 		return this.http.postJson<BeginGameRequest, void>("/api/lobby/begin", this.id);
 	}
 	
+	public cancelLobby(): Observable<void> {
+		return this.http.postJson<CancelLobbyRequest, void>("/api/lobby/cancel", this.id);
+	}
+	
 	public onLobbyUpdate(): Observable<LobbyJson> {
 		return this.lobbyUpdate;
 	}
 	
 	public onBeginGame(): Observable<GameId> {
-		return this.beginGameObs;
+		return this.begin;
+	}
+	
+	public onCanceled(): Observable<void> {
+		return this.canceled;
 	}
 };

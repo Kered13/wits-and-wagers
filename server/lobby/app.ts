@@ -10,6 +10,7 @@ import { WebSocketUtil } from "../utils/websocket.js";
 import { LobbyIdSchema, type LobbyId } from "../../shared/lobby/lobby.js";
 import { AddPlayerRequestSchema, type AddPlayerResponse, } from "../../shared/lobby/addplayer.js";
 import { BeginGameRequestSchema } from "../../shared/lobby/begin.js";
+import { CancelLobbyRequestSchema } from "../../shared/lobby/cancel.js";
 import { CreateLobbyRequestSchema, CreateLobbyResponseSchema, type CreateLobbyResponse } from "../../shared/lobby/create.js";
 import type { LobbyNotification } from "../../shared/lobby/update.js";
 
@@ -100,6 +101,19 @@ export class LobbyApp {
 		notifier.notifyClients(lobby.makeBeginGame());
 	}
 	
+	private cancel(req: Request, res: Response): void {
+		console.log("POST /api/lobby/cancel " + JSON.stringify(req.body));
+		if (!is(CancelLobbyRequestSchema, req.body)) {
+			throw new HttpError(400, `${req.body} is not a valid LobbyId.`);
+		}
+		
+		const { lobby, notifier } = this.getLobby(req.body);
+		this.removeLobby(lobby);
+		
+		res.end();
+		notifier.notifyClients(lobby.makeCancel());
+	}
+	
 	private wsState(webSocket: WebSocket): void {
 		const ws = new WebSocketUtil(webSocket);
 		ws.onMethod("register", (msg: unknown) => {
@@ -124,6 +138,7 @@ export class LobbyApp {
 			.post("/create", (req, res) => this.create(req, res))
 			.post("/addplayer", (req, res) => this.addplayer(req, res))
 			.post("/begin", (req, res) => this.beginGame(req, res))
+			.post("/cancel", (req, res) => this.cancel(req, res))
 			.ws("/state", ws => this.wsState(ws));
 	}
 }

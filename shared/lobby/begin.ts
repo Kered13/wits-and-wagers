@@ -1,9 +1,8 @@
-import { strictObject, string, type InferOutput } from "valibot";
+import { type InferOutput } from "valibot";
 
-import { GameIdSchema } from "../game/game.js";
 import { LobbyIdSchema } from "./lobby.js";
 
 
-// Create a new game from the given lobby.
+// Create a new game from the given lobby. Can only be called by the Host of the lobby.
 export const BeginGameRequestSchema = LobbyIdSchema;
 export type BeginGameRequest = InferOutput<typeof BeginGameRequestSchema>;

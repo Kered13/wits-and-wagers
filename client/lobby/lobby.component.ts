@@ -53,14 +53,23 @@ export class LobbyComponent {
 			instanceService.pipe(switchMap(service => service.onLobbyUpdate())),
 			{ initialValue: { title: "", host: "", players: [] }});
 		
-		const title = toSignal(route.title);
-		effect(() => titleService.setTitle(title() + " - " + this.lobby().title));
+		instanceService.pipe(switchMap(service => service.onBeginGame()))
+			.subscribe(gameId => this.router.navigate(["game", gameId]));
 		
-		firstValueFrom(instanceService.pipe(switchMap(service => service.onBeginGame())))
-			.then(gameId => this.router.navigate(["game", gameId]));
+		instanceService.pipe(switchMap(service => service.onCanceled()))
+			.subscribe(gameId => {
+				localStorage.removeItem("gameId");
+				this.router.navigate([""]);
+			});
+		
+		effect(() => titleService.setTitle(route.routeConfig!.title! + " - " + this.lobby().title));
 	}
 	
 	beginGame(): void {
 		this.lobbyService().beginGame().subscribe();
+	}
+	
+	cancelLobby(): void {
+		this.lobbyService().cancelLobby().subscribe();
 	}
 }
