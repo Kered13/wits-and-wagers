@@ -3,7 +3,7 @@ import { ApplicationConfig, InjectionToken, provideZoneChangeDetection } from "@
 import { provideAnimationsAsync } from "@angular/platform-browser/animations/async";
 import { provideRouter } from "@angular/router";
 
-import { routes } from "./app.routes.js";
+import { ROUTES } from "../routes/routes.js";
 
 
 export const SERVER_URL = new InjectionToken<string>("URL of the server.");
@@ -13,7 +13,7 @@ export const SERVER_URL_VALUE = "localhost:3000";
 export const appConfig: ApplicationConfig = {
 	providers: [
 		provideZoneChangeDetection({ eventCoalescing: true }),
-		provideRouter(routes),
+		provideRouter(ROUTES),
 		provideAnimationsAsync(),
 		provideHttpClient(),
 		{ provide: SERVER_URL, useValue: SERVER_URL_VALUE }

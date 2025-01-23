@@ -7,6 +7,7 @@ import { Router } from "@angular/router";
 
 import { GAME_ID, PRIVATE_ID, PUBLIC_ID, USERNAME } from "../app/localstorage.keys";
 import { LobbyService } from "../lobby/lobby.service";
+import { HOST_ROUTE, LOBBY_ROUTE } from "../routes/routes";
 
 
 @Component({
@@ -28,7 +29,7 @@ export class HomeComponent {
 	toHostGame(): void {
 		if (this.username) {
 			localStorage.setItem(USERNAME, this.username);
-			this.router.navigate(["host"]);
+			this.router.navigate(HOST_ROUTE.url());
 		}
 	}
 	
@@ -43,7 +44,7 @@ export class HomeComponent {
 				.subscribe(player => {
 					localStorage.setItem(PUBLIC_ID, player.publicId);
 					localStorage.setItem(PRIVATE_ID, player.privateId);
-					this.router.navigate(["lobby", this.joinCode]);
+					this.router.navigate([LOBBY_ROUTE.url({ lobbyId: this.joinCode })]);
 				});
 		}
 	}

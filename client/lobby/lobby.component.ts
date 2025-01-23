@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, effect, Signal } from "@angular/core";
+import { ChangeDetectionStrategy, Component, effect, Inject, Signal } from "@angular/core";
 import { ReactiveFormsModule } from "@angular/forms";
 import { MatButton } from "@angular/material/button";
 import { MatCardModule } from "@angular/material/card";
@@ -6,12 +6,13 @@ import { MatInputModule } from '@angular/material/input';
 import { Title } from "@angular/platform-browser";
 import { ActivatedRoute, Router } from "@angular/router";
 import { toSignal } from "@angular/core/rxjs-interop";
+import { map, switchMap } from "rxjs";
 
 import { LobbyInstanceService, LobbyService } from "./lobby.service.js";
+import { GAME_ID } from "../app/localstorage.keys.js";
+import { GAME_ROUTE, HOME_ROUTE, LobbyRoute, TypedRouteFor } from "../routes/routes.js";
 import { LobbyId, LobbyJson } from "../../shared/lobby/lobby.js";
 import { PrivatePlayer } from "../../shared/player.js";
-import { firstValueFrom, map, switchMap } from "rxjs";
-import { GAME_ID } from "../app/localstorage.keys.js";
 
 
 @Component({
@@ -32,7 +33,7 @@ export class LobbyComponent {
 			private readonly router: Router,
 			lobbyService: LobbyService,
 			titleService: Title,
-			route: ActivatedRoute) {
+			@Inject(ActivatedRoute) route: TypedRouteFor<LobbyRoute>) {
 		this.player = toSignal(
 			route.data.pipe(map(data => ({
 				name: data.username,
@@ -55,12 +56,12 @@ export class LobbyComponent {
 			{ initialValue: { title: "", host: "", players: [] }});
 		
 		instanceService.pipe(switchMap(service => service.onBeginGame()))
-			.subscribe(gameId => this.router.navigate(["game", gameId]));
+			.subscribe(gameId => this.router.navigate(GAME_ROUTE.url({ gameId: gameId })));
 		
 		instanceService.pipe(switchMap(service => service.onCanceled()))
-			.subscribe(gameId => {
+			.subscribe(() => {
 				localStorage.removeItem(GAME_ID);
-				this.router.navigate([""]);
+				this.router.navigate(HOME_ROUTE.url());
 			});
 		
 		effect(() => titleService.setTitle(route.routeConfig!.title! + " - " + this.lobby().title));

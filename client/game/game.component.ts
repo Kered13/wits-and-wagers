@@ -1,14 +1,15 @@
-import { ChangeDetectionStrategy, Component, computed, effect, Signal } from "@angular/core";
+import { ChangeDetectionStrategy, Component, computed, effect, Inject, Signal } from "@angular/core";
 import { MatButton } from "@angular/material/button";
 import { MatCardModule } from "@angular/material/card";
 import { Title } from "@angular/platform-browser";
-import { ActivatedRoute, Router } from "@angular/router";
+import { ActivatedRoute } from "@angular/router";
 import { toSignal } from "@angular/core/rxjs-interop";
 
 import { GameInstanceService, GameService } from "./game.service.js";
 import { PrivatePlayer } from "../../shared/player.js";
 import { GameJson } from "../../shared/game/game.js";
 import { map, switchMap } from "rxjs";
+import { GameRoute, TypedRouteFor } from "../routes/routes.js";
 
 
 @Component({
@@ -24,7 +25,10 @@ export class GameComponent {
 	readonly game: Signal<GameJson>;
 	readonly thisPlayer: Signal<PrivatePlayer>;
 	
-	constructor(gameService: GameService, titleService: Title, route: ActivatedRoute, router: Router) {
+	constructor(
+			gameService: GameService,
+			titleService: Title,
+			@Inject(ActivatedRoute) route: TypedRouteFor<GameRoute>) {
 		const data = toSignal(route.data, { requireSync: true });
 		this.thisPlayer = computed(() => ({
 			name: data().username,

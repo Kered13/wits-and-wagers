@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, computed, Signal } from "@angular/core";
+import { ChangeDetectionStrategy, Component, computed, Inject, Signal } from "@angular/core";
+import { toSignal } from "@angular/core/rxjs-interop";
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
 import { MatButton } from "@angular/material/button";
 import { MatCardModule } from "@angular/material/card";
@@ -7,7 +8,7 @@ import { ActivatedRoute, Router } from "@angular/router";
 
 import { GAME_ID, PRIVATE_ID, PUBLIC_ID } from "../app/localstorage.keys";
 import { LobbyService } from "../lobby/lobby.service";
-import { toSignal } from "@angular/core/rxjs-interop";
+import { HostRoute, LOBBY_ROUTE, TypedRouteFor } from "../routes/routes";
 
 
 @Component({
@@ -24,7 +25,10 @@ export class HostComponent {
 	
 	private readonly username: Signal<string>;
 	
-	constructor(private readonly lobbyService: LobbyService, private readonly router: Router, route: ActivatedRoute) {
+	constructor(
+			private readonly lobbyService: LobbyService,
+			private readonly router: Router,
+			@Inject(ActivatedRoute) route: TypedRouteFor<HostRoute>) {
 		const data = toSignal(route.data, { requireSync: true });
 		this.username = computed(() => data().username);
 	}
@@ -36,7 +40,7 @@ export class HostComponent {
 					localStorage.setItem(PUBLIC_ID, response.host.publicId);
 					localStorage.setItem(PRIVATE_ID, response.host.privateId);
 					localStorage.setItem(GAME_ID, response.id);
-					this.router.navigate(["lobby", response.id]);
+					this.router.navigate(LOBBY_ROUTE.url({ lobbyId: response.id }));
 				});
 		}
 	}
