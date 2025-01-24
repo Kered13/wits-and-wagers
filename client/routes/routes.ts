@@ -63,7 +63,7 @@ class AppRoute<D extends Data = {}, P extends Params = {}, Q extends Params = {}
 	}
 }
 
-// Adds a path() method with no parameters.
+// Adds a url() method with no parameters.
 class AppRouteNoParams<D extends Data = {}> extends AppRoute<D> {
 	public override url(_: {} = {}): string[] {
 		return super.url({});

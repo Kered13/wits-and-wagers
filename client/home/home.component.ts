@@ -26,14 +26,14 @@ export class HomeComponent {
 		this.joinCode = localStorage.getItem(GAME_ID) || "";
 	}
 	
-	toHostGame(): void {
+	onHostGame(): void {
 		if (this.username) {
 			localStorage.setItem(USERNAME, this.username);
 			this.router.navigate(HOST_ROUTE.url());
 		}
 	}
 	
-	toJoinGame(): void {
+	onJoinGame(): void {
 		if (this.username && this.joinCode) {
 			localStorage.setItem(USERNAME, this.username);
 			localStorage.setItem(GAME_ID, this.joinCode);
@@ -44,7 +44,7 @@ export class HomeComponent {
 				.subscribe(player => {
 					localStorage.setItem(PUBLIC_ID, player.publicId);
 					localStorage.setItem(PRIVATE_ID, player.privateId);
-					this.router.navigate([LOBBY_ROUTE.url({ lobbyId: this.joinCode })]);
+					this.router.navigate(LOBBY_ROUTE.url({ lobbyId: this.joinCode }));
 				});
 		}
 	}
