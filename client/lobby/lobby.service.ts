@@ -1,5 +1,5 @@
 import { Injectable } from "@angular/core";
-import { Observable, map, filter, first, firstValueFrom } from "rxjs";
+import { Observable, map, filter, first, firstValueFrom, tap, take } from "rxjs";
 import { webSocket, WebSocketSubject } from 'rxjs/webSocket';
 import { assert, is } from "valibot";
 
@@ -21,10 +21,10 @@ export class LobbyService {
 	constructor(private backend: BackendService) {}
 	
 	private createLobbyInstanceService(id: LobbyId): LobbyInstanceService {
-		return new LobbyInstanceService(this.backend, id);
+		return new LobbyInstanceService(this, this.backend, id);
 	}
 	
-	getLobbyInstanceService(id: LobbyId): LobbyInstanceService {
+	public getLobbyInstanceService(id: LobbyId): LobbyInstanceService {
 		let lobbyInstanceService = this.lobbyInstances.get(id);
 		if (!lobbyInstanceService) {
 			lobbyInstanceService = this.createLobbyInstanceService(id);
@@ -33,9 +33,13 @@ export class LobbyService {
 		return lobbyInstanceService;
 	}
 	
-	createLobby(request: CreateLobbyRequest): Observable<CreateLobbyResponse> {
+	public createLobby(request: CreateLobbyRequest): Observable<CreateLobbyResponse> {
 		assert(CreateLobbyRequestSchema, request);
 		return this.backend.postJson<CreateLobbyRequest, CreateLobbyResponse>("/api/lobby/create", request);
+	}
+	
+	public removeLobby(id: LobbyId): void {
+		this.lobbyInstances.delete(id);
 	}
 }
 
@@ -44,16 +48,20 @@ export class LobbyInstanceService {
 	private readonly lobbyUpdate: Observable<LobbyJson>;
 	private readonly begin: Observable<GameId>;
 	private readonly canceled: Observable<void>;
+	private readonly wsSubject: WebSocketSubject<Object>;
 	
-	constructor(private http: BackendService, private id: LobbyId) {
-		const wsSubject: WebSocketSubject<Object> = webSocket("ws://localhost:3000/api/lobby/state");
-		wsSubject.next({
+	constructor(
+			private readonly lobbyService: LobbyService,
+			private readonly http: BackendService,
+			private readonly id: LobbyId) {
+		this.wsSubject = webSocket("ws://localhost:3000/api/lobby/state");
+		this.wsSubject.next({
 			method: "register",
 			payload: this.id
 		});
 		
 		const notifications: Observable<LobbyNotification> =
-			wsSubject.pipe(filter(object => is(LobbyNotificationSchema, object)));
+			this.wsSubject.pipe(filter(object => is(LobbyNotificationSchema, object)));
 		
 		this.lobbyUpdate = notifications.pipe(
 			filter(notification => notification.type === "update"),
@@ -62,12 +70,18 @@ export class LobbyInstanceService {
 		this.begin = notifications.pipe(
 			filter(notification => notification.type === "begin-game"),
 			map(update => update.gameId),
-			first());
+			// take(1) instead of first() so we don't error when the connection is closed.
+			take(1));
 		
 		this.canceled = notifications.pipe(
 			filter(notification => notification.type == "canceled"),
 			map(_ => undefined),
-			first());
+			// take(1) instead of first() so we don't error when the connection is closed.
+			take(1));
+		
+		// If the server closes the connection, close this lobby. This does not
+		// handle unexpected closures like the server crashing.
+		this.wsSubject.subscribe({ complete: () => this.close() });
 	}
 	
 	public addPlayer(name: string): Observable<PrivatePlayer> {
@@ -99,5 +113,10 @@ export class LobbyInstanceService {
 	
 	public onCanceled(): Observable<void> {
 		return this.canceled;
+	}
+	
+	public close(): void {
+		this.wsSubject.complete();
+		this.lobbyService.removeLobby(this.id);
 	}
 };

@@ -6,21 +6,31 @@ export class Notifier<N> {
 	
 	constructor() {}
 	
-	public addClient(clientWs: WebSocketUtil): void {
+	public addClient(clientWs: WebSocketUtil): this {
 		this.clients.add(clientWs);
+		return this;
 	}
 	
-	public removeClient(clientWs: WebSocketUtil): void {
+	public removeClient(clientWs: WebSocketUtil): this {
 		this.clients.delete(clientWs);
+		return this;
 	}
 	
 	// Notify all registered clients.
-	public notifyClients(notification: N): void {
+	public notifyClients(notification: N): this {
 		this.clients.forEach(ws => this.notifyClient(ws, notification));
+		return this;
 	}
 	
 	// Notify a single client.
-	public notifyClient(ws: WebSocketUtil, notification: N): void {
+	public notifyClient(ws: WebSocketUtil, notification: N): this {
 		ws.send(notification);
+		return this;
+	}
+	
+	// Close all connected sockets.
+	public close(): this {
+		this.clients.forEach(ws => ws.close());
+		return this;
 	}
 };

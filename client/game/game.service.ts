@@ -19,7 +19,7 @@ export class GameService {
 		return new GameInstanceService(this.http, id);
 	}
 	
-	getGameInstanceService(id: GameId): GameInstanceService {
+	public getGameInstanceService(id: GameId): GameInstanceService {
 		let gameInstanceService = this.gameInstances.get(id);
 		if (!gameInstanceService) {
 			gameInstanceService = this.createGameInstanceService(id);

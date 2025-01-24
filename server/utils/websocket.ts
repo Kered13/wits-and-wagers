@@ -21,7 +21,11 @@ export class WebSocketUtil {
 		this.ws.send(JSON.stringify(payload));
 		return this;
 	}
-
+	
+	public close(): this {
+		this.ws.close();
+		return this;
+	}
 	
 	public onMethod<Res>(method: string, handler: (request: unknown) => Res): this {
 		this.ws.on("message", (msg: string) => {

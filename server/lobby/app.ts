@@ -104,7 +104,9 @@ export class LobbyApp {
 		this.gameApp.addGame(lobby.beginGame());
 		
 		res.end();
-		notifier.notifyClients(lobby.makeBeginGame());
+		notifier
+			.notifyClients(lobby.makeBeginGame())
+			.close();
 	}
 	
 	private cancel(req: Request, res: Response): void {
@@ -119,7 +121,9 @@ export class LobbyApp {
 		this.removeLobby(lobby);
 		
 		res.end();
-		notifier.notifyClients(lobby.makeCancel());
+		notifier
+			.notifyClients(lobby.makeCancel())
+			.close();
 	}
 	
 	private wsState(webSocket: WebSocket): void {
