@@ -74,10 +74,13 @@ export class LobbyInstanceService {
 			take(1));
 		
 		this.canceled = notifications.pipe(
-			filter(notification => notification.type == "canceled"),
+			filter(notification => notification.type === "canceled"),
 			map(_ => undefined),
 			// take(1) instead of first() so we don't error when the connection is closed.
 			take(1));
+		
+		notifications.pipe(filter(notification => notification.type === "error"))
+			.subscribe(notification => console.error(`WebSocket returned status ${notification.status}: ${notification.message}`));
 		
 		// If the server closes the connection, close this lobby. This does not
 		// handle unexpected closures like the server crashing.

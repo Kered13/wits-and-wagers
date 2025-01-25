@@ -13,7 +13,7 @@ import { AddPlayerRequestSchema, type AddPlayerResponse, } from "../../shared/lo
 import { BeginGameRequestSchema } from "../../shared/lobby/begin.js";
 import { CancelLobbyRequestSchema } from "../../shared/lobby/cancel.js";
 import { CreateLobbyRequestSchema, CreateLobbyResponseSchema, type CreateLobbyResponse } from "../../shared/lobby/create.js";
-import type { LobbyNotification } from "../../shared/lobby/notifications.js";
+import type { LobbyError, LobbyNotification } from "../../shared/lobby/notifications.js";
 import type { PrivateId } from "../../shared/player.js";
 
 
@@ -131,16 +131,29 @@ export class LobbyApp {
 		ws.onMethod("register", (msg: unknown) => {
 			console.log("WS /api/lobby/state " + JSON.stringify(msg));
 			
-			const lobbyId = verifyRequest(
-				msg, LobbyIdSchema, `${msg} is not a valid LobbyId.`);
-			
-			const { lobby, notifier } = this.getLobby(lobbyId);
-			notifier.addClient(ws);
-			notifier.notifyClient(ws, lobby.makeUpdate());
-			
-			ws.onClose(() => {
-				notifier.removeClient(ws);
-			});
+			try {
+				const lobbyId = verifyRequest(
+					msg, LobbyIdSchema, `${msg} is not a valid LobbyId.`);
+				
+				const { lobby, notifier } = this.getLobby(lobbyId);
+				notifier.addClient(ws);
+				notifier.notifyClient(ws, lobby.makeUpdate());
+				
+				ws.onClose(() => {
+					console.log("Lost connection to...");
+					notifier.removeClient(ws);
+				});
+			} catch (err) {
+				if (err instanceof HttpError) {
+					console.error(err.message);
+					ws.send<LobbyError>({
+						type: "error",
+						status: err.status,
+						message: err.message
+					});
+					ws.close();
+				}
+			}
 		});
 	}
 	
