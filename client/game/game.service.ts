@@ -5,7 +5,7 @@ import { is } from "valibot";
 
 import { BackendService } from "../utils/backend.service.js";
 import { AddOneRequest, ResetRequest, type GameId, type GameJson } from "../../shared/game/game.js";
-import { type GameEnd, GameNotificationSchema, type GameNotification } from "../../shared/game/notifications.js";
+import { type GameEnd, GameNotificationSchema, type GameNotification, GameError } from "../../shared/game/notifications.js";
 import { PrivatePlayer } from "../../shared/player.js";
 
 
@@ -16,7 +16,7 @@ export class GameService {
 	constructor(private http: BackendService) {}
 	
 	private createGameInstanceService(id: GameId): GameInstanceService {
-		return new GameInstanceService(this.http, id);
+		return new GameInstanceService(this, this.http, id);
 	}
 	
 	public getGameInstanceService(id: GameId): GameInstanceService {
@@ -27,28 +27,45 @@ export class GameService {
 		}
 		return gameInstanceService;
 	}
+	
+	public removeGame(id: GameId): void {
+		this.gameInstances.delete(id);
+	}
 }
 
 
 export class GameInstanceService {
+	private readonly wsSubject: WebSocketSubject<Object>;
 	private readonly gameUpdate: Observable<GameJson>;
 	private readonly gameEnd: Observable<GameEnd>;
+	private readonly error: Observable<GameError>;
 	
-	constructor(private backend: BackendService, private id: GameId) {
-		const wsSubject: WebSocketSubject<Object> = webSocket("ws://localhost:3000/api/game/state");
-		wsSubject.next({
+	constructor(
+			private readonly gameService: GameService,
+			private readonly backend: BackendService,
+			private readonly id: GameId) {
+		this.wsSubject = webSocket("ws://localhost:3000/api/game/state");
+		this.wsSubject.next({
 			method: "register",
 			payload: this.id
 		});
 		
 		const notifications: Observable<GameNotification> =
-			wsSubject.pipe(filter(object => is(GameNotificationSchema, object)));
+			this.wsSubject.pipe(filter(object => is(GameNotificationSchema, object)));
 		
 		this.gameUpdate = notifications.pipe(
-				filter(notification => notification.type === "update"),
-				map(update => update.state));
+			filter(notification => notification.type === "update"),
+			map(update => update.state));
 		
-		this.gameEnd = notifications.pipe(filter(notification => notification.type === "end"));
+		this.gameEnd = notifications.pipe(
+			filter(notification => notification.type === "end"));
+		
+		this.error = notifications.pipe(
+			filter(notification => notification.type === "error"));
+		
+		// If the server closes the connection, close this lobby. This does not
+		// handle unexpected closures like the server crashing.
+		this.wsSubject.subscribe({ complete: () => this.close() });
 	}
 	
 	public addOne(player: PrivatePlayer): void {
@@ -71,5 +88,14 @@ export class GameInstanceService {
 	
 	public onGameEnd(): Observable<GameEnd> {
 		return this.gameEnd;
+	}
+	
+	public onError(): Observable<GameError> {
+		return this.error;
+	}
+	
+	public close(): void {
+		this.wsSubject.complete();
+		this.gameService.removeGame(this.id);
 	}
 };

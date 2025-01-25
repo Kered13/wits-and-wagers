@@ -2,14 +2,14 @@ import { ChangeDetectionStrategy, Component, computed, effect, Inject, Signal } 
 import { MatButton } from "@angular/material/button";
 import { MatCardModule } from "@angular/material/card";
 import { Title } from "@angular/platform-browser";
-import { ActivatedRoute } from "@angular/router";
+import { ActivatedRoute, Router } from "@angular/router";
 import { toSignal } from "@angular/core/rxjs-interop";
+import { map, switchMap } from "rxjs";
 
 import { GameInstanceService, GameService } from "./game.service.js";
+import { GameRoute, HOME_ROUTE, TypedRouteFor } from "../routes/routes.js";
 import { PrivatePlayer } from "../../shared/player.js";
 import { GameJson } from "../../shared/game/game.js";
-import { map, switchMap } from "rxjs";
-import { GameRoute, TypedRouteFor } from "../routes/routes.js";
 
 
 @Component({
@@ -26,6 +26,7 @@ export class GameComponent {
 	readonly thisPlayer: Signal<PrivatePlayer>;
 	
 	constructor(
+			private readonly router: Router,
 			gameService: GameService,
 			titleService: Title,
 			@Inject(ActivatedRoute) route: TypedRouteFor<GameRoute>) {
@@ -40,9 +41,16 @@ export class GameComponent {
 			map(params => gameService.getGameInstanceService(params.get("gameId")!)));
 		
 		this.gameService = toSignal(instanceService, { requireSync: true });
+		
 		this.game = toSignal(
 			instanceService.pipe(switchMap(service => service.onGameUpdate())),
 			{ initialValue: { title: "", players: [] }});
+		
+		instanceService.pipe(switchMap(service => service.onError()))
+			.subscribe(err => {
+				console.error(`WebSocket returned status ${err.status}: ${err.message}`);
+				this.router.navigate(HOME_ROUTE.url());
+			});
 		
 		effect(() => titleService.setTitle(route.routeConfig!.title! + " - " + this.game().title));
 	}

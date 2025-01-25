@@ -1,4 +1,4 @@
-import { literal, strictObject, variant, type InferOutput } from "valibot";
+import { literal, number, strictObject, string, variant, type InferOutput } from "valibot";
 
 import { GameIdSchema, GameJsonSchema } from "./game.js";
 
@@ -21,6 +21,20 @@ export const GameEndSchema = strictObject({
 export type GameEnd = InferOutput<typeof GameEndSchema>;
 
 
+// Indicates an error communicated to the client.
+export const GameErrorSchema = strictObject({
+	type: literal("error"),
+	status: number(),
+	message: string()
+});
+export type GameError = InferOutput<typeof GameErrorSchema>;
+
+
 // A notification about some change to the game.
-export const GameNotificationSchema = variant("type", [GameUpdateSchema, GameEndSchema]);
+export const GameNotificationSchema =
+	variant("type", [
+		GameUpdateSchema,
+		GameEndSchema,
+		GameErrorSchema
+	]);
 export type GameNotification = InferOutput<typeof GameNotificationSchema>;

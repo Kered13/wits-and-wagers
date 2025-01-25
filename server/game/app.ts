@@ -1,5 +1,4 @@
 import express, { Router, type Request, type Response } from "express";
-import { is } from "valibot";
 import type { WebSocket } from "ws";
 
 import { Game } from "./game.js";
@@ -8,7 +7,7 @@ import { Notifier } from "../utils/notifier.js";
 import { verifyRequest } from "../utils/verifyrequest.js";
 import { WebSocketUtil } from "../utils/websocket.js";
 import { AddOneRequestSchema, GameIdSchema, ResetRequestSchema, type GameId } from "../../shared/game/game.js";
-import type { GameNotification } from "../../shared/game/notifications.js";
+import type { GameError, GameNotification } from "../../shared/game/notifications.js";
 
 
 class GameNotifier extends Notifier<GameNotification> {}
@@ -66,16 +65,28 @@ export class GameApp {
 		ws.onMethod("register", (msg: unknown) => {
 			console.log("WS /api/game/state " + JSON.stringify(msg));
 			
-			const gameId = verifyRequest(
-				msg, GameIdSchema, `${msg} is not a valid GameId.`);
-			
-			const { game, notifier } = this.getGame(gameId);
-			notifier.addClient(ws);
-			notifier.notifyClient(ws, game.makeUpdate());
-			
-			ws.onClose(() => {
-				notifier.removeClient(ws);
-			});
+			try {
+				const gameId = verifyRequest(
+					msg, GameIdSchema, `${msg} is not a valid GameId.`);
+				
+				const { game, notifier } = this.getGame(gameId);
+				notifier.addClient(ws);
+				notifier.notifyClient(ws, game.makeUpdate());
+				
+				ws.onClose(() => {
+					notifier.removeClient(ws);
+				});
+			} catch (err) {
+				if (err instanceof HttpError) {
+					console.error(err.message);
+					ws.send<GameError>({
+						type: "error",
+						status: err.status,
+						message: err.message
+					});
+					ws.close();
+				}
+			}
 		});
 	}
 	
