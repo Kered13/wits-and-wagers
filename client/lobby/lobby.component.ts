@@ -55,20 +55,19 @@ export class LobbyComponent {
 			instanceService.pipe(switchMap(service => service.onLobbyUpdate())),
 			{ initialValue: { title: "", host: "", players: [] }});
 		
-		instanceService.pipe(switchMap(service => service.onBeginGame()))
-			.subscribe(gameId => this.router.navigate(GAME_ROUTE.url({ gameId: gameId })));
-		
-		instanceService.pipe(switchMap(service => service.onCanceled()))
-			.subscribe(() => {
+		instanceService.subscribe(service => {
+			service.onBeginGame().subscribe(gameId => this.router.navigate(GAME_ROUTE.url({ gameId: gameId })));
+			
+			service.onCanceled().subscribe(() => {
 				localStorage.removeItem(GAME_ID);
 				this.router.navigate(HOME_ROUTE.url());
 			});
-		
-		instanceService.pipe(switchMap(service => service.onError()))
-			.subscribe(err => {
+			
+			service.onError().subscribe(err => {
 				console.error(`WebSocket returned status ${err.status}: ${err.message}`);
 				this.router.navigate(HOME_ROUTE.url());
 			});
+		});
 		
 		effect(() => titleService.setTitle(route.routeConfig!.title! + " - " + this.lobby().title));
 	}
