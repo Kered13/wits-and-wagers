@@ -64,6 +64,12 @@ export class LobbyComponent {
 				this.router.navigate(HOME_ROUTE.url());
 			});
 		
+		instanceService.pipe(switchMap(service => service.onError()))
+			.subscribe(err => {
+				console.error(`WebSocket returned status ${err.status}: ${err.message}`);
+				this.router.navigate(HOME_ROUTE.url());
+			});
+		
 		effect(() => titleService.setTitle(route.routeConfig!.title! + " - " + this.lobby().title));
 	}
 	

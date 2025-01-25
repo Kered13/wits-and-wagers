@@ -9,7 +9,7 @@ import { type BeginGameRequest } from "../../shared/lobby/begin.js";
 import { type CancelLobbyRequest } from "../../shared/lobby/cancel.js";
 import { CreateLobbyRequestSchema, type CreateLobbyRequest, type CreateLobbyResponse } from "../../shared/lobby/create.js";
 import { type LobbyId, type LobbyJson } from "../../shared/lobby/lobby.js";
-import { LobbyNotificationSchema, type LobbyNotification } from "../../shared/lobby/notifications.js";
+import { LobbyError, LobbyNotificationSchema, type LobbyNotification } from "../../shared/lobby/notifications.js";
 import { PrivatePlayer } from "../../shared/player.js";
 import { GameId } from "../../shared/game/game.js";
 
@@ -45,10 +45,11 @@ export class LobbyService {
 
 
 export class LobbyInstanceService {
+	private readonly wsSubject: WebSocketSubject<Object>;
 	private readonly lobbyUpdate: Observable<LobbyJson>;
 	private readonly begin: Observable<GameId>;
 	private readonly canceled: Observable<void>;
-	private readonly wsSubject: WebSocketSubject<Object>;
+	private readonly error: Observable<LobbyError>;
 	
 	constructor(
 			private readonly lobbyService: LobbyService,
@@ -79,8 +80,8 @@ export class LobbyInstanceService {
 			// take(1) instead of first() so we don't error when the connection is closed.
 			take(1));
 		
-		notifications.pipe(filter(notification => notification.type === "error"))
-			.subscribe(notification => console.error(`WebSocket returned status ${notification.status}: ${notification.message}`));
+		this.error = notifications.pipe(
+			filter(notification => notification.type === "error"));
 		
 		// If the server closes the connection, close this lobby. This does not
 		// handle unexpected closures like the server crashing.
@@ -116,6 +117,10 @@ export class LobbyInstanceService {
 	
 	public onCanceled(): Observable<void> {
 		return this.canceled;
+	}
+	
+	public onError(): Observable<LobbyError> {
+		return this.error;
 	}
 	
 	public close(): void {
