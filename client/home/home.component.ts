@@ -38,13 +38,15 @@ export class HomeComponent {
 			localStorage.setItem(USERNAME, this.username);
 			localStorage.setItem(GAME_ID, this.joinCode);
 			
-			this.lobbyService
-				.getLobbyInstanceService(this.joinCode)
+			const service = this.lobbyService.getLobbyInstanceService(this.joinCode);
+			
+			service.get()
 				.addPlayer(this.username)
 				.subscribe(player => {
 					localStorage.setItem(PUBLIC_ID, player.publicId);
 					localStorage.setItem(PRIVATE_ID, player.privateId);
 					this.router.navigate(LOBBY_ROUTE.url({ lobbyId: this.joinCode }));
+					service.release();
 				});
 		}
 	}

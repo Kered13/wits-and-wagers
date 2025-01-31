@@ -1,9 +1,10 @@
 import { Injectable } from "@angular/core";
-import { Observable, map, filter, first, firstValueFrom, tap, take } from "rxjs";
+import { Observable, map, filter, take } from "rxjs";
 import { webSocket, WebSocketSubject } from 'rxjs/webSocket';
 import { assert, is } from "valibot";
 
 import { BackendService } from "../utils/backend.service.js";
+import { Closeable, RefCounted } from "../utils/refcounted.js";
 import { type AddPlayerRequest, type AddPlayerResponse } from "../../shared/lobby/addplayer.js";
 import { type BeginGameRequest } from "../../shared/lobby/begin.js";
 import { type CancelLobbyRequest } from "../../shared/lobby/cancel.js";
@@ -16,15 +17,15 @@ import { GameId } from "../../shared/game/game.js";
 
 @Injectable({providedIn: "root"})
 export class LobbyService {
-	private readonly lobbyInstances: Map<LobbyId, LobbyInstanceService> = new Map<LobbyId, LobbyInstanceService>();
+	private readonly lobbyInstances = new Map<LobbyId, RefCounted<LobbyInstanceService>>();
 	
 	constructor(private backend: BackendService) {}
 	
-	private createLobbyInstanceService(id: LobbyId): LobbyInstanceService {
-		return new LobbyInstanceService(this, this.backend, id);
+	private createLobbyInstanceService(id: LobbyId): RefCounted<LobbyInstanceService> {
+		return new RefCounted<LobbyInstanceService>(new LobbyInstanceService(this, this.backend, id));
 	}
 	
-	public getLobbyInstanceService(id: LobbyId): LobbyInstanceService {
+	public getLobbyInstanceService(id: LobbyId): RefCounted<LobbyInstanceService> {
 		let lobbyInstanceService = this.lobbyInstances.get(id);
 		if (!lobbyInstanceService) {
 			lobbyInstanceService = this.createLobbyInstanceService(id);
@@ -44,7 +45,7 @@ export class LobbyService {
 }
 
 
-export class LobbyInstanceService {
+export class LobbyInstanceService extends Closeable {
 	private readonly wsSubject: WebSocketSubject<Object>;
 	private readonly lobbyUpdate: Observable<LobbyJson>;
 	private readonly begin: Observable<GameId>;
@@ -55,6 +56,8 @@ export class LobbyInstanceService {
 			private readonly lobbyService: LobbyService,
 			private readonly http: BackendService,
 			private readonly id: LobbyId) {
+		super();
+		
 		this.wsSubject = webSocket("ws://localhost:3000/api/lobby/state");
 		this.wsSubject.next({
 			method: "register",
@@ -123,8 +126,9 @@ export class LobbyInstanceService {
 		return this.error;
 	}
 	
-	public close(): void {
+	public override doClose(): void {
 		this.wsSubject.complete();
 		this.lobbyService.removeLobby(this.id);
+		console.log("Closed LobbyInstanceService");
 	}
 };

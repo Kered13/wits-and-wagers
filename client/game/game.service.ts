@@ -7,19 +7,20 @@ import { BackendService } from "../utils/backend.service.js";
 import { AddOneRequest, ResetRequest, type GameId, type GameJson } from "../../shared/game/game.js";
 import { type GameEnd, GameNotificationSchema, type GameNotification, GameError } from "../../shared/game/notifications.js";
 import { PrivatePlayer } from "../../shared/player.js";
+import { Closeable, RefCounted } from "../utils/refcounted.js";
 
 
 @Injectable({providedIn: "root"})
 export class GameService {
-	private gameInstances: Map<GameId, GameInstanceService> = new Map<GameId, GameInstanceService>();
+	private gameInstances = new Map<GameId, RefCounted<GameInstanceService>>();
 	
 	constructor(private http: BackendService) {}
 	
-	private createGameInstanceService(id: GameId): GameInstanceService {
-		return new GameInstanceService(this, this.http, id);
+	private createGameInstanceService(id: GameId): RefCounted<GameInstanceService> {
+		return new RefCounted<GameInstanceService>(new GameInstanceService(this, this.http, id));
 	}
 	
-	public getGameInstanceService(id: GameId): GameInstanceService {
+	public getGameInstanceService(id: GameId): RefCounted<GameInstanceService> {
 		let gameInstanceService = this.gameInstances.get(id);
 		if (!gameInstanceService) {
 			gameInstanceService = this.createGameInstanceService(id);
@@ -34,7 +35,7 @@ export class GameService {
 }
 
 
-export class GameInstanceService {
+export class GameInstanceService extends Closeable {
 	private readonly wsSubject: WebSocketSubject<Object>;
 	private readonly gameUpdate: Observable<GameJson>;
 	private readonly gameEnd: Observable<GameEnd>;
@@ -44,6 +45,8 @@ export class GameInstanceService {
 			private readonly gameService: GameService,
 			private readonly backend: BackendService,
 			private readonly id: GameId) {
+		super()
+		
 		this.wsSubject = webSocket("ws://localhost:3000/api/game/state");
 		this.wsSubject.next({
 			method: "register",
@@ -94,8 +97,9 @@ export class GameInstanceService {
 		return this.error;
 	}
 	
-	public close(): void {
+	public override doClose(): void {
 		this.wsSubject.complete();
 		this.gameService.removeGame(this.id);
+		console.log("Close game service.");
 	}
 };
