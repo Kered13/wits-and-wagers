@@ -142,6 +142,17 @@ export class LobbyApp {
 				
 				ws.onClose(() => {
 					notifier.removeClient(ws);
+					
+					if (request.privateId === lobby.getHost().privateId) {
+						this.removeLobby(lobby);
+						
+						notifier
+							.notifyClients(lobby.makeCancel())
+							.close();
+					} else {
+						lobby.removePlayer(request.privateId);
+						notifier.notifyClients(lobby.makeUpdate());
+					}
 				});
 			} catch (err) {
 				if (err instanceof HttpError) {
