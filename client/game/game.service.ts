@@ -49,7 +49,7 @@ export class GameInstanceService extends Closeable {
 		
 		this.wsSubject = webSocket("ws://localhost:3000/api/game/state");
 		this.wsSubject.next({
-			method: "register",
+			method: "subscribe",
 			payload: this.id
 		});
 		

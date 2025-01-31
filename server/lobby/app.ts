@@ -1,20 +1,21 @@
 import express, { Router, type Request, type Response } from "express";
 import { assert } from "valibot";
-import type { WebSocket } from "ws";
+import { type WebSocket } from "ws";
 
 import { Lobby } from "./lobby.js";
-import type { GameApp } from "../game/app.js";
+import { type GameApp } from "../game/app.js";
 import { HttpError } from "../utils/httperror.js";
 import { Notifier } from "../utils/notifier.js";
 import { verifyRequest } from "../utils/verifyrequest.js";
 import { WebSocketUtil } from "../utils/websocket.js";
-import { LobbyIdSchema, type LobbyId } from "../../shared/lobby/lobby.js";
+import { type LobbyId } from "../../shared/lobby/lobby.js";
 import { AddPlayerRequestSchema, type AddPlayerResponse, } from "../../shared/lobby/addplayer.js";
 import { BeginGameRequestSchema } from "../../shared/lobby/begin.js";
 import { CancelLobbyRequestSchema } from "../../shared/lobby/cancel.js";
 import { CreateLobbyRequestSchema, CreateLobbyResponseSchema, type CreateLobbyResponse } from "../../shared/lobby/create.js";
-import type { LobbyError, LobbyNotification } from "../../shared/lobby/notifications.js";
-import type { PrivateId } from "../../shared/player.js";
+import { type LobbyError, type LobbyNotification } from "../../shared/lobby/notifications.js";
+import { SubscribeRequestSchema } from "../../shared/lobby/subscribe.js";
+import { type PrivateId } from "../../shared/player.js";
 
 
 class LobbyNotifier extends Notifier<LobbyNotification> {}
@@ -128,19 +129,18 @@ export class LobbyApp {
 	
 	private wsState(webSocket: WebSocket): void {
 		const ws = new WebSocketUtil(webSocket);
-		ws.onMethod("register", (msg: unknown) => {
+		ws.onMethod("subscribe", (msg: unknown) => {
 			console.log("WS /api/lobby/state " + JSON.stringify(msg));
 			
 			try {
-				const lobbyId = verifyRequest(
-					msg, LobbyIdSchema, `${msg} is not a valid LobbyId.`);
+				const request = verifyRequest(
+					msg, SubscribeRequestSchema, `Invalid SubscribeRequest: ${msg}`);
 				
-				const { lobby, notifier } = this.getLobby(lobbyId);
+				const { lobby, notifier } = this.getLobby(request.lobbyId);
 				notifier.addClient(ws);
 				notifier.notifyClient(ws, lobby.makeUpdate());
 				
 				ws.onClose(() => {
-					console.log("Lost connection to...");
 					notifier.removeClient(ws);
 				});
 			} catch (err) {

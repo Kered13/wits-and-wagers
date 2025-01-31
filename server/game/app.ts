@@ -1,5 +1,5 @@
 import express, { Router, type Request, type Response } from "express";
-import type { WebSocket } from "ws";
+import { type WebSocket } from "ws";
 
 import { Game } from "./game.js";
 import { HttpError } from "../utils/httperror.js";
@@ -7,7 +7,7 @@ import { Notifier } from "../utils/notifier.js";
 import { verifyRequest } from "../utils/verifyrequest.js";
 import { WebSocketUtil } from "../utils/websocket.js";
 import { AddOneRequestSchema, GameIdSchema, ResetRequestSchema, type GameId } from "../../shared/game/game.js";
-import type { GameError, GameNotification } from "../../shared/game/notifications.js";
+import { type GameError, type GameNotification } from "../../shared/game/notifications.js";
 
 
 class GameNotifier extends Notifier<GameNotification> {}
@@ -62,7 +62,7 @@ export class GameApp {
 	
 	private wsState(webSocket: WebSocket) {
 		const ws = new WebSocketUtil(webSocket);
-		ws.onMethod("register", (msg: unknown) => {
+		ws.onMethod("subscribe", (msg: unknown) => {
 			console.log("WS /api/game/state " + JSON.stringify(msg));
 			
 			try {

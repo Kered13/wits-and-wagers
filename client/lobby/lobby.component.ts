@@ -6,7 +6,7 @@ import { MatInputModule } from '@angular/material/input';
 import { Title } from "@angular/platform-browser";
 import { ActivatedRoute, Router } from "@angular/router";
 import { toSignal } from "@angular/core/rxjs-interop";
-import { map, pairwise, Subscription, startWith, switchMap } from "rxjs";
+import { map, pairwise, Subscription, startWith, switchMap, combineLatest } from "rxjs";
 
 import { LobbyInstanceService, LobbyService } from "./lobby.service.js";
 import { GAME_ID } from "../app/localstorage.keys.js";
@@ -44,9 +44,8 @@ export class LobbyComponent implements OnDestroy {
 			}))),
 			{ requireSync: true });
 		
-		// Don't use lobbyId signal here because it may not have updated yet.
-		const instanceService = route.paramMap.pipe(
-			map(params => lobbyService.getLobbyInstanceService(params.get("lobbyId")!)));
+		const instanceService = combineLatest([route.params, route.data]).pipe(
+			map(([params, data]) => lobbyService.getLobbyInstanceService(params.lobbyId, data.privateId)));
 		this.instanceSub = instanceService.pipe(startWith(undefined), pairwise())
 			.subscribe(([oldService, newService]) => this.onNewLobby(newService!, oldService));
 		
@@ -88,10 +87,10 @@ export class LobbyComponent implements OnDestroy {
 	}
 	
 	beginGame(): void {
-		this.lobbyService().get().beginGame(this.player()).subscribe();
+		this.lobbyService().get().beginGame().subscribe();
 	}
 	
 	cancelLobby(): void {
-		this.lobbyService().get().cancelLobby(this.player()).subscribe();
+		this.lobbyService().get().cancelLobby().subscribe();
 	}
 }

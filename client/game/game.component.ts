@@ -40,8 +40,8 @@ export class GameComponent implements OnDestroy {
 			privateId: data().privateId
 		}));
 		
-		const instanceService = route.paramMap.pipe(
-			map(params => gameService.getGameInstanceService(params.get("gameId")!)));
+		const instanceService = route.params.pipe(
+			map(params => gameService.getGameInstanceService(params.gameId)));
 		this.instanceSub = instanceService.pipe(startWith(undefined), pairwise())
 			.subscribe(([oldService, newService]) => this.onNewLobby(newService!, oldService));
 		

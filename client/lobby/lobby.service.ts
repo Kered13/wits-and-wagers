@@ -11,25 +11,26 @@ import { type CancelLobbyRequest } from "../../shared/lobby/cancel.js";
 import { CreateLobbyRequestSchema, type CreateLobbyRequest, type CreateLobbyResponse } from "../../shared/lobby/create.js";
 import { type LobbyId, type LobbyJson } from "../../shared/lobby/lobby.js";
 import { LobbyError, LobbyNotificationSchema, type LobbyNotification } from "../../shared/lobby/notifications.js";
-import { PrivatePlayer } from "../../shared/player.js";
+import { type SubscribeRequest } from "../../shared/lobby/subscribe.js";
+import { PrivateId, PrivatePlayer } from "../../shared/player.js";
 import { GameId } from "../../shared/game/game.js";
 
 
 @Injectable({providedIn: "root"})
 export class LobbyService {
-	private readonly lobbyInstances = new Map<LobbyId, RefCounted<LobbyInstanceService>>();
+	private readonly lobbyInstances = new Map<PrivateId, RefCounted<LobbyInstanceService>>();
 	
 	constructor(private backend: BackendService) {}
 	
-	private createLobbyInstanceService(id: LobbyId): RefCounted<LobbyInstanceService> {
-		return new RefCounted<LobbyInstanceService>(new LobbyInstanceService(this, this.backend, id));
+	private createLobbyInstanceService(lobbyId: LobbyId, privateId: PrivateId): RefCounted<LobbyInstanceService> {
+		return new RefCounted<LobbyInstanceService>(new LobbyInstanceService(this, this.backend, lobbyId, privateId));
 	}
 	
-	public getLobbyInstanceService(id: LobbyId): RefCounted<LobbyInstanceService> {
-		let lobbyInstanceService = this.lobbyInstances.get(id);
+	public getLobbyInstanceService(lobbyId: LobbyId, privateId: PrivateId): RefCounted<LobbyInstanceService> {
+		let lobbyInstanceService = this.lobbyInstances.get(privateId);
 		if (!lobbyInstanceService) {
-			lobbyInstanceService = this.createLobbyInstanceService(id);
-			this.lobbyInstances.set(id, lobbyInstanceService);
+			lobbyInstanceService = this.createLobbyInstanceService(lobbyId, privateId);
+			this.lobbyInstances.set(privateId, lobbyInstanceService);
 		}
 		return lobbyInstanceService;
 	}
@@ -37,6 +38,11 @@ export class LobbyService {
 	public createLobby(request: CreateLobbyRequest): Observable<CreateLobbyResponse> {
 		assert(CreateLobbyRequestSchema, request);
 		return this.backend.postJson<CreateLobbyRequest, CreateLobbyResponse>("/api/lobby/create", request);
+	}
+	
+	public addPlayer(lobbyId: LobbyId, name: string): Observable<PrivatePlayer> {
+		return this.backend.postJson<AddPlayerRequest, AddPlayerResponse>("/api/lobby/addplayer", { lobbyId: lobbyId, name: name })
+			.pipe(map(response => response.player));
 	}
 	
 	public removeLobby(id: LobbyId): void {
@@ -55,13 +61,17 @@ export class LobbyInstanceService extends Closeable {
 	constructor(
 			private readonly lobbyService: LobbyService,
 			private readonly http: BackendService,
-			private readonly id: LobbyId) {
+			private readonly lobbyId: LobbyId,
+			private readonly privateId: PrivateId) {
 		super();
 		
 		this.wsSubject = webSocket("ws://localhost:3000/api/lobby/state");
 		this.wsSubject.next({
-			method: "register",
-			payload: this.id
+			method: "subscribe",
+			payload: {
+				lobbyId: this.lobbyId,
+				privateId: this.privateId,
+			 } satisfies SubscribeRequest
 		});
 		
 		const notifications: Observable<LobbyNotification> =
@@ -91,22 +101,17 @@ export class LobbyInstanceService extends Closeable {
 		this.wsSubject.subscribe({ complete: () => this.close() });
 	}
 	
-	public addPlayer(name: string): Observable<PrivatePlayer> {
-		return this.http.postJson<AddPlayerRequest, AddPlayerResponse>("/api/lobby/addplayer", { lobbyId: this.id, name: name })
-			.pipe(map(response => response.player));
-	}
-	
-	public beginGame(requester: PrivatePlayer): Observable<void> {
+	public beginGame(): Observable<void> {
 		return this.http.postJson<BeginGameRequest, void>("/api/lobby/begin", {
-			lobbyId: this.id,
-			requester: requester.privateId
+			lobbyId: this.lobbyId,
+			requester: this.privateId
 		});
 	}
 	
-	public cancelLobby(requester: PrivatePlayer): Observable<void> {
+	public cancelLobby(): Observable<void> {
 		return this.http.postJson<CancelLobbyRequest, void>("/api/lobby/cancel", {
-			lobbyId: this.id,
-			requester: requester.privateId
+			lobbyId: this.lobbyId,
+			requester: this.privateId
 		});
 	}
 	
@@ -128,7 +133,7 @@ export class LobbyInstanceService extends Closeable {
 	
 	public override doClose(): void {
 		this.wsSubject.complete();
-		this.lobbyService.removeLobby(this.id);
+		this.lobbyService.removeLobby(this.lobbyId);
 		console.log("Closed LobbyInstanceService");
 	}
 };
