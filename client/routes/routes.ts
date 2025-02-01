@@ -140,8 +140,8 @@ export class GameRoute extends AppRoute<HasUsername & HasPlayerIds, HasGameId> {
 export const GAME_ROUTE = new GameRoute();
 
 
-export const ROUTES: Routes = [HOME_ROUTE, HOST_ROUTE, LOBBY_ROUTE, GAME_ROUTE]
-	.map(route => route.route);
+export const ROUTES: Routes = [HOME_ROUTE, HOST_ROUTE, LOBBY_ROUTE, GAME_ROUTE].map(route => route.route);
+ROUTES.push({ path: "**", redirectTo: "" });
 
 
 export type TypedRouteFor<R> =
