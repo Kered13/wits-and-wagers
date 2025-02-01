@@ -8,10 +8,10 @@ import { HttpError } from "../utils/httperror.js";
 import { Notifier } from "../utils/notifier.js";
 import { verifyRequest } from "../utils/verifyrequest.js";
 import { WebSocketUtil } from "../utils/websocket.js";
-import { type LobbyId } from "../../shared/lobby/lobby.js";
-import { AddPlayerRequestSchema, type AddPlayerResponse, } from "../../shared/lobby/addplayer.js";
 import { BeginGameRequestSchema } from "../../shared/lobby/begin.js";
 import { CancelLobbyRequestSchema } from "../../shared/lobby/cancel.js";
+import { JoinLobbyRequestSchema, type JoinLobbyResponse, } from "../../shared/lobby/joinlobby.js";
+import { type LobbyId } from "../../shared/lobby/lobby.js";
 import { CreateLobbyRequestSchema, CreateLobbyResponseSchema, type CreateLobbyResponse } from "../../shared/lobby/create.js";
 import { type LobbyError, type LobbyNotification } from "../../shared/lobby/notifications.js";
 import { SubscribeRequestSchema } from "../../shared/lobby/subscribe.js";
@@ -75,16 +75,16 @@ export class LobbyApp {
 		res.send(response);
 	}
 	
-	private addplayer(req: Request, res: Response): void {
-		console.log("POST /api/lobby/addplayer " + JSON.stringify(req.body));
+	private joinLobby(req: Request, res: Response): void {
+		console.log("POST /api/lobby/joinlobby " + JSON.stringify(req.body));
 		
 		const request = verifyRequest(
-			req.body, AddPlayerRequestSchema, `Invalid AddPlayerRequest: ${req.body}`);
+			req.body, JoinLobbyRequestSchema, `Invalid JoinLobbyRequest: ${req.body}`);
 		
 		const { lobby, notifier } = this.getLobby(request.lobbyId);
 		const player = lobby.addPlayer(request.name);
 		
-		const response: AddPlayerResponse = {
+		const response: JoinLobbyResponse = {
 			player: player.toPrivateJson()
 		};
 		res.send(response);
@@ -171,7 +171,7 @@ export class LobbyApp {
 	public getRouter(): Router {
 		return express.Router()
 			.post("/create", (req, res) => this.create(req, res))
-			.post("/addplayer", (req, res) => this.addplayer(req, res))
+			.post("/joinlobby", (req, res) => this.joinLobby(req, res))
 			.post("/begin", (req, res) => this.beginGame(req, res))
 			.post("/cancel", (req, res) => this.cancel(req, res))
 			.ws("/state", ws => this.wsState(ws));

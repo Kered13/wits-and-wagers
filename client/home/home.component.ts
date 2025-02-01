@@ -38,7 +38,7 @@ export class HomeComponent {
 			localStorage.setItem(USERNAME, this.username);
 			localStorage.setItem(GAME_ID, this.joinCode);
 			
-			this.lobbyService.addPlayer(this.joinCode, this.username)
+			this.lobbyService.joinLobby(this.joinCode, this.username)
 				.subscribe(player => {
 					localStorage.setItem(PUBLIC_ID, player.publicId);
 					localStorage.setItem(PRIVATE_ID, player.privateId);

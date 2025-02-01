@@ -5,10 +5,10 @@ import { assert, is } from "valibot";
 
 import { BackendService } from "../utils/backend.service.js";
 import { Closeable, RefCounted } from "../utils/refcounted.js";
-import { type AddPlayerRequest, type AddPlayerResponse } from "../../shared/lobby/addplayer.js";
 import { type BeginGameRequest } from "../../shared/lobby/begin.js";
 import { type CancelLobbyRequest } from "../../shared/lobby/cancel.js";
 import { CreateLobbyRequestSchema, type CreateLobbyRequest, type CreateLobbyResponse } from "../../shared/lobby/create.js";
+import { type JoinLobbyRequest, type JoinLobbyResponse } from "../../shared/lobby/joinlobby.js";
 import { type LobbyId, type LobbyJson } from "../../shared/lobby/lobby.js";
 import { LobbyError, LobbyNotificationSchema, type LobbyNotification } from "../../shared/lobby/notifications.js";
 import { type SubscribeRequest } from "../../shared/lobby/subscribe.js";
@@ -40,8 +40,8 @@ export class LobbyService {
 		return this.backend.postJson<CreateLobbyRequest, CreateLobbyResponse>("/api/lobby/create", request);
 	}
 	
-	public addPlayer(lobbyId: LobbyId, name: string): Observable<PrivatePlayer> {
-		return this.backend.postJson<AddPlayerRequest, AddPlayerResponse>("/api/lobby/addplayer", { lobbyId: lobbyId, name: name })
+	public joinLobby(lobbyId: LobbyId, name: string): Observable<PrivatePlayer> {
+		return this.backend.postJson<JoinLobbyRequest, JoinLobbyResponse>("/api/lobby/joinlobby", { lobbyId: lobbyId, name: name })
 			.pipe(map(response => response.player));
 	}
 	
