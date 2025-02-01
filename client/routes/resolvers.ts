@@ -3,12 +3,12 @@ import { RedirectCommand, Router } from "@angular/router";
 import { TypedRouteSnapshot as TypedActivatedRouteSnapshot } from "ngx-typed-router";
 import { firstValueFrom } from "rxjs";
 
+import { GAME_ROUTE, HOME_ROUTE } from "./routes.js";
+import { HasGameId, HasLobbyId, HasPlayer } from "./types.js";
 import { ResolveFn, StringLiterals } from "./utils.js";
 import { GAME_ID, PRIVATE_ID, PUBLIC_ID, USERNAME } from "../app/localstorage.keys.js";
 import { LobbyService } from "../lobby/lobby.service.js";
 import { PrivatePlayer } from "../../shared/player.js";
-import { HasGameId, HasLobbyId, HasPlayer } from "./types.js";
-import { HOME_ROUTE } from "./routes.js";
 
 
 function getLocalStorageKey(key: string): ResolveFn<string> {
@@ -27,17 +27,23 @@ export async function resolveLobby(route: TypedActivatedRouteSnapshot<HasPlayer,
 	const lobbyId = route.params.lobbyId;
 	localStorage.setItem(GAME_ID, lobbyId);
 	
+	// We have to get the router before we call await below.
+	const router = inject(Router);
+	
 	const username = localStorage.getItem(USERNAME);
 	if (!username) {
-		return new RedirectCommand(inject(Router).createUrlTree(HOME_ROUTE.url()));
+		return new RedirectCommand(router.createUrlTree(HOME_ROUTE.url()));
 	}
 	
 	const privateId = localStorage.getItem(PRIVATE_ID) ?? undefined;
-	const player: PrivatePlayer = await firstValueFrom(inject(LobbyService).joinLobby(lobbyId, username, privateId));
-	localStorage.setItem(PUBLIC_ID, player.publicId);
-	localStorage.setItem(PRIVATE_ID, player.privateId);
-	
-	return player;
+	const response = await firstValueFrom(inject(LobbyService).joinLobby(lobbyId, username, privateId));
+	if ("player" in response) {
+		localStorage.setItem(PUBLIC_ID, response.player.publicId);
+		localStorage.setItem(PRIVATE_ID, response.player.privateId);
+		return response.player;
+	} else {
+		return new RedirectCommand(router.createUrlTree(GAME_ROUTE.url({ gameId: response.gameId })));
+	}
 }
 
 

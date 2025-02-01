@@ -1,10 +1,11 @@
 import * as uuid from "uuid";
 
 import { Game } from "../game/game.js";
+import { type Serializable } from "../utils/serializable.js";
+import { type GameId } from "../../shared/game/game.js";
 import { type LobbyPlayerJson, type LobbyJson, type LobbyId } from "../../shared/lobby/lobby.js";
-import type { PrivateId, PrivatePlayer } from "../../shared/player.js";
-import type { Serializable } from "../utils/serializable.js";
-import type { LobbyBeginGame, LobbyCanceled, LobbyUpdate } from "../../shared/lobby/notifications.js";
+import { type LobbyBeginGame, type LobbyCanceled, type LobbyUpdate } from "../../shared/lobby/notifications.js";
+import { type PrivateId, type PrivatePlayer } from "../../shared/player.js";
 
 
 export class LobbyPlayer implements Serializable<LobbyPlayerJson> {
@@ -40,6 +41,10 @@ export class Lobby implements Serializable<LobbyJson> {
 	private readonly players: LobbyPlayer[] = [];
 	private readonly host: LobbyPlayer;
 	
+	public static gameIdFromLobbyId(lobbyId: LobbyId): GameId {
+		return lobbyId;
+	}
+	
 	constructor(
 			private readonly id: LobbyId,
 			private readonly title: string,
@@ -69,8 +74,9 @@ export class Lobby implements Serializable<LobbyJson> {
 		this.players.splice(i, 1);
 	}
 	
-	public beginGame(): Game {
-		return new Game(this.id, this.title, this.players);
+	public beginGame(): [Game, LobbyBeginGame] {
+		const game = new Game(Lobby.gameIdFromLobbyId(this.id), this.title, this.players);
+		return [game, this.makeBeginGame(game.getId())];
 	}
 	
 	public toJson(): LobbyJson {
@@ -89,11 +95,11 @@ export class Lobby implements Serializable<LobbyJson> {
 		};
 	}
 	
-	public makeBeginGame(): LobbyBeginGame {
+	private makeBeginGame(gameId: GameId): LobbyBeginGame {
 		return {
 			type: "begin-game",
 			id: this.id,
-			gameId: this.id
+			gameId: gameId
 		};
 	}
 	

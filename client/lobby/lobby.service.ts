@@ -12,7 +12,7 @@ import { type JoinLobbyRequest, type JoinLobbyResponse } from "../../shared/lobb
 import { type LobbyId, type LobbyJson } from "../../shared/lobby/lobby.js";
 import { LobbyError, LobbyNotificationSchema, type LobbyNotification } from "../../shared/lobby/notifications.js";
 import { type SubscribeRequest } from "../../shared/lobby/subscribe.js";
-import { PrivateId, PrivatePlayer } from "../../shared/player.js";
+import { PrivateId } from "../../shared/player.js";
 import { GameId } from "../../shared/game/game.js";
 
 
@@ -40,15 +40,14 @@ export class LobbyService {
 		return this.backend.postJson<CreateLobbyRequest, CreateLobbyResponse>("/api/lobby/create", request);
 	}
 	
-	public joinLobby(lobbyId: LobbyId, name: string, privateId?: PrivateId): Observable<PrivatePlayer> {
+	public joinLobby(lobbyId: LobbyId, name: string, privateId?: PrivateId): Observable<JoinLobbyResponse> {
 		return this.backend.postJson<JoinLobbyRequest, JoinLobbyResponse>(
 			"/api/lobby/joinlobby",
 			{
 				lobbyId: lobbyId,
 				name: name,
 				privateId: privateId
-			})
-			.pipe(map(response => response.player));
+			});
 	}
 	
 	public removeLobby(id: LobbyId): void {

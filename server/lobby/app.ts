@@ -28,9 +28,7 @@ type LobbyData = {
 
 
 export class LobbyApp {
-	// TODO: This should not be public.
-	public readonly lobbies: Map<LobbyId, LobbyData> = new Map();
-	
+	private readonly lobbies: Map<LobbyId, LobbyData> = new Map();
 	private lobbyCounter: number = 0;
 	
 	constructor(private readonly gameApp: GameApp) {}
@@ -41,8 +39,12 @@ export class LobbyApp {
 		}
 	}
 	
+	private tryGetLobby(id: LobbyId): LobbyData | undefined {
+		return this.lobbies.get(id);
+	}
+	
 	private getLobby(id: LobbyId): LobbyData {
-		const data = this.lobbies.get(id);
+		const data = this.tryGetLobby(id);
 		if (!data) {
 			throw new HttpError(404, `LobbyId ${id} not found.`);
 		}
@@ -81,13 +83,26 @@ export class LobbyApp {
 		const request = verifyRequest(
 			req.body, JoinLobbyRequestSchema, `Invalid JoinLobbyRequest: ${req.body}`);
 		
-		const { lobby, notifier } = this.getLobby(request.lobbyId);
+		const data = this.tryGetLobby(request.lobbyId);
+		if (!data) {
+			// Check if the lobby has become a game, and if this player is part
+			// of that game. Then redirect them to the game.
+			const gameData = this.gameApp.tryGetGame(Lobby.gameIdFromLobbyId(request.lobbyId));
+			if (!gameData || !request.privateId || !gameData.game.hasPlayer(request.privateId)) {
+				throw new HttpError(404, `LobbyId ${request.lobbyId} not found.`);
+			}
+			res.send({
+				gameId: gameData.game.getId()
+			} satisfies JoinLobbyResponse);
+			return;
+		}
+		
+		const { lobby, notifier } = data;
 		const player = lobby.addPlayer(request.name, request.privateId);
 		
-		const response: JoinLobbyResponse = {
+		res.send({
 			player: player.toPrivateJson()
-		};
-		res.send(response);
+		} satisfies JoinLobbyResponse);
 		
 		notifier.notifyClients(lobby.makeUpdate());
 	}
@@ -102,11 +117,12 @@ export class LobbyApp {
 		this.verifyHost(lobby, request.requester);
 		
 		this.removeLobby(lobby);
-		this.gameApp.addGame(lobby.beginGame());
+		const [game, beginGame] = lobby.beginGame();
+		this.gameApp.addGame(game);
 		
 		res.end();
 		notifier
-			.notifyClients(lobby.makeBeginGame())
+			.notifyClients(beginGame)
 			.close();
 	}
 	

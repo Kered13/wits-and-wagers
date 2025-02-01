@@ -4,7 +4,7 @@ import { type Serializable } from "../utils/serializable.js";
 import { type GameId, type GameJson, type GamePlayerJson } from "../../shared/game/game.js";
 import { type PrivateId, type PublicId } from "../../shared/player.js";
 import { type Rgb } from "../../shared/rgb.js";
-import type { GameUpdate } from "../../shared/game/notifications.js";
+import { type GameUpdate } from "../../shared/game/notifications.js";
 
 
 class GamePlayer implements Serializable<GamePlayerJson> {
@@ -55,6 +55,10 @@ export class Game implements Serializable<GameJson> {
 		return this.id;
 	}
 	
+	public hasPlayer(id: PrivateId): boolean {
+		return !!this.tryGetPlayer(id);
+	}
+	
 	public addOne(id: PrivateId): void {
 		this.getPlayer(id).addOne();
 	}
@@ -79,10 +83,14 @@ export class Game implements Serializable<GameJson> {
 	}
 	
 	private getPlayer(id: PrivateId): GamePlayer {
-		const player = this.players.find(player => player.privateId === id);
+		const player = this.tryGetPlayer(id);
 		if (!player) {
 			throw new HttpError(404, `Player private ID ${id} not found.`);
 		}
 		return player;
+	}
+	
+	private tryGetPlayer(id: PrivateId): GamePlayer | undefined {
+		return this.players.find(player => player.privateId === id);
 	}
 }

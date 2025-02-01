@@ -22,8 +22,12 @@ type GameData = {
 export class GameApp {
 	private readonly games: Map<GameId, GameData> = new Map();
 	
-	private getGame(id: GameId): GameData {
-		const data = this.games.get(id);
+	public tryGetGame(id: GameId): GameData | undefined {
+		return this.games.get(id);
+	}
+	
+	public getGame(id: GameId): GameData {
+		const data = this.tryGetGame(id);
 		if (!data) {
 			throw new HttpError(404, `GameId ${id} not found.`);
 		}
