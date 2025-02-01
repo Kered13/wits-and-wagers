@@ -82,7 +82,7 @@ export class LobbyApp {
 			req.body, JoinLobbyRequestSchema, `Invalid JoinLobbyRequest: ${req.body}`);
 		
 		const { lobby, notifier } = this.getLobby(request.lobbyId);
-		const player = lobby.addPlayer(request.name);
+		const player = lobby.addPlayer(request.name, request.privateId);
 		
 		const response: JoinLobbyResponse = {
 			player: player.toPrivateJson()

@@ -5,8 +5,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatInputModule } from "@angular/material/input";
 import { Router } from "@angular/router";
 
-import { GAME_ID, PRIVATE_ID, PUBLIC_ID, USERNAME } from "../app/localstorage.keys";
-import { LobbyService } from "../lobby/lobby.service";
+import { GAME_ID, USERNAME } from "../app/localstorage.keys";
 import { HOST_ROUTE, LOBBY_ROUTE } from "../routes/routes";
 
 
@@ -21,7 +20,7 @@ export class HomeComponent {
 	username: string;
 	joinCode: string;
 	
-	constructor(private readonly lobbyService: LobbyService, private router: Router) {
+	constructor(private router: Router) {
 		this.username = localStorage.getItem(USERNAME) || "";
 		this.joinCode = localStorage.getItem(GAME_ID) || "";
 	}
@@ -36,14 +35,7 @@ export class HomeComponent {
 	onJoinGame(): void {
 		if (this.username && this.joinCode) {
 			localStorage.setItem(USERNAME, this.username);
-			localStorage.setItem(GAME_ID, this.joinCode);
-			
-			this.lobbyService.joinLobby(this.joinCode, this.username)
-				.subscribe(player => {
-					localStorage.setItem(PUBLIC_ID, player.publicId);
-					localStorage.setItem(PRIVATE_ID, player.privateId);
-					this.router.navigate(LOBBY_ROUTE.url({ lobbyId: this.joinCode }));
-				});
+			this.router.navigate(LOBBY_ROUTE.url({ lobbyId: this.joinCode }));
 		}
 	}
 }

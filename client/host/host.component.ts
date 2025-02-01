@@ -6,7 +6,7 @@ import { MatCardModule } from "@angular/material/card";
 import { MatInputModule } from '@angular/material/input';
 import { ActivatedRoute, Router } from "@angular/router";
 
-import { GAME_ID, PRIVATE_ID, PUBLIC_ID } from "../app/localstorage.keys";
+import { PRIVATE_ID, PUBLIC_ID } from "../app/localstorage.keys";
 import { LobbyService } from "../lobby/lobby.service";
 import { HostRoute, LOBBY_ROUTE, TypedRouteFor } from "../routes/routes";
 
@@ -39,7 +39,6 @@ export class HostComponent {
 				.subscribe(response => {
 					localStorage.setItem(PUBLIC_ID, response.host.publicId);
 					localStorage.setItem(PRIVATE_ID, response.host.privateId);
-					localStorage.setItem(GAME_ID, response.id);
 					this.router.navigate(LOBBY_ROUTE.url({ lobbyId: response.id }));
 				});
 		}

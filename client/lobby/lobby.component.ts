@@ -12,7 +12,7 @@ import { LobbyInstanceService, LobbyService } from "./lobby.service.js";
 import { GAME_ID } from "../app/localstorage.keys.js";
 import { RefCounted } from "../utils/refcounted.js";
 import { GAME_ROUTE, HOME_ROUTE, LobbyRoute, TypedRouteFor } from "../routes/routes.js";
-import { LobbyId, LobbyJson } from "../../shared/lobby/lobby.js";
+import { LobbyJson } from "../../shared/lobby/lobby.js";
 import { PrivatePlayer } from "../../shared/player.js";
 
 
@@ -37,15 +37,10 @@ export class LobbyComponent implements OnDestroy {
 			titleService: Title,
 			@Inject(ActivatedRoute) route: TypedRouteFor<LobbyRoute>) {
 		this.player = toSignal(
-			route.data.pipe(map(data => ({
-				name: data.username,
-				publicId: data.publicId,
-				privateId: data.privateId
-			}))),
-			{ requireSync: true });
+			route.data.pipe(map(data => data.player)), { requireSync: true });
 		
 		const instanceService = combineLatest([route.params, route.data]).pipe(
-			map(([params, data]) => lobbyService.getLobbyInstanceService(params.lobbyId, data.privateId)));
+			map(([params, data]) => lobbyService.getLobbyInstanceService(params.lobbyId, data.player.privateId)));
 		this.instanceSub = instanceService.pipe(startWith(undefined), pairwise())
 			.subscribe(([oldService, newService]) => this.onNewLobby(newService!, oldService));
 		
@@ -63,6 +58,8 @@ export class LobbyComponent implements OnDestroy {
 		}
 		
 		newService.acquire();
+		
+		// Set up the handlers for the events that will take us to the next page.
 		this.subs.push(
 			newService.get().onBeginGame().subscribe(gameId => this.router.navigate(GAME_ROUTE.url({ gameId: gameId }))),
 			newService.get().onCanceled().subscribe(() => {

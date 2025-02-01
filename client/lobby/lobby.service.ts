@@ -40,8 +40,14 @@ export class LobbyService {
 		return this.backend.postJson<CreateLobbyRequest, CreateLobbyResponse>("/api/lobby/create", request);
 	}
 	
-	public joinLobby(lobbyId: LobbyId, name: string): Observable<PrivatePlayer> {
-		return this.backend.postJson<JoinLobbyRequest, JoinLobbyResponse>("/api/lobby/joinlobby", { lobbyId: lobbyId, name: name })
+	public joinLobby(lobbyId: LobbyId, name: string, privateId?: PrivateId): Observable<PrivatePlayer> {
+		return this.backend.postJson<JoinLobbyRequest, JoinLobbyResponse>(
+			"/api/lobby/joinlobby",
+			{
+				lobbyId: lobbyId,
+				name: name,
+				privateId: privateId
+			})
 			.pipe(map(response => response.player));
 	}
 	

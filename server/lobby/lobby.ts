@@ -44,7 +44,7 @@ export class Lobby implements Serializable<LobbyJson> {
 			private readonly id: LobbyId,
 			private readonly title: string,
 			hostName: string) {
-		this.host = this.addPlayer(hostName);
+		this.host = this.generatePlayer(hostName);
 	}
 	
 	public getId(): LobbyId {
@@ -59,11 +59,9 @@ export class Lobby implements Serializable<LobbyJson> {
 		return this.host;
 	}
 	
-	public addPlayer(name: string): LobbyPlayer {
-		const { privateId, publicId } = this.generatePlayerIds();
-		this.players.push(new LobbyPlayer(privateId, publicId, name, this.generateColor()));
-		const player: LobbyPlayer = this.players[this.players.length - 1]!;
-		return player;
+	public addPlayer(name: string, existingId?: PrivateId): LobbyPlayer {
+		return this.players.find(player => player.privateId === existingId)
+			|| this.generatePlayer(name);
 	}
 	
 	public removePlayer(privateId: string): void {
@@ -104,6 +102,13 @@ export class Lobby implements Serializable<LobbyJson> {
 			type: "canceled",
 			id: this.id,
 		};
+	}
+
+	private generatePlayer(name: string): LobbyPlayer {
+		const { privateId, publicId } = this.generatePlayerIds();
+		this.players.push(new LobbyPlayer(privateId, publicId, name, this.generateColor()));
+		const player: LobbyPlayer = this.players[this.players.length - 1]!;
+		return player;
 	}
 	
 	private generatePlayerIds() {

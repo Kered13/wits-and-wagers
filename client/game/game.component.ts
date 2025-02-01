@@ -33,12 +33,7 @@ export class GameComponent implements OnDestroy {
 			gameService: GameService,
 			titleService: Title,
 			@Inject(ActivatedRoute) route: TypedRouteFor<GameRoute>) {
-		const data = toSignal(route.data, { requireSync: true });
-		this.thisPlayer = computed(() => ({
-			name: data().username,
-			publicId: data().publicId,
-			privateId: data().privateId
-		}));
+		this.thisPlayer = toSignal(route.data.pipe(map(data => data.player)), { requireSync: true });
 		
 		const instanceService = route.params.pipe(
 			map(params => gameService.getGameInstanceService(params.gameId)));
