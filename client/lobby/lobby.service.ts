@@ -76,7 +76,7 @@ export class LobbyInstanceService extends Closeable {
 			payload: {
 				lobbyId: this.lobbyId,
 				privateId: this.privateId,
-			 } satisfies SubscribeRequest
+			} satisfies SubscribeRequest
 		});
 		
 		const notifications: Observable<LobbyNotification> =

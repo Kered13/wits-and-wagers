@@ -149,25 +149,26 @@ export class LobbyApp {
 			console.log("WS /api/lobby/state " + JSON.stringify(msg));
 			
 			try {
-				const request = verifyRequest(
+				const { privateId, lobbyId } = verifyRequest(
 					msg, SubscribeRequestSchema, `Invalid SubscribeRequest: ${msg}`);
 				
-				const { lobby, notifier } = this.getLobby(request.lobbyId);
-				notifier.addClient(ws);
+				const { lobby, notifier } = this.getLobby(lobbyId);
+				notifier.addClient(privateId, ws);
 				notifier.notifyClient(ws, lobby.makeUpdate());
 				
 				ws.onClose(() => {
-					notifier.removeClient(ws);
-					
-					if (request.privateId === lobby.getHost().privateId) {
-						this.removeLobby(lobby);
-						
-						notifier
-							.notifyClients(lobby.makeCancel())
-							.close();
-					} else {
-						lobby.removePlayer(request.privateId);
-						notifier.notifyClients(lobby.makeUpdate());
+					notifier.removeClient(privateId, ws);
+					if (!notifier.hasClients(privateId)) {
+						if (privateId === lobby.getHost().privateId) {
+							this.removeLobby(lobby);
+							
+							notifier
+								.notifyClients(lobby.makeCancel())
+								.close();
+						} else {
+							lobby.removePlayer(privateId);
+							notifier.notifyClients(lobby.makeUpdate());
+						}
 					}
 				});
 			} catch (err) {

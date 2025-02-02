@@ -8,6 +8,7 @@ import { verifyRequest } from "../utils/verifyrequest.js";
 import { WebSocketUtil } from "../utils/websocket.js";
 import { AddOneRequestSchema, GameIdSchema, ResetRequestSchema, type GameId } from "../../shared/game/game.js";
 import { type GameError, type GameNotification } from "../../shared/game/notifications.js";
+import { SubscribeRequestSchema } from "../../shared/game/subscribe.js";
 
 
 class GameNotifier extends Notifier<GameNotification> {}
@@ -70,15 +71,15 @@ export class GameApp {
 			console.log("WS /api/game/state " + JSON.stringify(msg));
 			
 			try {
-				const gameId = verifyRequest(
-					msg, GameIdSchema, `${msg} is not a valid GameId.`);
+				const { privateId, gameId } = verifyRequest(
+					msg, SubscribeRequestSchema, `Invalid SubscribeRequest: ${msg}`);
 				
 				const { game, notifier } = this.getGame(gameId);
-				notifier.addClient(ws);
+				notifier.addClient(privateId, ws);
 				notifier.notifyClient(ws, game.makeUpdate());
 				
 				ws.onClose(() => {
-					notifier.removeClient(ws);
+					notifier.removeClient(privateId, ws);
 				});
 			} catch (err) {
 				if (err instanceof HttpError) {

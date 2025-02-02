@@ -4,7 +4,7 @@ import { MatCardModule } from "@angular/material/card";
 import { Title } from "@angular/platform-browser";
 import { ActivatedRoute, Router } from "@angular/router";
 import { toSignal } from "@angular/core/rxjs-interop";
-import { map, pairwise, startWith, Subscription, switchMap } from "rxjs";
+import { combineLatest, map, pairwise, startWith, Subscription, switchMap } from "rxjs";
 
 import { GameInstanceService, GameService } from "./game.service.js";
 import { GameRoute, HOME_ROUTE, TypedRouteFor } from "../routes/routes.js";
@@ -35,8 +35,8 @@ export class GameComponent implements OnDestroy {
 			@Inject(ActivatedRoute) route: TypedRouteFor<GameRoute>) {
 		this.thisPlayer = toSignal(route.data.pipe(map(data => data.player)), { requireSync: true });
 		
-		const instanceService = route.params.pipe(
-			map(params => gameService.getGameInstanceService(params.gameId)));
+		const instanceService = combineLatest([route.params, route.data]).pipe(
+			map(([params, data]) => gameService.getGameInstanceService(params.gameId, data.player.privateId)));
 		this.instanceSub = instanceService.pipe(startWith(undefined), pairwise())
 			.subscribe(([oldService, newService]) => this.onNewLobby(newService!, oldService));
 		
@@ -73,10 +73,10 @@ export class GameComponent implements OnDestroy {
 	}
 	
 	onAddOne(): void {
-		this.gameService().get().addOne(this.thisPlayer());
+		this.gameService().get().addOne();
 	}
 	
 	onReset(): void {
-		this.gameService().get().resetCounter(this.thisPlayer());
+		this.gameService().get().resetCounter();
 	}
 }

@@ -1,24 +1,42 @@
-import type { WebSocketUtil } from "./websocket.js";
+import Multimap from "multimap";
+
+import type { PrivateId } from "../../shared/player.js";
+import { WebSocketUtil } from "./websocket.js";
 
 
 export class Notifier<N> {
-	private readonly clients: Set<WebSocketUtil> = new Set();
+	private readonly idToClients: Multimap<PrivateId, WebSocketUtil> = new Multimap();
+	private readonly clientToId: Map<WebSocketUtil, PrivateId> = new Map();
 	
 	constructor() {}
 	
-	public addClient(clientWs: WebSocketUtil): this {
-		this.clients.add(clientWs);
+	public hasClients(id: PrivateId): boolean {
+		return this.idToClients.has(id);
+	}
+	
+	public addClient(id: PrivateId, ws: WebSocketUtil): this {
+		this.idToClients.set(id, ws);
+		this.clientToId.set(ws, id);
 		return this;
 	}
 	
-	public removeClient(clientWs: WebSocketUtil): this {
-		this.clients.delete(clientWs);
+	public removeClient(id: PrivateId, ws: WebSocketUtil): this {
+		this.clientToId.delete(ws);
+		this.idToClients.delete(id, ws);
+		
+		// Due to a bug in Multimap, if this was the last value for the key the
+		// key will not be properly deleted. We clean that up here.
+		if (!this.idToClients.get(id).length) {
+			this.idToClients.delete(id);
+		}
 		return this;
 	}
 	
 	// Notify all registered clients.
 	public notifyClients(notification: N): this {
-		this.clients.forEach(ws => this.notifyClient(ws, notification));
+		for (const ws of this.clientToId.keys()) {
+			this.notifyClient(ws, notification);
+		}
 		return this;
 	}
 	
@@ -30,7 +48,9 @@ export class Notifier<N> {
 	
 	// Close all connected sockets.
 	public close(): this {
-		this.clients.forEach(ws => ws.close());
+		for (const ws of this.clientToId.keys()) {
+			ws.close();
+		}
 		return this;
 	}
 };
