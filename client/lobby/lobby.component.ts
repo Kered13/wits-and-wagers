@@ -10,6 +10,7 @@ import { map, pairwise, Subscription, startWith, switchMap, combineLatest } from
 
 import { LobbyInstanceService, LobbyService } from "./lobby.service.js";
 import { GAME_ID } from "../app/localstorage.keys.js";
+import { GlobalErrorHandler } from "../error-dialog/error-handler.js";
 import { RefCounted } from "../utils/refcounted.js";
 import { GAME_ROUTE, HOME_ROUTE, LobbyRoute, TypedRouteFor } from "../routes/routes.js";
 import { LobbyJson } from "../../shared/lobby/lobby.js";
@@ -33,6 +34,7 @@ export class LobbyComponent implements OnDestroy {
 	
 	constructor(
 			private readonly router: Router,
+			private readonly errorHandler: GlobalErrorHandler,
 			lobbyService: LobbyService,
 			titleService: Title,
 			@Inject(ActivatedRoute) route: TypedRouteFor<LobbyRoute>) {
@@ -66,8 +68,8 @@ export class LobbyComponent implements OnDestroy {
 				localStorage.removeItem(GAME_ID);
 				this.router.navigate(HOME_ROUTE.url());
 			}),
-			newService.get().onError().subscribe(err => {
-				console.error(`WebSocket returned status ${err.status}: ${err.message}`);
+			newService.get().onError().subscribe(error => {
+				this.errorHandler.handleError(error);
 				this.router.navigate(HOME_ROUTE.url());
 			}));
 	}

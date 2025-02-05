@@ -9,6 +9,7 @@ import { AddOneRequest, ResetRequest, type GameId, type GameJson } from "../../s
 import { type GameEnd, GameNotificationSchema, type GameNotification, GameError } from "../../shared/game/notifications.js";
 import { SubscribeRequest } from "../../shared/game/subscribe.js";
 import { PrivateId, PrivatePlayer } from "../../shared/player.js";
+import { WebsocketError } from "../utils/websocket-error.js";
 
 
 @Injectable({providedIn: "root"})
@@ -40,7 +41,7 @@ export class GameInstanceService extends Closeable {
 	private readonly wsSubject: WebSocketSubject<Object>;
 	private readonly gameUpdate: Observable<GameJson>;
 	private readonly gameEnd: Observable<GameEnd>;
-	private readonly error: Observable<GameError>;
+	private readonly error: Observable<WebsocketError>;
 	
 	constructor(
 			private readonly gameService: GameService,
@@ -69,7 +70,8 @@ export class GameInstanceService extends Closeable {
 			filter(notification => notification.type === "end"));
 		
 		this.error = notifications.pipe(
-			filter(notification => notification.type === "error"));
+			filter(notification => notification.type === "error"),
+			map(err => new WebsocketError(err.status, err.message)));
 		
 		// If the server closes the connection, close this lobby. This does not
 		// handle unexpected closures like the server crashing.
@@ -98,7 +100,7 @@ export class GameInstanceService extends Closeable {
 		return this.gameEnd;
 	}
 	
-	public onError(): Observable<GameError> {
+	public onError(): Observable<WebsocketError> {
 		return this.error;
 	}
 	

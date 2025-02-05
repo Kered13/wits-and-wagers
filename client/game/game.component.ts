@@ -7,10 +7,11 @@ import { toSignal } from "@angular/core/rxjs-interop";
 import { combineLatest, map, pairwise, startWith, Subscription, switchMap } from "rxjs";
 
 import { GameInstanceService, GameService } from "./game.service.js";
+import { GlobalErrorHandler } from "../error-dialog/error-handler.js";
 import { GameRoute, HOME_ROUTE, TypedRouteFor } from "../routes/routes.js";
+import { RefCounted } from "../utils/refcounted.js";
 import { PrivatePlayer } from "../../shared/player.js";
 import { GameJson } from "../../shared/game/game.js";
-import { RefCounted } from "../utils/refcounted.js";
 
 
 @Component({
@@ -30,6 +31,7 @@ export class GameComponent implements OnDestroy {
 	
 	constructor(
 			private readonly router: Router,
+			private readonly errorHandler: GlobalErrorHandler,
 			gameService: GameService,
 			titleService: Title,
 			@Inject(ActivatedRoute) route: TypedRouteFor<GameRoute>) {
@@ -55,8 +57,8 @@ export class GameComponent implements OnDestroy {
 		
 		newService.acquire();
 		this.subs.push(
-			newService.get().onError().subscribe(err => {
-				console.error(`WebSocket returned status ${err.status}: ${err.message}`);
+			newService.get().onError().subscribe(error => {
+				this.errorHandler.handleError(error);
 				this.router.navigate(HOME_ROUTE.url());
 			}));
 	}

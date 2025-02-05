@@ -1,0 +1,15 @@
+<h1 mat-dialog-title>An error has occurred!</h1>
+<div mat-dialog-content>
+	@if (hasStatusProperty(error)) {
+		<p>
+			<b>Status Code: {{ error.status }}</b>
+		</p>
+	}
+	<p>Something went wrong!</p>
+	<p class="error-message">
+		{{ error.name }}: {{ error.message }}
+	</p>
+</div>
+<div mat-dialog-actions>
+	<button mat-raised-button mat-dialog-close color="primary">Close</button>
+</div>

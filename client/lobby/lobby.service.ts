@@ -5,6 +5,7 @@ import { assert, is } from "valibot";
 
 import { BackendService } from "../utils/backend.service.js";
 import { Closeable, RefCounted } from "../utils/refcounted.js";
+import { WebsocketError } from "../utils/websocket-error.js";
 import { type BeginGameRequest } from "../../shared/lobby/begin.js";
 import { type CancelLobbyRequest } from "../../shared/lobby/cancel.js";
 import { CreateLobbyRequestSchema, type CreateLobbyRequest, type CreateLobbyResponse } from "../../shared/lobby/create.js";
@@ -61,7 +62,7 @@ export class LobbyInstanceService extends Closeable {
 	private readonly lobbyUpdate: Observable<LobbyJson>;
 	private readonly begin: Observable<GameId>;
 	private readonly canceled: Observable<void>;
-	private readonly error: Observable<LobbyError>;
+	private readonly error: Observable<WebsocketError>;
 	
 	constructor(
 			private readonly lobbyService: LobbyService,
@@ -99,7 +100,8 @@ export class LobbyInstanceService extends Closeable {
 			take(1));
 		
 		this.error = notifications.pipe(
-			filter(notification => notification.type === "error"));
+			filter(notification => notification.type === "error"),
+			map(err => new WebsocketError(err.status, err.message)));
 		
 		// If the server closes the connection, close this lobby. This does not
 		// handle unexpected closures like the server crashing.
@@ -132,7 +134,7 @@ export class LobbyInstanceService extends Closeable {
 		return this.canceled;
 	}
 	
-	public onError(): Observable<LobbyError> {
+	public onError(): Observable<WebsocketError> {
 		return this.error;
 	}
 	
