@@ -3,7 +3,7 @@ import { Inject, Injectable } from "@angular/core";
 import { Observable } from "rxjs";
 import { webSocket, WebSocketSubject } from "rxjs/webSocket";
 
-import { SERVER_URL } from "../app/app.config";
+import { SERVER_URL } from "../app/flags.js";
 
 
 export type QueryParams = {
