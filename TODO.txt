@@ -1,0 +1,7 @@
+* Implement game.
+* Implement desktop UI.
+* Implement mobile UI.
+* Implement game options.
+* Deploy app.
+* Implement audience.
+* Implement questions upload.
