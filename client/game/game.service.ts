@@ -5,10 +5,10 @@ import { is } from "valibot";
 
 import { BackendService } from "../utils/backend.service.js";
 import { Closeable, RefCounted } from "../utils/refcounted.js";
-import { AddOneRequest, ResetRequest, type GameId, type GameJson } from "../../shared/game/game.js";
-import { type GameEnd, GameNotificationSchema, type GameNotification, GameError } from "../../shared/game/notifications.js";
+import { type GameId, type GameJson } from "../../shared/game/game.js";
+import { type GameEnd, GameNotificationSchema, type GameNotification } from "../../shared/game/notifications.js";
 import { SubscribeRequest } from "../../shared/game/subscribe.js";
-import { PrivateId, PrivatePlayer } from "../../shared/player.js";
+import { PrivateId } from "../../shared/player.js";
 import { WebsocketError } from "../utils/websocket-error.js";
 
 
@@ -76,20 +76,6 @@ export class GameInstanceService extends Closeable {
 		// If the server closes the connection, close this lobby. This does not
 		// handle unexpected closures like the server crashing.
 		this.wsSubject.subscribe({ complete: () => this.close() });
-	}
-	
-	public addOne(): void {
-		this.backend.postJson<AddOneRequest, void>("/api/game/addone", {
-				gameId: this.gameId,
-				privateId: this.privateId })
-			.subscribe();
-	}
-	
-	public resetCounter(): void {
-		this.backend.postJson<ResetRequest, void>("/api/game/reset", {
-				gameId: this.gameId,
-				privateId: this.privateId })
-			.subscribe();
 	}
 	
 	public onGameUpdate(): Observable<GameJson> {

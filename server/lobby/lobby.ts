@@ -1,14 +1,13 @@
 import * as uuid from "uuid";
 
 import { Game } from "../game/game.js";
-import { type Serializable } from "../utils/serializable.js";
 import { type GameId } from "../../shared/game/game.js";
 import { type LobbyPlayerJson, type LobbyJson, type LobbyId } from "../../shared/lobby/lobby.js";
 import { type LobbyBeginGame, type LobbyCanceled, type LobbyUpdate } from "../../shared/lobby/notifications.js";
 import { type PrivateId, type PrivatePlayer } from "../../shared/player.js";
 
 
-export class LobbyPlayer implements Serializable<LobbyPlayerJson> {
+export class LobbyPlayer {
 	constructor(
 		// An ID used to authenticate the user in RPCs.
 		public readonly privateId: string,
@@ -37,7 +36,7 @@ export class LobbyPlayer implements Serializable<LobbyPlayerJson> {
 };
 
 
-export class Lobby implements Serializable<LobbyJson> {
+export class Lobby {
 	private readonly players: LobbyPlayer[] = [];
 	private readonly host: LobbyPlayer;
 	

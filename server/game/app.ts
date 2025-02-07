@@ -6,7 +6,7 @@ import { HttpError } from "../utils/httperror.js";
 import { Notifier } from "../utils/notifier.js";
 import { verifyRequest } from "../utils/verifyrequest.js";
 import { WebSocketUtil } from "../utils/websocket.js";
-import { AddOneRequestSchema, GameIdSchema, ResetRequestSchema, type GameId } from "../../shared/game/game.js";
+import { type GameId } from "../../shared/game/game.js";
 import { type GameError, type GameNotification } from "../../shared/game/notifications.js";
 import { SubscribeRequestSchema } from "../../shared/game/subscribe.js";
 
@@ -39,32 +39,6 @@ export class GameApp {
 		this.games.set(game.getId(), { game: game, notifier: new GameNotifier() });
 	}
 	
-	private addOne(req: Request, res: Response): void {
-		console.log("POST /api/game/addone " + JSON.stringify(req.body));
-		
-		const request = verifyRequest(
-			req.body, AddOneRequestSchema, `Invalid AddOneRequest: ${req.body}`);
-		
-		const { game, notifier } = this.getGame(request.gameId);
-		game.addOne(req.body.privateId);
-		
-		res.end();
-		notifier.notifyClients(game.makeUpdate());
-	}
-	
-	private reset(req: Request, res: Response): void {
-		console.log("POST /api/game/reset " + JSON.stringify(req.body));
-		
-		const request = verifyRequest(
-			req.body, ResetRequestSchema, `Invalid ResetRequest: ${req.body}`);
-		
-		const { game, notifier } = this.getGame(request.gameId);
-		game.resetCounter(request.privateId);
-		
-		res.end();
-		notifier.notifyClients(game.makeUpdate());
-	}
-	
 	private wsState(webSocket: WebSocket) {
 		const ws = new WebSocketUtil(webSocket);
 		ws.onMethod("subscribe", (msg: unknown) => {
@@ -76,7 +50,7 @@ export class GameApp {
 				
 				const { game, notifier } = this.getGame(gameId);
 				notifier.addClient(privateId, ws);
-				notifier.notifyClient(ws, game.makeUpdate());
+				notifier.notifyClient(ws, game.makeUpdate(privateId));
 				
 				ws.onClose(() => {
 					notifier.removeClient(privateId, ws);
@@ -97,8 +71,6 @@ export class GameApp {
 	
 	public getRouter() : Router {
 		return express.Router()
-			.post("/addone", (req, res) => this.addOne(req, res))
-			.post("/reset", (req, res) => this.reset(req, res))
 			.ws("/state", ws => this.wsState(ws));
 	}
 }

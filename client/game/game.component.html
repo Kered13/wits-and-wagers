@@ -5,12 +5,10 @@
 				<h1>{{ player.name }}</h1>
 			</mat-card-header>
 			<mat-card-content>
-				<h2>Counter: {{ player.counter }}</h2>
+				<h2>Counter: </h2>
 			</mat-card-content>
 			@if (thisPlayer().publicId === player.publicId) {
 				<mat-card-actions>
-					<button mat-raised-button (click)="onAddOne()" style="margin-right: 8px">Add 1!</button>
-					<button mat-raised-button (click)="onReset()">Reset</button>
 				</mat-card-actions>
 			}
 		</mat-card>

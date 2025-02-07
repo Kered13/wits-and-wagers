@@ -1,4 +1,9 @@
 * Implement game.
+  * Handle end game.
+  * Allow withdrawing guesses?
+  * Question generation (pull randomly from CSV file).
+  * Clean up game on end.
+  * Indication of round skipped because no guesses?
 * Implement desktop UI.
 * Implement mobile UI.
 * Implement game options.

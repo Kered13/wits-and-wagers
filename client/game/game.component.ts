@@ -45,7 +45,18 @@ export class GameComponent implements OnDestroy {
 		this.gameService = toSignal(instanceService, { requireSync: true });
 		this.game = toSignal(
 			instanceService.pipe(switchMap(service => service.get().onGameUpdate())),
-			{ initialValue: { title: "", players: [] }});
+			{
+				initialValue: {
+					title: "",
+					players: [],
+					round: 0,
+					phase: {
+						phase: "question",
+						question: "",
+						guesses: {}
+					}
+				}
+			});
 		
 		effect(() => titleService.setTitle(route.routeConfig!.title! + " - " + this.game().title));
 	}
@@ -72,13 +83,5 @@ export class GameComponent implements OnDestroy {
 	public ngOnDestroy(): void {
 		this.closeGameService(this.gameService());
 		this.instanceSub.unsubscribe();
-	}
-	
-	onAddOne(): void {
-		this.gameService().get().addOne();
-	}
-	
-	onReset(): void {
-		this.gameService().get().resetCounter();
 	}
 }

@@ -1,54 +1,35 @@
+import { Observable, Subject } from "rxjs"
+
+import { BettingPhase } from "./betting-phase.js";
+import { Player } from "./player.js";
+import { QuestionPhase } from "./question-phase.js";
 import { type LobbyPlayer } from "../lobby/lobby.js";
 import { HttpError } from "../utils/httperror.js";
-import { type Serializable } from "../utils/serializable.js";
-import { type GameId, type GameJson, type GamePlayerJson } from "../../shared/game/game.js";
-import { type PrivateId, type PublicId } from "../../shared/player.js";
-import { type Rgb } from "../../shared/rgb.js";
-import { type GameUpdate } from "../../shared/game/notifications.js";
+import { type BetTarget, type GameId, type GameJson } from "../../shared/game/game.js";
+import { type PrivateId } from "../../shared/player.js";
+import { type GameEnd, type GameUpdate } from "../../shared/game/notifications.js";
 
 
-class GamePlayer implements Serializable<GamePlayerJson> {
-	public readonly name: string;
-	public readonly publicId: PublicId;
-	public readonly privateId: PrivateId;
-	public readonly color: Rgb;
+export class Game {
+	private readonly players: Player[];
+	private readonly updates = new Subject<void>();
+	private readonly gameEnd = new Subject<void>();
 	
-	private counter: number = 0;
-	
-	constructor(lobbyPlayer: LobbyPlayer) {
-		this.name = lobbyPlayer.name;
-		this.publicId = lobbyPlayer.publicId;
-		this.privateId = lobbyPlayer.privateId;
-		this.color = lobbyPlayer.color;
-	}
-	
-	public addOne(): void {
-		this.counter++;
-	}
-	
-	public reset(): void {
-		this.counter = 0;
-	}
-	
-	public toJson(): GamePlayerJson {
-		return {
-			name: this.name,
-			publicId: this.publicId,
-			color: this.color,
-			counter: this.counter
-		};
-	}
-}
-
-
-export class Game implements Serializable<GameJson> {
-	private readonly players: GamePlayer[];
+	private round: number = 1;
+	private question: string;
+	private answer: number;
+	private phase: QuestionPhase | BettingPhase;
 	
 	constructor(
 			private readonly id: GameId,
 			private readonly title: string,
 			lobbyPlayers: LobbyPlayer[]) {
-		this.players = lobbyPlayers.map(player => new GamePlayer(player));
+		this.players = lobbyPlayers.map(player => new Player(player));
+		
+		const [question, answer] = this.nextQuestion();
+		this.question = question;
+		this.answer = answer;
+		this.phase = new QuestionPhase(question, this);
 	}
 	
 	public getId(): GameId {
@@ -59,30 +40,102 @@ export class Game implements Serializable<GameJson> {
 		return !!this.tryGetPlayer(id);
 	}
 	
-	public addOne(id: PrivateId): void {
-		this.getPlayer(id).addOne();
+	public submitGuess(playerId: PrivateId, guess: number): void {
+		if (!(this.phase instanceof QuestionPhase)) {
+			throw new HttpError(400, "Cannot submit guesses during the betting phase.");
+		}
+		this.phase.submitGuess(playerId, guess);
+		
+		this.updates.next();
 	}
 	
-	public resetCounter(id: PrivateId): void {
-		this.getPlayer(id).reset();
+	public submitBet(playerId: PrivateId, target: BetTarget, wager: number): void {
+		if (!(this.phase instanceof BettingPhase)) {
+			throw new HttpError(400, "Cannot submit bets during the betting phase.");
+		}
+		this.phase.submitBet(playerId, target, wager);
+		
+		this.updates.next();
 	}
 	
-	public toJson(): GameJson {
+	public withdrawBet(playerId: PrivateId, target: BetTarget): void {
+		if (!(this.phase instanceof BettingPhase)) {
+			throw new HttpError(400, "Cannot withdraw bets during the betting phase.");
+		}
+		this.phase.withdrawBet(playerId, target);
+		
+		this.updates.next();
+	}
+	
+	public endPhase(): void {
+		if (this.phase instanceof QuestionPhase) {
+			const guesses = this.phase.getGuesses();
+			if (!guesses.size) {
+				this.newRound();
+			} else {
+				this.phase = new BettingPhase(this.question, this.answer, this, guesses);
+			}
+		} else {
+			if (this.round < 7) {
+				this.phase.resolve();
+				this.newRound();
+			} else {
+				this.endGame();
+				return;
+			}
+		}
+		this.updates.next();
+	}
+	
+	private newRound(): void {
+		this.round++;
+		const [question, answer] = this.nextQuestion();
+		this.question = question;
+		this.answer = answer;
+		this.phase = new QuestionPhase(this.question, this);
+	}
+	
+	private nextQuestion(): [string, number] {
+		return ["Guess a number?", 7];
+	}
+	
+	private endGame(): void {
+		this.gameEnd.next();
+	}
+	
+	public toJson(forPlayer: PrivateId): GameJson {
 		return {
 			title: this.title,
-			players: this.players.map(player => player.toJson())
+			players: this.players.map(player => player.toJson()),
+			round: this.round,
+			phase: this.phase.toJson(forPlayer)
 		};
 	}
 	
-	public makeUpdate(): GameUpdate {
+	// This is public because subscribes need to call it for each player.
+	public makeUpdate(forPlayer: PrivateId): GameUpdate {
 		return {
 			type: "update",
 			id: this.id,
-			state: this.toJson()
+			state: this.toJson(forPlayer)
 		};
 	}
 	
-	private getPlayer(id: PrivateId): GamePlayer {
+	private makeGameEnd(): GameEnd {
+		return {
+			type: "end",
+			id: this.id,
+			rankings: this.players
+				.sort((first, second) => second.chips - first.chips)
+				.map(player => player.toJson())
+		}
+	}
+	
+	public getPlayers(): Player[] {
+		return this.players;
+	}
+	
+	public getPlayer(id: PrivateId): Player {
 		const player = this.tryGetPlayer(id);
 		if (!player) {
 			throw new HttpError(404, `Player private ID ${id} not found.`);
@@ -90,7 +143,19 @@ export class Game implements Serializable<GameJson> {
 		return player;
 	}
 	
-	private tryGetPlayer(id: PrivateId): GamePlayer | undefined {
+	public tryGetPlayer(id: PrivateId): Player | undefined {
 		return this.players.find(player => player.privateId === id);
+	}
+	
+	public getRound(): number {
+		return this.round;
+	}
+	
+	public getUpdates(): Observable<void> {
+		return this.updates.asObservable();
+	}
+	
+	public getGameEnd(): Observable<void> {
+		return this.gameEnd.asObservable();
 	}
 }
