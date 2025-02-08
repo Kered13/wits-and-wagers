@@ -5,12 +5,14 @@
   "main": "app.ts",
   "type": "module",
   "scripts": {
-    "build": "npx tsc --project server/tsconfig.json",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "npx tsx server/app.ts",
+    "build": "tsc --project server/tsconfig.json",
+    "build-test": "tsc --project server/tsconfig-test.json",
+    "start": "tsx server/app.ts",
     "watch": "npm run watch-server",
-    "watch-server": "npx tsx watch server/app.ts",
-    "watch-client": "cd client && ng serve"
+    "watch-server": "tsx watch server/app.ts",
+    "watch-client": "cd client && ng serve",
+    "test-client": "cd client && ng test",
+    "test-server": "npm run build-test && jasmine --config=server/spec/support/jasmine.mjs"
   },
   "dependencies": {
     "@angular/animations": "^19.0.0",
@@ -43,6 +45,7 @@
     "@types/express": "^5.0.0",
     "@types/express-ws": "^3.0.5",
     "@types/jasmine": "~5.1.0",
+    "jasmine": "^5.5.0",
     "jasmine-core": "~5.4.0",
     "karma": "~6.4.0",
     "karma-chrome-launcher": "~3.2.0",

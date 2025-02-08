@@ -1,0 +1,8 @@
+{
+  "extends": "./tsconfig.json",
+  /* Remove the exclusion on test files. */
+  "exclude": [],
+  "compilerOptions": {
+    "outDir": "../dist.spec",
+  },
+}
