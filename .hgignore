@@ -3,3 +3,5 @@ node_modules
 dist
 client/.angular/
 client/.vscode
+.vscode
+dist.spec
