@@ -93,6 +93,5 @@ export class GameInstanceService extends Closeable {
 	public override doClose(): void {
 		this.wsSubject.complete();
 		this.gameService.removeGame(this.gameId);
-		console.log("Close game service.");
 	}
 };

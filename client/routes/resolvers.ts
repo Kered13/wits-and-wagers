@@ -3,7 +3,7 @@ import { RedirectCommand, Router } from "@angular/router";
 import { TypedRouteSnapshot as TypedActivatedRouteSnapshot } from "ngx-typed-router";
 import { firstValueFrom } from "rxjs";
 
-import { GAME_ROUTE, HOME_ROUTE } from "./routes.js";
+import { GameRoute, HomeRoute } from "./routes.js";
 import { HasGameId, HasLobbyId, HasPlayer } from "./types.js";
 import { ResolveFn, StringLiterals } from "./utils.js";
 import { GAME_ID, PRIVATE_ID, PUBLIC_ID, USERNAME } from "../app/localstorage.keys.js";
@@ -13,7 +13,7 @@ import { PrivatePlayer } from "../../shared/player.js";
 
 function getLocalStorageKey(key: string): ResolveFn<string> {
 	return () =>
-		localStorage.getItem(key) || new RedirectCommand(inject(Router).createUrlTree(HOME_ROUTE.url()));
+		localStorage.getItem(key) || new RedirectCommand(inject(Router).createUrlTree(inject(HomeRoute).url()));
 };
 
 export function getLocalStorage<S extends string[]>(...keys: StringLiterals<S>): { [K in S[number]]: ResolveFn<string> } {
@@ -32,7 +32,7 @@ export async function resolveLobby(route: TypedActivatedRouteSnapshot<HasPlayer,
 	
 	const username = localStorage.getItem(USERNAME);
 	if (!username) {
-		return new RedirectCommand(router.createUrlTree(HOME_ROUTE.url()));
+		return new RedirectCommand(router.createUrlTree(inject(HomeRoute).url()));
 	}
 	
 	const privateId = localStorage.getItem(PRIVATE_ID) ?? undefined;
@@ -42,7 +42,7 @@ export async function resolveLobby(route: TypedActivatedRouteSnapshot<HasPlayer,
 		localStorage.setItem(PRIVATE_ID, response.player.privateId);
 		return response.player;
 	} else {
-		return new RedirectCommand(router.createUrlTree(GAME_ROUTE.url({ gameId: response.gameId })));
+		return new RedirectCommand(router.createUrlTree(inject(GameRoute).url({ gameId: response.gameId })));
 	}
 }
 
@@ -56,7 +56,7 @@ export function resolveGame(route: TypedActivatedRouteSnapshot<HasPlayer, HasGam
 	const publicId = localStorage.getItem(PUBLIC_ID);
 	const privateId = localStorage.getItem(PRIVATE_ID);
 	if (!username || !publicId || !privateId) {
-		return new RedirectCommand(inject(Router).createUrlTree(HOME_ROUTE.url()));
+		return new RedirectCommand(inject(Router).createUrlTree(inject(HomeRoute).url()));
 	}
 	return {
 		name: username,

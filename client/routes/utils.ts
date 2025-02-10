@@ -33,10 +33,6 @@ type TypedRoute<D extends Data, P extends Params, Q extends Params> = Route & {
 export class AppRoute<D extends Data = {}, P extends Params = {}, Q extends Params = {}> {
 	private readonly components: string[];
 	
-	// This is needed to differentiate instantiations. It allows type inference
-	// in TypedRouteFor to work correctly.
-	private readonly _: TypedActivatedRoute<D, P, Q> | undefined;
-	
 	constructor(public readonly route: TypedRoute<D, P, Q>) {
 		this.components = this.route.path.split("/");
 	}
@@ -53,7 +49,6 @@ export class AppRoute<D extends Data = {}, P extends Params = {}, Q extends Para
 }
 
 
-// Adds a url() method with no parameters.
 export class AppRouteNoParams<D extends Data = {}> extends AppRoute<D> {
 	public override url(_: {} = {}): string[] {
 		return super.url({});

@@ -3,8 +3,8 @@ import express from "express";
 import expressWs from "express-ws";
 
 
+import { GameApp } from "./game/app.js";
 import { LobbyApp } from "./lobby/app.js"
-import { GameApp } from "./game/app.js"
 
 
 const PORT = 3000;

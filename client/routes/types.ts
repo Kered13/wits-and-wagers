@@ -1,6 +1,6 @@
-import { GameId } from "../../shared/game/game";
-import { LobbyId } from "../../shared/lobby/lobby";
-import { PrivatePlayer } from "../../shared/player";
+import { GameId } from "../../shared/game/game.js";
+import { LobbyId } from "../../shared/lobby/lobby.js";
+import { PrivatePlayer } from "../../shared/player.js";
 
 
 export type HasUsername = {

@@ -4,7 +4,7 @@ import { MatButton } from "@angular/material/button";
 import { MatCardModule } from "@angular/material/card";
 import { MatInputModule } from '@angular/material/input';
 import { Title } from "@angular/platform-browser";
-import { ActivatedRoute, Router } from "@angular/router";
+import { ActivatedRoute } from "@angular/router";
 import { toSignal } from "@angular/core/rxjs-interop";
 import { map, pairwise, Subscription, startWith, switchMap, combineLatest } from "rxjs";
 
@@ -12,9 +12,10 @@ import { LobbyInstanceService, LobbyService } from "./lobby.service.js";
 import { GAME_ID } from "../app/localstorage.keys.js";
 import { GlobalErrorHandler } from "../error-dialog/error-handler.js";
 import { RefCounted } from "../utils/refcounted.js";
-import { GAME_ROUTE, HOME_ROUTE, LobbyRoute, TypedRouteFor } from "../routes/routes.js";
+import { LobbyRoute, TypedRouteFor } from "../routes/routes.js";
 import { LobbyJson } from "../../shared/lobby/lobby.js";
 import { PrivatePlayer } from "../../shared/player.js";
+import { RoutingService } from "../routes/routing.service.js";
 
 
 @Component({
@@ -33,8 +34,8 @@ export class LobbyComponent implements OnDestroy {
 	readonly player: Signal<PrivatePlayer>;
 	
 	constructor(
-			private readonly router: Router,
 			private readonly errorHandler: GlobalErrorHandler,
+			private readonly routing: RoutingService,
 			lobbyService: LobbyService,
 			titleService: Title,
 			@Inject(ActivatedRoute) route: TypedRouteFor<LobbyRoute>) {
@@ -63,14 +64,16 @@ export class LobbyComponent implements OnDestroy {
 		
 		// Set up the handlers for the events that will take us to the next page.
 		this.subs.push(
-			newService.get().onBeginGame().subscribe(gameId => this.router.navigate(GAME_ROUTE.url({ gameId: gameId }))),
+			newService.get().onBeginGame().subscribe(gameId => {
+				this.routing.toGame(gameId);
+			}),
 			newService.get().onCanceled().subscribe(() => {
 				localStorage.removeItem(GAME_ID);
-				this.router.navigate(HOME_ROUTE.url());
+				this.routing.toHome();
 			}),
 			newService.get().onError().subscribe(error => {
 				this.errorHandler.handleError(error);
-				this.router.navigate(HOME_ROUTE.url());
+				this.routing.toHome();
 			}));
 	}
 	

@@ -1,8 +1,8 @@
+import { is } from "valibot";
 import { WebSocket } from "ws";
 
 import { HttpError } from "./httperror.js";
-import { WebSocketRequestSchema, WebSocketResponse, type WebSocketError, type WebSocketRequest, type WebSocketSuccess } from "../../shared/websocket.interface.js";
-import { is } from "valibot";
+import { WebSocketRequestSchema } from "../../shared/websocket.interface.js";
 
 
 export class WebSocketUtil {

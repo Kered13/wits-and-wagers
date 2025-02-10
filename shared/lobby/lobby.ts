@@ -1,4 +1,4 @@
-import { array, nonEmpty, pipe, regex, strictObject, string, type InferOutput } from "valibot";
+import { array, nonEmpty, pipe, strictObject, string, type InferOutput } from "valibot";
 
 import { PublicIdSchema } from "../player.js";
 import { RgbSchema } from "../rgb.js";

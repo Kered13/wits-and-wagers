@@ -1,8 +1,8 @@
 import { HttpErrorResponse } from "@angular/common/http";
 import { ErrorHandler, Injectable } from "@angular/core";
-
-import { ErrorDialogComponent } from "./error-dialog.component";
 import { MatDialog } from "@angular/material/dialog";
+
+import { ErrorDialogComponent } from "./error-dialog.component.js";
 
 
 @Injectable({ providedIn: "root" }) 

@@ -3,10 +3,9 @@ import { MatButton } from "@angular/material/button";
 import { MatCardModule } from "@angular/material/card";
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatInputModule } from "@angular/material/input";
-import { Router } from "@angular/router";
 
-import { GAME_ID, USERNAME } from "../app/localstorage.keys";
-import { HOST_ROUTE, LOBBY_ROUTE } from "../routes/routes";
+import { GAME_ID, USERNAME } from "../app/localstorage.keys.js";
+import { RoutingService } from "../routes/routing.service.js";
 
 
 @Component({
@@ -20,7 +19,7 @@ export class HomeComponent {
 	username: string;
 	joinCode: string;
 	
-	constructor(private router: Router) {
+	constructor(private readonly routing: RoutingService) {
 		this.username = localStorage.getItem(USERNAME) || "";
 		this.joinCode = localStorage.getItem(GAME_ID) || "";
 	}
@@ -28,14 +27,14 @@ export class HomeComponent {
 	onHostGame(): void {
 		if (this.username) {
 			localStorage.setItem(USERNAME, this.username);
-			this.router.navigate(HOST_ROUTE.url());
+			this.routing.toHost();
 		}
 	}
 	
 	onJoinGame(): void {
 		if (this.username && this.joinCode) {
 			localStorage.setItem(USERNAME, this.username);
-			this.router.navigate(LOBBY_ROUTE.url({ lobbyId: this.joinCode }));
+			this.routing.toLobby(this.joinCode);
 		}
 	}
 }

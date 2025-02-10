@@ -2,16 +2,17 @@ import { ChangeDetectionStrategy, Component, computed, effect, Inject, OnDestroy
 import { MatButton } from "@angular/material/button";
 import { MatCardModule } from "@angular/material/card";
 import { Title } from "@angular/platform-browser";
-import { ActivatedRoute, Router } from "@angular/router";
+import { ActivatedRoute } from "@angular/router";
 import { toSignal } from "@angular/core/rxjs-interop";
 import { combineLatest, map, pairwise, startWith, Subscription, switchMap } from "rxjs";
 
 import { GameInstanceService, GameService } from "./game.service.js";
 import { GlobalErrorHandler } from "../error-dialog/error-handler.js";
-import { GameRoute, HOME_ROUTE, TypedRouteFor } from "../routes/routes.js";
+import { GameRoute, TypedRouteFor } from "../routes/routes.js";
 import { RefCounted } from "../utils/refcounted.js";
 import { PrivatePlayer } from "../../shared/player.js";
 import { GameJson } from "../../shared/game/game.js";
+import { RoutingService } from "../routes/routing.service.js";
 
 
 @Component({
@@ -30,8 +31,8 @@ export class GameComponent implements OnDestroy {
 	readonly thisPlayer: Signal<PrivatePlayer>;
 	
 	constructor(
-			private readonly router: Router,
 			private readonly errorHandler: GlobalErrorHandler,
+			private readonly routing: RoutingService,
 			gameService: GameService,
 			titleService: Title,
 			@Inject(ActivatedRoute) route: TypedRouteFor<GameRoute>) {
@@ -70,7 +71,7 @@ export class GameComponent implements OnDestroy {
 		this.subs.push(
 			newService.get().onError().subscribe(error => {
 				this.errorHandler.handleError(error);
-				this.router.navigate(HOME_ROUTE.url());
+				this.routing.toHome();
 			}));
 	}
 	

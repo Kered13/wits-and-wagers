@@ -6,15 +6,15 @@ import { assert, is } from "valibot";
 import { BackendService } from "../utils/backend.service.js";
 import { Closeable, RefCounted } from "../utils/refcounted.js";
 import { WebsocketError } from "../utils/websocket-error.js";
+import { GameId } from "../../shared/game/game.js";
 import { type BeginGameRequest } from "../../shared/lobby/begin.js";
 import { type CancelLobbyRequest } from "../../shared/lobby/cancel.js";
 import { CreateLobbyRequestSchema, type CreateLobbyRequest, type CreateLobbyResponse } from "../../shared/lobby/create.js";
 import { type JoinLobbyRequest, type JoinLobbyResponse } from "../../shared/lobby/joinlobby.js";
 import { type LobbyId, type LobbyJson } from "../../shared/lobby/lobby.js";
-import { LobbyError, LobbyNotificationSchema, type LobbyNotification } from "../../shared/lobby/notifications.js";
+import { LobbyNotificationSchema, type LobbyNotification } from "../../shared/lobby/notifications.js";
 import { type SubscribeRequest } from "../../shared/lobby/subscribe.js";
 import { PrivateId } from "../../shared/player.js";
-import { GameId } from "../../shared/game/game.js";
 
 
 @Injectable({providedIn: "root"})

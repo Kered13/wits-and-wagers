@@ -4,11 +4,12 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angula
 import { MatButton } from "@angular/material/button";
 import { MatCardModule } from "@angular/material/card";
 import { MatInputModule } from '@angular/material/input';
-import { ActivatedRoute, Router } from "@angular/router";
+import { ActivatedRoute } from "@angular/router";
 
-import { PRIVATE_ID, PUBLIC_ID } from "../app/localstorage.keys";
-import { LobbyService } from "../lobby/lobby.service";
-import { HostRoute, LOBBY_ROUTE, TypedRouteFor } from "../routes/routes";
+import { PRIVATE_ID, PUBLIC_ID } from "../app/localstorage.keys.js";
+import { LobbyService } from "../lobby/lobby.service.js";
+import { HostRoute, TypedRouteFor } from "../routes/routes.js";
+import { RoutingService } from "../routes/routing.service.js";
 
 
 @Component({
@@ -27,7 +28,7 @@ export class HostComponent {
 	
 	constructor(
 			private readonly lobbyService: LobbyService,
-			private readonly router: Router,
+			private readonly routing: RoutingService,
 			@Inject(ActivatedRoute) route: TypedRouteFor<HostRoute>) {
 		const data = toSignal(route.data, { requireSync: true });
 		this.username = computed(() => data().username);
@@ -39,7 +40,7 @@ export class HostComponent {
 				.subscribe(response => {
 					localStorage.setItem(PUBLIC_ID, response.host.publicId);
 					localStorage.setItem(PRIVATE_ID, response.host.privateId);
-					this.router.navigate(LOBBY_ROUTE.url({ lobbyId: response.id }));
+					this.routing.toLobby(response.id);
 				});
 		}
 	}
