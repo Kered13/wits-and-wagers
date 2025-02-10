@@ -1,7 +1,7 @@
 import Multimap from "multimap";
 
-import type { PrivateId } from "../../shared/player.js";
 import { WebSocketUtil } from "./websocket.js";
+import type { PrivateId } from "../../shared/player.js";
 
 
 export class Notifier<N> {

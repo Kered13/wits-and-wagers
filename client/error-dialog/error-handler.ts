@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from "@angular/common/http";
-import { ErrorHandler, Injectable } from "@angular/core";
+import { ErrorHandler, Injectable, Provider } from "@angular/core";
 import { MatDialog } from "@angular/material/dialog";
 
 import { ErrorDialogComponent } from "./error-dialog.component.js";
@@ -8,6 +8,10 @@ import { ErrorDialogComponent } from "./error-dialog.component.js";
 @Injectable({ providedIn: "root" }) 
 export class GlobalErrorHandler implements ErrorHandler {
 	constructor(private readonly dialog: MatDialog) {}
+	
+	public static provideErrorHandler(): Provider {
+		return { provide: ErrorHandler, useClass: GlobalErrorHandler };
+	}
 	
 	public handleError(error: unknown): void {
 		// For some reason HttpErrorResponse is not a subclass of Error.
