@@ -12,7 +12,8 @@
     "watch-server": "tsx watch server/app.ts",
     "watch-client": "cd client && ng serve",
     "test-client": "echo \"Error: no test specified\" && exit 1",
-    "test-server": "echo \"Error: no test specified\" && exit 1"
+    "test-server": "vitest run --config server/vitest.config.ts",
+    "test-server-watch": "vitest watch --config server/vitest.config.ts"
   },
   "dependencies": {
     "@angular/animations": "^19.0.0",
@@ -52,7 +53,8 @@
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
     "tsx": "^4.19.2",
-    "typescript": "~5.6.0"
+    "typescript": "~5.6.0",
+    "vitest": "^3.0.5"
   },
   "author": "Derek Brown",
   "license": "MIT"

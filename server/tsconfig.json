@@ -5,6 +5,7 @@
   ],
   "exclude": [
     "**/*.spec.ts",
+    "**/*.test.ts",
   ],
   "compilerOptions": {
     "rootDir": "../",
