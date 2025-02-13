@@ -1,4 +1,7 @@
 * Implement game.
+  * Test game transition between phases.
+  * Game Player should be constructed from JSON, not LobbyPlayer.
+  * Lobby Player should be constructed from JSON, to avoid parameter confusion.
   * Handle end game.
   * Allow withdrawing guesses?
   * Question generation (pull randomly from CSV file).
@@ -7,6 +10,8 @@
 * Implement desktop UI.
 * Implement mobile UI.
 * Implement game options.
+  * Round timers.
+* Implement game/lobby expiration.
 * Deploy app.
 * Implement audience.
 * Implement questions upload.

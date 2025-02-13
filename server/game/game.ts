@@ -1,7 +1,7 @@
 import { Observable, Subject } from "rxjs"
 
 import { BettingPhase } from "./betting-phase.js";
-import { Player } from "./player.js";
+import { Player, PlayerManager } from "./player.js";
 import { QuestionPhase } from "./question-phase.js";
 import { type LobbyPlayer } from "../lobby/lobby.js";
 import { HttpError } from "../utils/httperror.js";
@@ -11,7 +11,7 @@ import { type GameEnd, type GameUpdate } from "../../shared/game/notifications.j
 
 
 export class Game {
-	private readonly players: Player[];
+	private readonly players: PlayerManager;
 	private readonly updates = new Subject<void>();
 	private readonly gameEnd = new Subject<void>();
 	
@@ -24,20 +24,16 @@ export class Game {
 			private readonly id: GameId,
 			private readonly title: string,
 			lobbyPlayers: LobbyPlayer[]) {
-		this.players = lobbyPlayers.map(player => new Player(player));
+		this.players = new PlayerManager(lobbyPlayers.map(player => new Player(player)));
 		
 		const [question, answer] = this.nextQuestion();
 		this.question = question;
 		this.answer = answer;
-		this.phase = new QuestionPhase(question, this);
+		this.phase = new QuestionPhase(question, this.players);
 	}
 	
 	public getId(): GameId {
 		return this.id;
-	}
-	
-	public hasPlayer(id: PrivateId): boolean {
-		return !!this.tryGetPlayer(id);
 	}
 	
 	public submitGuess(playerId: PrivateId, guess: number): void {
@@ -73,7 +69,7 @@ export class Game {
 			if (!guesses.size) {
 				this.newRound();
 			} else {
-				this.phase = new BettingPhase(this.question, this.answer, this, guesses);
+				this.phase = new BettingPhase(this.question, this.answer, this.players, this.round, guesses);
 			}
 		} else {
 			if (this.round < 7) {
@@ -92,7 +88,7 @@ export class Game {
 		const [question, answer] = this.nextQuestion();
 		this.question = question;
 		this.answer = answer;
-		this.phase = new QuestionPhase(this.question, this);
+		this.phase = new QuestionPhase(this.question, this.players);
 	}
 	
 	private nextQuestion(): [string, number] {
@@ -106,7 +102,7 @@ export class Game {
 	public toJson(forPlayer: PrivateId): GameJson {
 		return {
 			title: this.title,
-			players: this.players.map(player => player.toJson()),
+			players: this.players.toJson(),
 			round: this.round,
 			phase: this.phase.toJson(forPlayer)
 		};
@@ -121,30 +117,16 @@ export class Game {
 		};
 	}
 	
-	private makeGameEnd(): GameEnd {
+	public makeGameEnd(): GameEnd {
 		return {
 			type: "end",
 			id: this.id,
-			rankings: this.players
-				.sort((first, second) => second.chips - first.chips)
-				.map(player => player.toJson())
+			rankings: this.players.rankPlayers()
 		}
 	}
 	
-	public getPlayers(): Player[] {
+	public getPlayers(): PlayerManager {
 		return this.players;
-	}
-	
-	public getPlayer(id: PrivateId): Player {
-		const player = this.tryGetPlayer(id);
-		if (!player) {
-			throw new HttpError(404, `Player private ID ${id} not found.`);
-		}
-		return player;
-	}
-	
-	public tryGetPlayer(id: PrivateId): Player | undefined {
-		return this.players.find(player => player.privateId === id);
 	}
 	
 	public getRound(): number {

@@ -1,5 +1,4 @@
-import type { Game } from "./game.js";
-import type { Player } from "./player.js";
+import type { Player, PlayerManager } from "./player.js";
 import { type QuestionPhaseJson } from "../../shared/game/game.js";
 import { type PrivateId } from "../../shared/player.js";
 
@@ -9,10 +8,10 @@ export class QuestionPhase {
 	
 	constructor(
 		private readonly question: string,
-		private readonly game: Game) {}
+		private readonly players: PlayerManager) {}
 	
 	public submitGuess(playerId: PrivateId, guess: number): void {
-		const player = this.game.getPlayer(playerId);
+		const player = this.players.getPrivatePlayer(playerId);
 		this.guesses.set(player, guess);
 	}
 	
@@ -25,7 +24,7 @@ export class QuestionPhase {
 			phase: "question",
 			question: this.question,
 			guesses: Object.fromEntries(
-				this.game.getPlayers().map(player => {
+				this.players.getAll().map(player => {
 					const guess = this.guesses.get(player);
 					const report = !guess ? false :
 						player.privateId !== forPlayer ? true : guess;
