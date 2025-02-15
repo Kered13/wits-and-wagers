@@ -47,7 +47,7 @@ export class Game {
 	
 	public submitBet(playerId: PrivateId, target: BetTarget, wager: number): void {
 		if (!(this.phase instanceof BettingPhase)) {
-			throw new HttpError(400, "Cannot submit bets during the betting phase.");
+			throw new HttpError(400, "Cannot submit bets during the question phase.");
 		}
 		this.phase.submitBet(playerId, target, wager);
 		
@@ -56,7 +56,7 @@ export class Game {
 	
 	public withdrawBet(playerId: PrivateId, target: BetTarget): void {
 		if (!(this.phase instanceof BettingPhase)) {
-			throw new HttpError(400, "Cannot withdraw bets during the betting phase.");
+			throw new HttpError(400, "Cannot withdraw bets during the question phase.");
 		}
 		this.phase.withdrawBet(playerId, target);
 		
@@ -66,29 +66,35 @@ export class Game {
 	public endPhase(): void {
 		if (this.phase instanceof QuestionPhase) {
 			const guesses = this.phase.getGuesses();
-			if (!guesses.size) {
+			if (guesses.size == 0) {
+				// Skip the betting phase if no one submitted guesses.
 				this.newRound();
 			} else {
-				this.phase = new BettingPhase(this.question, this.answer, this.players, this.round, guesses);
+				this.startBettingPhase(guesses);
 			}
 		} else {
-			if (this.round < 7) {
-				this.phase.resolve();
-				this.newRound();
-			} else {
-				this.endGame();
-				return;
-			}
+			this.phase.resolve();
+			this.newRound();
 		}
-		this.updates.next();
 	}
 	
 	private newRound(): void {
+		if (this.round >= 7) {
+			this.endGame();
+			return;
+		}
+		
 		this.round++;
 		const [question, answer] = this.nextQuestion();
 		this.question = question;
 		this.answer = answer;
 		this.phase = new QuestionPhase(this.question, this.players);
+		this.updates.next();
+	}
+	
+	private startBettingPhase(guesses: Map<Player, number>): void {
+		this.phase = new BettingPhase(this.question, this.answer, this.players, this.round, guesses);
+		this.updates.next();
 	}
 	
 	private nextQuestion(): [string, number] {
@@ -97,6 +103,8 @@ export class Game {
 	
 	private endGame(): void {
 		this.gameEnd.next();
+		this.gameEnd.complete();
+		this.updates.complete();
 	}
 	
 	public toJson(forPlayer: PrivateId): GameJson {

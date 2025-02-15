@@ -11,7 +11,7 @@ export class Player {
 	public readonly privateId: PrivateId;
 	public readonly color: Rgb;
 	
-	public chips: number = 0;
+	public chips: number = 2;
 	
 	constructor(lobbyPlayer: LobbyPlayer) {
 		this.name = lobbyPlayer.name;

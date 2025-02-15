@@ -17,11 +17,22 @@ describe("Player", () => {
 		const player = makePlayer("Alice");
 		player.chips = 13;
 		
-		expect(player.toJson()).toEqual({
+		expect(player.toJson()).to.deep.equal({
 			name: "Alice",
 			publicId: "public-Alice",
 			color: "#FF0000",
 			chips: 13
+		});
+	});
+	
+	test("begins with 2 chips", () => {
+		const player = makePlayer("Alice");
+		
+		expect(player.toJson()).to.deep.equal({
+			name: "Alice",
+			publicId: "public-Alice",
+			color: "#FF0000",
+			chips: 2
 		});
 	});
 });
@@ -95,19 +106,19 @@ describe("PlayerManager", () => {
 				name: "Alice",
 				publicId: "public-Alice",
 				color: "#FF0000",
-				chips: 0
+				chips: 2
 			},
 			{
 				name: "Bob",
 				publicId: "public-Bob",
 				color: "#FF0000",
-				chips: 0
+				chips: 2
 			},
 			{
 				name: "Charlie",
 				publicId: "public-Charlie",
 				color: "#FF0000",
-				chips: 0
+				chips: 2
 			},
 		]);
 	});

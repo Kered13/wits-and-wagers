@@ -1,5 +1,4 @@
 * Implement game.
-  * Test game transition between phases.
   * Game Player should be constructed from JSON, not LobbyPlayer.
   * Lobby Player should be constructed from JSON, to avoid parameter confusion.
   * Handle end game.
