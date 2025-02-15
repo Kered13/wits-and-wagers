@@ -1,7 +1,8 @@
 * Implement game.
-  * Game Player should be constructed from JSON, not LobbyPlayer.
-  * Lobby Player should be constructed from JSON, to avoid parameter confusion.
   * Handle end game.
+    * Prevent all future actions (throw exception).
+      * Add tests.
+  * Wire up game to RPCs.
   * Allow withdrawing guesses?
   * Question generation (pull randomly from CSV file).
   * Clean up game on end.

@@ -1,8 +1,16 @@
-import { type LobbyPlayer } from "../lobby/lobby.js";
 import { HttpError } from "../utils/httperror.js";
 import { type GamePlayerJson } from "../../shared/game/game.js";
 import { type PrivateId, type PublicId } from "../../shared/player.js";
 import { type Rgb } from "../../shared/rgb.js";
+
+
+// Constructor parameters for Player.
+export type PlayerParams = {
+	name: string,
+	publicId: string,
+	privateId: string,
+	color: string
+};
 
 
 export class Player {
@@ -13,11 +21,11 @@ export class Player {
 	
 	public chips: number = 2;
 	
-	constructor(lobbyPlayer: LobbyPlayer) {
-		this.name = lobbyPlayer.name;
-		this.publicId = lobbyPlayer.publicId;
-		this.privateId = lobbyPlayer.privateId;
-		this.color = lobbyPlayer.color;
+	constructor(player: PlayerParams) {
+		this.name = player.name;
+		this.publicId = player.publicId;
+		this.privateId = player.privateId;
+		this.color = player.color;
 	}
 	
 	public toJson(): GamePlayerJson {
@@ -31,7 +39,11 @@ export class Player {
 }
 
 export class PlayerManager {
-	constructor(private readonly players: Player[]) {}
+	private readonly players: Player[];
+	
+	constructor(players: Player[] | PlayerParams[]) {
+		this.players = players.map(player => player instanceof Player ? player : new Player(player));
+	}
 	
 	public hasPrivatePlayer(id: PrivateId): boolean {
 		return !!this.tryGetPrivatePlayer(id);

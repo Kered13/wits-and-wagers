@@ -2,16 +2,16 @@ import { beforeEach, describe, expect, test } from "vitest";
 
 import { BettingPhase } from "./betting-phase";
 import { Player, PlayerManager } from "./player";
-import { LobbyPlayer } from "../lobby/lobby";
 import { type BettingPhaseJson } from "../../shared/game/game.js";
 
 
 function makePlayer(name: string): Player {
-	const player = new Player(new LobbyPlayer(
-		`private-${name}`,
-		`public-${name}`,
-		name,
-		"#FF0000"));
+	const player = new Player({
+		name: name,
+		publicId: `public-${name}`,
+		privateId: `private-${name}`,
+		color: "#FF0000"
+	});
 	player.chips = 100;
 	return player;
 };

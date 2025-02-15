@@ -2,15 +2,15 @@ import { describe, expect, test } from "vitest";
 
 import { PlayerManager, Player } from "./player.js";
 import { QuestionPhase } from "./question-phase.js";
-import { LobbyPlayer } from "../lobby/lobby.js";
 
 
 function makePlayer(name: string): Player {
-	return new Player(new LobbyPlayer(
-		`private-${name}`,
-		`public-${name}`,
-		name,
-		"#FF0000"));
+	return new Player({
+		name: name,
+		publicId: `public-${name}`,
+		privateId: `private-${name}`,
+		color: "#FF0000"
+	});
 };
 
 describe("QuestionPhase", () => {

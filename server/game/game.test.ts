@@ -1,17 +1,19 @@
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 
 import { Game } from "./game";
-import { LobbyPlayer } from "../lobby/lobby";
+import { PlayerParams } from "./player";
 import { HttpError } from "../utils/httperror";
 
 
-function makePlayer(name: string): LobbyPlayer {
-	return new LobbyPlayer(
-		`private-${name}`,
-		`public-${name}`,
-		name,
-		"#FF0000");
+function makePlayer(name: string): PlayerParams {
+	return {
+		name: name,
+		publicId: `public-${name}`,
+		privateId: `private-${name}`,
+		color: "#FF0000"
+	};
 }
+
 
 describe("Game", () => {
 	describe("toJson", () => {

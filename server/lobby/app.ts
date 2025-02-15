@@ -88,7 +88,7 @@ export class LobbyApp {
 			// Check if the lobby has become a game, and if this player is part
 			// of that game. Then redirect them to the game.
 			const gameData = this.gameApp.tryGetGame(Lobby.gameIdFromLobbyId(request.lobbyId));
-			if (!gameData || !request.privateId || !gameData.game.hasPlayer(request.privateId)) {
+			if (!gameData || !request.privateId || !gameData.game.getPlayers().hasPrivatePlayer(request.privateId)) {
 				throw new HttpError(404, `LobbyId ${request.lobbyId} not found.`);
 			}
 			res.send({

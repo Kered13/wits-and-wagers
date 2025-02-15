@@ -1,22 +1,29 @@
 import * as uuid from "uuid";
 
 import { Game } from "../game/game.js";
+import { type PlayerParams } from "../game/player.js";
 import { type GameId } from "../../shared/game/game.js";
 import { type LobbyPlayerJson, type LobbyJson, type LobbyId } from "../../shared/lobby/lobby.js";
 import { type LobbyBeginGame, type LobbyCanceled, type LobbyUpdate } from "../../shared/lobby/notifications.js";
-import { type PrivateId, type PrivatePlayer } from "../../shared/player.js";
+import { type PrivateId, type PrivatePlayer, type PublicId } from "../../shared/player.js";
 
 
-export class LobbyPlayer {
-	constructor(
-		// An ID used to authenticate the user in RPCs.
-		public readonly privateId: string,
-		// An ID used to uniquely identify the user.
-		public readonly publicId: string,
-		// Display name for the user. Not unique.
-		public readonly name: string,
-		// The color for the user. Unique within a lobby or game.
-		public readonly color: string) {}
+export class LobbyPlayer implements PlayerParams {
+	// Display name for the user. Not unique.
+	public readonly name: string;
+	// An ID used to uniquely identify the user.
+	public readonly publicId: PublicId;
+	// An ID used to authenticate the user in RPCs.
+	public readonly privateId: PrivateId;
+	// The color for the user. Unique within a lobby or game.
+	public readonly color: string;
+	
+	constructor(player: PlayerParams) {
+		this.name = player.name;
+		this.publicId = player.publicId;
+		this.privateId = player.privateId;
+		this.color = player.color;
+	}
 	
 	public toJson(): LobbyPlayerJson {
 		return {
@@ -111,12 +118,17 @@ export class Lobby {
 
 	private generatePlayer(name: string): LobbyPlayer {
 		const { privateId, publicId } = this.generatePlayerIds();
-		this.players.push(new LobbyPlayer(privateId, publicId, name, this.generateColor()));
+		this.players.push(new LobbyPlayer({
+			name: name,
+			publicId: publicId,
+			privateId: privateId,
+			color: this.generateColor()
+		}));
 		const player: LobbyPlayer = this.players[this.players.length - 1]!;
 		return player;
 	}
 	
-	private generatePlayerIds() {
+	private generatePlayerIds(): { privateId: PrivateId, publicId: PublicId } {
 		return {
 			privateId: uuid.v4(),
 			publicId: uuid.v4()

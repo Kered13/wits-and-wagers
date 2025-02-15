@@ -1,15 +1,15 @@
 import { describe, expect, test } from "vitest";
 
 import { Player, PlayerManager } from "./player";
-import { LobbyPlayer } from "../lobby/lobby";
 
 
 function makePlayer(name: string): Player {
-	return new Player(new LobbyPlayer(
-		`private-${name}`,
-		`public-${name}`,
-		name,
-		"#FF0000"));
+	return new Player({
+		name: name,
+		publicId: `public-${name}`,
+		privateId: `private-${name}`,
+		color: "#FF0000"
+	});
 };
 
 describe("Player", () => {

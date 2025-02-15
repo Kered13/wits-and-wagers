@@ -1,9 +1,8 @@
 import { Observable, Subject } from "rxjs"
 
 import { BettingPhase } from "./betting-phase.js";
-import { Player, PlayerManager } from "./player.js";
+import { Player, PlayerManager, type PlayerParams } from "./player.js";
 import { QuestionPhase } from "./question-phase.js";
-import { type LobbyPlayer } from "../lobby/lobby.js";
 import { HttpError } from "../utils/httperror.js";
 import { type BetTarget, type GameId, type GameJson } from "../../shared/game/game.js";
 import { type PrivateId } from "../../shared/player.js";
@@ -23,8 +22,8 @@ export class Game {
 	constructor(
 			private readonly id: GameId,
 			private readonly title: string,
-			lobbyPlayers: LobbyPlayer[]) {
-		this.players = new PlayerManager(lobbyPlayers.map(player => new Player(player)));
+			players: PlayerParams[] | Player[]) {
+		this.players = new PlayerManager(players);
 		
 		const [question, answer] = this.nextQuestion();
 		this.question = question;
