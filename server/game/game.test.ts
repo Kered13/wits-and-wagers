@@ -1,17 +1,17 @@
 import { describe, expect, test, vi } from "vitest";
 
 import { Game } from "./game";
-import { PlayerParams } from "./player";
+import { Player } from "./player";
 import { HttpError } from "../utils/httperror";
 
 
-function makePlayer(name: string): PlayerParams {
-	return {
+function makePlayer(name: string): Player {
+	return new Player({
 		name: name,
 		publicId: `public-${name}`,
 		privateId: `private-${name}`,
 		color: "#FF0000"
-	};
+	});
 }
 
 
@@ -92,9 +92,9 @@ describe("Game", () => {
 		const charlie = makePlayer("Charlie");
 		const game = new Game("id", "Game", [alice, bob, charlie]);
 		
-		game.getPlayers().getPrivatePlayer(alice.privateId).chips = 30;
-		game.getPlayers().getPrivatePlayer(bob.privateId).chips = 10;
-		game.getPlayers().getPrivatePlayer(charlie.privateId).chips = 60;
+		alice.chips = 30;
+		bob.chips = 10;
+		charlie.chips = 60;
 		
 		expect(game.makeGameEnd()).to.deep.equal({
 			type: "end",
@@ -217,12 +217,9 @@ describe("Game", () => {
 		const game = new Game("id", "Game", [alice]);
 		
 		// End the first six rounds.
-		game.endPhase();
-		game.endPhase();
-		game.endPhase();
-		game.endPhase();
-		game.endPhase();
-		game.endPhase();
+		for (let i = 0; i < 6; i++) {
+			game.endPhase();
+		}
 		
 		const updateCallback = vi.fn();
 		const gameEndCallback = vi.fn();
@@ -285,5 +282,44 @@ describe("Game", () => {
 		
 		expect(() => game.withdrawBet(alice.privateId, "Red"))
 			.to.throw(HttpError, "Cannot withdraw bets during the question phase.");
+	});
+	
+	test("cannot submit guess after game end", () => {
+		const alice = makePlayer("Alice");
+		const game = new Game("id", "Game", [alice]);
+		
+		// End all seven rounds.
+		for (let i = 0; i < 7; i++) {
+			game.endPhase();
+		}
+		
+		expect(() => game.submitGuess(alice.privateId, 42))
+			.to.throw(HttpError, "Game is over, cannot submit guesses.");
+	});
+	
+	test("cannot submit bets after game end", () => {
+		const alice = makePlayer("Alice");
+		const game = new Game("id", "Game", [alice]);
+		
+		// End all seven rounds.
+		for (let i = 0; i < 7; i++) {
+			game.endPhase();
+		}
+		
+		expect(() => game.submitBet(alice.privateId, "Red", 2))
+			.to.throw(HttpError, "Game is over, cannot submit bets.");
+	});
+	
+	test("cannot withdraw bets after game end", () => {
+		const alice = makePlayer("Alice");
+		const game = new Game("id", "Game", [alice]);
+		
+		// End all seven rounds.
+		for (let i = 0; i < 7; i++) {
+			game.endPhase();
+		}
+		
+		expect(() => game.withdrawBet(alice.privateId, "Red"))
+			.to.throw(HttpError, "Game is over, cannot withdraw bets.");
 	});
 });

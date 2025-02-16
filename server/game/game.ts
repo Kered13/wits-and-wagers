@@ -36,6 +36,9 @@ export class Game {
 	}
 	
 	public submitGuess(playerId: PrivateId, guess: number): void {
+		if (this.round > 7) {
+			throw new HttpError(400, "Game is over, cannot submit guesses.");
+		}
 		if (!(this.phase instanceof QuestionPhase)) {
 			throw new HttpError(400, "Cannot submit guesses during the betting phase.");
 		}
@@ -45,6 +48,9 @@ export class Game {
 	}
 	
 	public submitBet(playerId: PrivateId, target: BetTarget, wager: number): void {
+		if (this.round > 7) {
+			throw new HttpError(400, "Game is over, cannot submit bets.");
+		}
 		if (!(this.phase instanceof BettingPhase)) {
 			throw new HttpError(400, "Cannot submit bets during the question phase.");
 		}
@@ -54,6 +60,9 @@ export class Game {
 	}
 	
 	public withdrawBet(playerId: PrivateId, target: BetTarget): void {
+		if (this.round > 7) {
+			throw new HttpError(400, "Game is over, cannot withdraw bets.");
+		}
 		if (!(this.phase instanceof BettingPhase)) {
 			throw new HttpError(400, "Cannot withdraw bets during the question phase.");
 		}
@@ -104,6 +113,7 @@ export class Game {
 		this.gameEnd.next();
 		this.gameEnd.complete();
 		this.updates.complete();
+		this.round = 8;
 	}
 	
 	public toJson(forPlayer: PrivateId): GameJson {

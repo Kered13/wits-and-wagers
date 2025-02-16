@@ -1,12 +1,10 @@
 * Implement game.
-  * Handle end game.
-    * Prevent all future actions (throw exception).
-      * Add tests.
   * Wire up game to RPCs.
   * Allow withdrawing guesses?
   * Question generation (pull randomly from CSV file).
   * Clean up game on end.
   * Indication of round skipped because no guesses?
+  * Add color picking.
 * Implement desktop UI.
 * Implement mobile UI.
 * Implement game options.
