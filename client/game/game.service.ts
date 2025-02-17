@@ -5,11 +5,14 @@ import { is } from "valibot";
 
 import { BackendService } from "../utils/backend.service.js";
 import { Closeable, RefCounted } from "../utils/refcounted.js";
-import { type GameId, type GameJson } from "../../shared/game/game.js";
-import { type GameEnd, GameNotificationSchema, type GameNotification } from "../../shared/game/notifications.js";
-import { SubscribeRequest } from "../../shared/game/subscribe.js";
-import { PrivateId } from "../../shared/player.js";
 import { WebsocketError } from "../utils/websocket-error.js";
+import { BetTarget, type GameId, type GameJson } from "../../shared/game/game.js";
+import { type GameEnd, GameNotificationSchema, type GameNotification } from "../../shared/game/notifications.js";
+import { SubmitBetRequest } from "../../shared/game/submit-bet.js";
+import { SubmitGuessRequest } from "../../shared/game/submit-guess.js";
+import { SubscribeRequest } from "../../shared/game/subscribe.js";
+import { WithdrawBetRequest } from "../../shared/game/withdraw-bet.js";
+import { PrivateId } from "../../shared/player.js";
 
 
 @Injectable({providedIn: "root"})
@@ -76,6 +79,31 @@ export class GameInstanceService extends Closeable {
 		// If the server closes the connection, close this lobby. This does not
 		// handle unexpected closures like the server crashing.
 		this.wsSubject.subscribe({ complete: () => this.close() });
+	}
+	
+	public submitGuess(guess: number): Observable<void> {
+		return this.backend.postJson<SubmitGuessRequest, void>("/api/game/submitguess", {
+			gameId: this.gameId,
+			requester: this.privateId,
+			guess
+		});
+	}
+	
+	public submitBet(target: BetTarget, wager: number): Observable<void> {
+		return this.backend.postJson<SubmitBetRequest, void>("/api/game/submitbet", {
+			gameId: this.gameId,
+			requester: this.privateId,
+			target,
+			wager
+		});
+	}
+	
+	public withdrawBet(target: BetTarget): Observable<void> {
+		return this.backend.postJson<WithdrawBetRequest, void>("/api/game/withdrawbet", {
+			gameId: this.gameId,
+			requester: this.privateId,
+			target
+		});
 	}
 	
 	public onGameUpdate(): Observable<GameJson> {

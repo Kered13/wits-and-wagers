@@ -66,7 +66,7 @@ export class LobbyInstanceService extends Closeable {
 	
 	constructor(
 			private readonly lobbyService: LobbyService,
-			private readonly http: BackendService,
+			private readonly backend: BackendService,
 			private readonly lobbyId: LobbyId,
 			private readonly privateId: PrivateId) {
 		super();
@@ -109,14 +109,14 @@ export class LobbyInstanceService extends Closeable {
 	}
 	
 	public beginGame(): Observable<void> {
-		return this.http.postJson<BeginGameRequest, void>("/api/lobby/begin", {
+		return this.backend.postJson<BeginGameRequest, void>("/api/lobby/begin", {
 			lobbyId: this.lobbyId,
 			requester: this.privateId
 		});
 	}
 	
 	public cancelLobby(): Observable<void> {
-		return this.http.postJson<CancelLobbyRequest, void>("/api/lobby/cancel", {
+		return this.backend.postJson<CancelLobbyRequest, void>("/api/lobby/cancel", {
 			lobbyId: this.lobbyId,
 			requester: this.privateId
 		});
