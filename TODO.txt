@@ -1,6 +1,5 @@
 * Implement game.
-  * Wire up game to RPCs.
-  * Allow withdrawing guesses?
+  * Allow withdrawing guesses? (Currently, new guesses override old.)
   * Question generation (pull randomly from CSV file).
   * Clean up game on end.
   * Indication of round skipped because no guesses?

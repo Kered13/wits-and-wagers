@@ -46,6 +46,14 @@ export class Notifier<N> {
 		return this;
 	}
 	
+	// Notify all clients for the given player.
+	public notifyPlayer(id: PrivateId, notification: N): this {
+		for (const ws of this.idToClients.get(id)) {
+			this.notifyClient(ws, notification);
+		}
+		return this;
+	}
+	
 	// Close all connected sockets.
 	public close(): this {
 		for (const ws of this.clientToId.keys()) {
