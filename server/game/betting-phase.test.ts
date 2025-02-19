@@ -51,6 +51,20 @@ describe("BettingPhase", () => {
 		expect(alice.chips).to.equal(70);
 	});
 	
+	test("withdrawBet returns chips", () => {
+		const alice = makePlayer("Alice");
+		
+		const phase = makeBettingPhase({ guesses: [[alice, 42]] });
+		phase.submitBet(alice.privateId, "AllTooHigh", 10);
+		phase.submitBet(alice.privateId, 0, 20);
+		
+		expect(alice.chips).to.equal(70);
+		
+		phase.withdrawBet(alice.privateId, 0);
+		
+		expect(alice.chips).to.equal(90);
+	});
+	
 	test("player not in game cannot bet", () => {
 		const alice = makePlayer("Alice");
 		const bob = makePlayer("Bob");
