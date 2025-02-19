@@ -17,9 +17,6 @@ import { SUBSCRIBE_PATH, type SubscribeRequest } from "../../shared/lobby/subscr
 import { PrivateId } from "../../shared/player.js";
 
 
-const BASE_URL = LOBBY_API_ROOT;
-
-
 @Injectable({providedIn: "root"})
 export class LobbyService {
 	private readonly lobbyInstances = new Map<PrivateId, RefCounted<LobbyInstanceService>>();
@@ -41,7 +38,7 @@ export class LobbyService {
 	
 	public createLobby(request: CreateLobbyRequest): Observable<CreateLobbyResponse> {
 		assert(CreateLobbyRequestSchema, request);
-		return this.backend.postJson<CreateLobbyRequest, CreateLobbyResponse>(BASE_URL + CREATE_PATH, request);
+		return this.backend.postJson<CreateLobbyRequest, CreateLobbyResponse>(LOBBY_API_ROOT + CREATE_PATH, request);
 	}
 	
 	public joinLobby(lobbyId: LobbyId, name: string, privateId?: PrivateId): Observable<JoinLobbyResponse> {
@@ -74,7 +71,7 @@ export class LobbyInstanceService extends Closeable {
 			private readonly privateId: PrivateId) {
 		super();
 		
-		this.wsSubject = webSocket("ws://localhost:3000" + BASE_URL + SUBSCRIBE_PATH);
+		this.wsSubject = this.backend.webSocket(LOBBY_API_ROOT + SUBSCRIBE_PATH);
 		this.wsSubject.next({
 			method: "subscribe",
 			payload: {
@@ -112,14 +109,14 @@ export class LobbyInstanceService extends Closeable {
 	}
 	
 	public beginGame(): Observable<void> {
-		return this.backend.postJson<BeginGameRequest, void>(BASE_URL + BEGIN_PATH, {
+		return this.backend.postJson<BeginGameRequest, void>(LOBBY_API_ROOT + BEGIN_PATH, {
 			lobbyId: this.lobbyId,
 			requester: this.privateId
 		});
 	}
 	
 	public cancelLobby(): Observable<void> {
-		return this.backend.postJson<CancelLobbyRequest, void>(BASE_URL + CANCEL_PATH, {
+		return this.backend.postJson<CancelLobbyRequest, void>(LOBBY_API_ROOT + CANCEL_PATH, {
 			lobbyId: this.lobbyId,
 			requester: this.privateId
 		});

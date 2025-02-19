@@ -16,9 +16,6 @@ import { WITHDRAW_BET_PATH, WithdrawBetRequest } from "../../shared/game/withdra
 import { PrivateId } from "../../shared/player.js";
 
 
-const BASE_URL = GAME_API_ROOT;
-
-
 @Injectable({providedIn: "root"})
 export class GameService {
 	private gameInstances = new Map<GameId, RefCounted<GameInstanceService>>();
@@ -57,7 +54,7 @@ export class GameInstanceService extends Closeable {
 			private readonly privateId: PrivateId) {
 		super()
 		
-		this.wsSubject = webSocket("ws://localhost:3000" + BASE_URL + SUBSCRIBE_PATH);
+		this.wsSubject = this.backend.webSocket(GAME_API_ROOT + SUBSCRIBE_PATH);
 		this.wsSubject.next({
 			method: "subscribe",
 			payload: {
@@ -86,7 +83,7 @@ export class GameInstanceService extends Closeable {
 	}
 	
 	public submitGuess(guess: number): Observable<void> {
-		return this.backend.postJson<SubmitGuessRequest, void>(BASE_URL + SUBMIT_GUESS_PATH, {
+		return this.backend.postJson<SubmitGuessRequest, void>(GAME_API_ROOT + SUBMIT_GUESS_PATH, {
 			gameId: this.gameId,
 			requester: this.privateId,
 			guess
@@ -94,7 +91,7 @@ export class GameInstanceService extends Closeable {
 	}
 	
 	public submitBet(target: BetTarget, wager: number): Observable<void> {
-		return this.backend.postJson<SubmitBetRequest, void>(BASE_URL + SUBMIT_BET_PATH, {
+		return this.backend.postJson<SubmitBetRequest, void>(GAME_API_ROOT + SUBMIT_BET_PATH, {
 			gameId: this.gameId,
 			requester: this.privateId,
 			target,
@@ -103,7 +100,7 @@ export class GameInstanceService extends Closeable {
 	}
 	
 	public withdrawBet(target: BetTarget): Observable<void> {
-		return this.backend.postJson<WithdrawBetRequest, void>(BASE_URL + WITHDRAW_BET_PATH, {
+		return this.backend.postJson<WithdrawBetRequest, void>(GAME_API_ROOT + WITHDRAW_BET_PATH, {
 			gameId: this.gameId,
 			requester: this.privateId,
 			target
@@ -111,7 +108,7 @@ export class GameInstanceService extends Closeable {
 	}
 	
 	public endPhase(): Observable<void> {
-		return this.backend.postJson<EndPhaseRequest, void>(BASE_URL + END_PHASE_PATH, {
+		return this.backend.postJson<EndPhaseRequest, void>(GAME_API_ROOT + END_PHASE_PATH, {
 			gameId: this.gameId,
 			requester: this.privateId
 		});
