@@ -88,11 +88,11 @@ export class LobbyComponent implements OnDestroy {
 		this.instanceSub.unsubscribe();
 	}
 	
-	beginGame(): void {
+	onBeginGame(): void {
 		this.lobbyService().get().beginGame().subscribe();
 	}
 	
-	cancelLobby(): void {
+	onCancelLobby(): void {
 		this.lobbyService().get().cancelLobby().subscribe();
 	}
 }

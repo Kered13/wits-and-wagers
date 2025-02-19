@@ -1,0 +1,9 @@
+.game-state {
+	background: #eee;
+	padding: 1rem;
+	font-family: monospace;
+	word-break: auto-phrase;
+	white-space: preserve nowrap;
+	text-align: start;
+	overflow-x: scroll;
+}

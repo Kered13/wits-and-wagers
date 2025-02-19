@@ -6,6 +6,7 @@ import { is } from "valibot";
 import { BackendService } from "../utils/backend.service.js";
 import { Closeable, RefCounted } from "../utils/refcounted.js";
 import { WebsocketError } from "../utils/websocket-error.js";
+import { EndPhaseRequest } from "../../shared/game/end-phase.js";
 import { BetTarget, type GameId, type GameJson } from "../../shared/game/game.js";
 import { type GameEnd, GameNotificationSchema, type GameNotification } from "../../shared/game/notifications.js";
 import { SubmitBetRequest } from "../../shared/game/submit-bet.js";
@@ -103,6 +104,13 @@ export class GameInstanceService extends Closeable {
 			gameId: this.gameId,
 			requester: this.privateId,
 			target
+		});
+	}
+	
+	public endPhase(): Observable<void> {
+		return this.backend.postJson<EndPhaseRequest, void>("/api/game/endphase", {
+			gameId: this.gameId,
+			requester: this.privateId
 		});
 	}
 	

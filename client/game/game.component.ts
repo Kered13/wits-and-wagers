@@ -1,9 +1,11 @@
 import { ChangeDetectionStrategy, Component, computed, effect, Inject, OnDestroy, Signal } from "@angular/core";
+import { toSignal } from "@angular/core/rxjs-interop";
+import { FormsModule } from "@angular/forms";
 import { MatButton } from "@angular/material/button";
 import { MatCardModule } from "@angular/material/card";
+import { MatInputModule } from "@angular/material/input";
 import { Title } from "@angular/platform-browser";
 import { ActivatedRoute } from "@angular/router";
-import { toSignal } from "@angular/core/rxjs-interop";
 import { combineLatest, map, pairwise, startWith, Subscription, switchMap } from "rxjs";
 
 import { GameInstanceService, GameService } from "./game.service.js";
@@ -17,7 +19,7 @@ import { RoutingService } from "../routes/routing.service.js";
 
 @Component({
 	selector: "app-game",
-	imports: [MatButton, MatCardModule],
+	imports: [FormsModule, MatButton, MatCardModule, MatInputModule],
 	templateUrl: "./game.component.html",
 	styleUrl: "./game.component.css",
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -28,7 +30,12 @@ export class GameComponent implements OnDestroy {
 	private readonly instanceSub: Subscription;
 	
 	readonly game: Signal<GameJson>;
+	readonly tempGameString: Signal<string>;
 	readonly thisPlayer: Signal<PrivatePlayer>;
+	
+	guess: string = ""
+	target: string = ""
+	wager: string = ""
 	
 	constructor(
 			private readonly errorHandler: GlobalErrorHandler,
@@ -58,6 +65,7 @@ export class GameComponent implements OnDestroy {
 					}
 				}
 			});
+		this.tempGameString = computed(() => JSON.stringify(this.game(), null, 2));
 		
 		effect(() => titleService.setTitle(route.routeConfig!.title! + " - " + this.game().title));
 	}
@@ -84,5 +92,32 @@ export class GameComponent implements OnDestroy {
 	public ngOnDestroy(): void {
 		this.closeGameService(this.gameService());
 		this.instanceSub.unsubscribe();
+	}
+	
+	public onSubmitGuess(): void {
+		const guess = parseInt(this.guess);
+		this.gameService().get().submitGuess(guess).subscribe();
+	}
+	
+	public onSubmitBet(): void {
+		const target =
+			this.target === "AllTooHigh" || this.target === "Red" || this.target === "Black"
+				? this.target
+				: parseInt(this.target);
+		
+		const wager = parseInt(this.wager);
+		this.gameService().get().submitBet(target, wager).subscribe();
+	}
+	
+	public onWithdrawBet(): void {
+		const target =
+			this.target === "AllTooHigh" || this.target === "Red" || this.target === "Black"
+				? this.target
+				: parseInt(this.target);
+		this.gameService().get().withdrawBet(target).subscribe();
+	}
+	
+	public onEndPhase(): void {
+		this.gameService().get().endPhase().subscribe();
 	}
 }
