@@ -10,7 +10,7 @@ import { GameId } from "../../shared/game/game.js";
 import { BEGIN_PATH, type BeginGameRequest } from "../../shared/lobby/begin.js";
 import { CANCEL_PATH, type CancelLobbyRequest } from "../../shared/lobby/cancel.js";
 import { CREATE_PATH, CreateLobbyRequestSchema, type CreateLobbyRequest, type CreateLobbyResponse } from "../../shared/lobby/create.js";
-import { type JoinLobbyRequest, type JoinLobbyResponse } from "../../shared/lobby/joinlobby.js";
+import { JOIN_LOBBY_PATH, type JoinLobbyRequest, type JoinLobbyResponse } from "../../shared/lobby/joinlobby.js";
 import { LOBBY_API_ROOT, type LobbyId, type LobbyJson } from "../../shared/lobby/lobby.js";
 import { LobbyNotificationSchema, type LobbyNotification } from "../../shared/lobby/notifications.js";
 import { SUBSCRIBE_PATH, type SubscribeRequest } from "../../shared/lobby/subscribe.js";
@@ -43,7 +43,7 @@ export class LobbyService {
 	
 	public joinLobby(lobbyId: LobbyId, name: string, privateId?: PrivateId): Observable<JoinLobbyResponse> {
 		return this.backend.postJson<JoinLobbyRequest, JoinLobbyResponse>(
-			"/api/lobby/joinlobby",
+			LOBBY_API_ROOT + JOIN_LOBBY_PATH,
 			{
 				lobbyId: lobbyId,
 				name: name,
