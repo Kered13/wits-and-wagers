@@ -5,6 +5,9 @@ import { PrivateIdSchema, PrivatePlayerSchema } from "../player.js";
 import { GameIdSchema } from "../game/game.js";
 
 
+export const JOIN_LOBBY_PATH = "/joinlobby";
+
+
 // Adds a new player to the lobby. This should not be called for the host.
 export const JoinLobbyRequestSchema = strictObject({
 	// ID of lobby to add the player to.

@@ -8,13 +8,13 @@ import { HttpError } from "../utils/httperror.js";
 import { Notifier } from "../utils/notifier.js";
 import { verifyRequest } from "../utils/verifyrequest.js";
 import { WebSocketUtil } from "../utils/websocket.js";
-import { BeginGameRequestSchema } from "../../shared/lobby/begin.js";
-import { CancelLobbyRequestSchema } from "../../shared/lobby/cancel.js";
-import { JoinLobbyRequestSchema, type JoinLobbyResponse, } from "../../shared/lobby/joinlobby.js";
+import { BEGIN_PATH, BeginGameRequestSchema } from "../../shared/lobby/begin.js";
+import { CANCEL_PATH, CancelLobbyRequestSchema } from "../../shared/lobby/cancel.js";
+import { JOIN_LOBBY_PATH, JoinLobbyRequestSchema, type JoinLobbyResponse, } from "../../shared/lobby/joinlobby.js";
 import { type LobbyId } from "../../shared/lobby/lobby.js";
-import { CreateLobbyRequestSchema, CreateLobbyResponseSchema, type CreateLobbyResponse } from "../../shared/lobby/create.js";
+import { CREATE_PATH, CreateLobbyRequestSchema, CreateLobbyResponseSchema, type CreateLobbyResponse } from "../../shared/lobby/create.js";
 import { type LobbyError, type LobbyNotification } from "../../shared/lobby/notifications.js";
-import { SubscribeRequestSchema } from "../../shared/lobby/subscribe.js";
+import { SUBSCRIBE_PATH, SubscribeRequestSchema } from "../../shared/lobby/subscribe.js";
 import { type PrivateId } from "../../shared/player.js";
 
 
@@ -61,8 +61,6 @@ export class LobbyApp {
 	}
 	
 	private create(req: Request, res: Response): void {
-		console.log("POST /api/lobby/create " + JSON.stringify(req.body));
-		
 		const request = verifyRequest(
 			req.body, CreateLobbyRequestSchema, `Invalid CreateLobbyRequest: ${req.body}`);
 		
@@ -78,8 +76,6 @@ export class LobbyApp {
 	}
 	
 	private joinLobby(req: Request, res: Response): void {
-		console.log("POST /api/lobby/joinlobby " + JSON.stringify(req.body));
-		
 		const request = verifyRequest(
 			req.body, JoinLobbyRequestSchema, `Invalid JoinLobbyRequest: ${req.body}`);
 		
@@ -108,8 +104,6 @@ export class LobbyApp {
 	}
 	
 	private beginGame(req: Request, res: Response): void {
-		console.log("POST /api/lobby/begin " + JSON.stringify(req.body));
-		
 		const request = verifyRequest(
 			req.body, BeginGameRequestSchema, `Invalid BeginGameRequest: ${req.body}`);
 		
@@ -127,8 +121,6 @@ export class LobbyApp {
 	}
 	
 	private cancel(req: Request, res: Response): void {
-		console.log("POST /api/lobby/cancel " + JSON.stringify(req.body));
-		
 		const request = verifyRequest(
 			req.body, CancelLobbyRequestSchema, `Invalid CancelLobbyRequest: ${req.body}`);
 		
@@ -143,10 +135,10 @@ export class LobbyApp {
 			.close();
 	}
 	
-	private wsState(webSocket: WebSocket): void {
+	private subscribe(webSocket: WebSocket): void {
 		const ws = new WebSocketUtil(webSocket);
 		ws.onMethod("subscribe", (msg: unknown) => {
-			console.log("WS /api/lobby/state " + JSON.stringify(msg));
+			console.log("WS /api/lobby/subscribe " + JSON.stringify(msg));
 			
 			try {
 				const { privateId, lobbyId } = verifyRequest(
@@ -187,10 +179,10 @@ export class LobbyApp {
 	
 	public getRouter(): Router {
 		return express.Router()
-			.post("/create", (req, res) => this.create(req, res))
-			.post("/joinlobby", (req, res) => this.joinLobby(req, res))
-			.post("/begin", (req, res) => this.beginGame(req, res))
-			.post("/cancel", (req, res) => this.cancel(req, res))
-			.ws("/state", ws => this.wsState(ws));
+			.post(CREATE_PATH, (req, res) => this.create(req, res))
+			.post(JOIN_LOBBY_PATH, (req, res) => this.joinLobby(req, res))
+			.post(BEGIN_PATH, (req, res) => this.beginGame(req, res))
+			.post(CANCEL_PATH, (req, res) => this.cancel(req, res))
+			.ws(SUBSCRIBE_PATH, ws => this.subscribe(ws));
 	}
 }

@@ -7,14 +7,17 @@ import { BackendService } from "../utils/backend.service.js";
 import { Closeable, RefCounted } from "../utils/refcounted.js";
 import { WebsocketError } from "../utils/websocket-error.js";
 import { GameId } from "../../shared/game/game.js";
-import { type BeginGameRequest } from "../../shared/lobby/begin.js";
-import { type CancelLobbyRequest } from "../../shared/lobby/cancel.js";
-import { CreateLobbyRequestSchema, type CreateLobbyRequest, type CreateLobbyResponse } from "../../shared/lobby/create.js";
+import { BEGIN_PATH, type BeginGameRequest } from "../../shared/lobby/begin.js";
+import { CANCEL_PATH, type CancelLobbyRequest } from "../../shared/lobby/cancel.js";
+import { CREATE_PATH, CreateLobbyRequestSchema, type CreateLobbyRequest, type CreateLobbyResponse } from "../../shared/lobby/create.js";
 import { type JoinLobbyRequest, type JoinLobbyResponse } from "../../shared/lobby/joinlobby.js";
-import { type LobbyId, type LobbyJson } from "../../shared/lobby/lobby.js";
+import { LOBBY_API_ROOT, type LobbyId, type LobbyJson } from "../../shared/lobby/lobby.js";
 import { LobbyNotificationSchema, type LobbyNotification } from "../../shared/lobby/notifications.js";
-import { type SubscribeRequest } from "../../shared/lobby/subscribe.js";
+import { SUBSCRIBE_PATH, type SubscribeRequest } from "../../shared/lobby/subscribe.js";
 import { PrivateId } from "../../shared/player.js";
+
+
+const BASE_URL = LOBBY_API_ROOT;
 
 
 @Injectable({providedIn: "root"})
@@ -38,7 +41,7 @@ export class LobbyService {
 	
 	public createLobby(request: CreateLobbyRequest): Observable<CreateLobbyResponse> {
 		assert(CreateLobbyRequestSchema, request);
-		return this.backend.postJson<CreateLobbyRequest, CreateLobbyResponse>("/api/lobby/create", request);
+		return this.backend.postJson<CreateLobbyRequest, CreateLobbyResponse>(BASE_URL + CREATE_PATH, request);
 	}
 	
 	public joinLobby(lobbyId: LobbyId, name: string, privateId?: PrivateId): Observable<JoinLobbyResponse> {
@@ -71,7 +74,7 @@ export class LobbyInstanceService extends Closeable {
 			private readonly privateId: PrivateId) {
 		super();
 		
-		this.wsSubject = webSocket("ws://localhost:3000/api/lobby/state");
+		this.wsSubject = webSocket("ws://localhost:3000" + BASE_URL + SUBSCRIBE_PATH);
 		this.wsSubject.next({
 			method: "subscribe",
 			payload: {
@@ -109,14 +112,14 @@ export class LobbyInstanceService extends Closeable {
 	}
 	
 	public beginGame(): Observable<void> {
-		return this.backend.postJson<BeginGameRequest, void>("/api/lobby/begin", {
+		return this.backend.postJson<BeginGameRequest, void>(BASE_URL + BEGIN_PATH, {
 			lobbyId: this.lobbyId,
 			requester: this.privateId
 		});
 	}
 	
 	public cancelLobby(): Observable<void> {
-		return this.backend.postJson<CancelLobbyRequest, void>("/api/lobby/cancel", {
+		return this.backend.postJson<CancelLobbyRequest, void>(BASE_URL + CANCEL_PATH, {
 			lobbyId: this.lobbyId,
 			requester: this.privateId
 		});

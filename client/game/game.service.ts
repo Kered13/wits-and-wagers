@@ -6,14 +6,17 @@ import { is } from "valibot";
 import { BackendService } from "../utils/backend.service.js";
 import { Closeable, RefCounted } from "../utils/refcounted.js";
 import { WebsocketError } from "../utils/websocket-error.js";
-import { EndPhaseRequest } from "../../shared/game/end-phase.js";
-import { BetTarget, type GameId, type GameJson } from "../../shared/game/game.js";
+import { END_PHASE_PATH, EndPhaseRequest } from "../../shared/game/end-phase.js";
+import { BetTarget, GAME_API_ROOT, type GameId, type GameJson } from "../../shared/game/game.js";
 import { type GameEnd, GameNotificationSchema, type GameNotification } from "../../shared/game/notifications.js";
-import { SubmitBetRequest } from "../../shared/game/submit-bet.js";
-import { SubmitGuessRequest } from "../../shared/game/submit-guess.js";
-import { SubscribeRequest } from "../../shared/game/subscribe.js";
-import { WithdrawBetRequest } from "../../shared/game/withdraw-bet.js";
+import { SUBMIT_BET_PATH, SubmitBetRequest } from "../../shared/game/submit-bet.js";
+import { SUBMIT_GUESS_PATH, SubmitGuessRequest } from "../../shared/game/submit-guess.js";
+import { SUBSCRIBE_PATH, SubscribeRequest } from "../../shared/game/subscribe.js";
+import { WITHDRAW_BET_PATH, WithdrawBetRequest } from "../../shared/game/withdraw-bet.js";
 import { PrivateId } from "../../shared/player.js";
+
+
+const BASE_URL = GAME_API_ROOT;
 
 
 @Injectable({providedIn: "root"})
@@ -54,7 +57,7 @@ export class GameInstanceService extends Closeable {
 			private readonly privateId: PrivateId) {
 		super()
 		
-		this.wsSubject = webSocket("ws://localhost:3000/api/game/state");
+		this.wsSubject = webSocket("ws://localhost:3000" + BASE_URL + SUBSCRIBE_PATH);
 		this.wsSubject.next({
 			method: "subscribe",
 			payload: {
@@ -83,7 +86,7 @@ export class GameInstanceService extends Closeable {
 	}
 	
 	public submitGuess(guess: number): Observable<void> {
-		return this.backend.postJson<SubmitGuessRequest, void>("/api/game/submitguess", {
+		return this.backend.postJson<SubmitGuessRequest, void>(BASE_URL + SUBMIT_GUESS_PATH, {
 			gameId: this.gameId,
 			requester: this.privateId,
 			guess
@@ -91,7 +94,7 @@ export class GameInstanceService extends Closeable {
 	}
 	
 	public submitBet(target: BetTarget, wager: number): Observable<void> {
-		return this.backend.postJson<SubmitBetRequest, void>("/api/game/submitbet", {
+		return this.backend.postJson<SubmitBetRequest, void>(BASE_URL + SUBMIT_BET_PATH, {
 			gameId: this.gameId,
 			requester: this.privateId,
 			target,
@@ -100,7 +103,7 @@ export class GameInstanceService extends Closeable {
 	}
 	
 	public withdrawBet(target: BetTarget): Observable<void> {
-		return this.backend.postJson<WithdrawBetRequest, void>("/api/game/withdrawbet", {
+		return this.backend.postJson<WithdrawBetRequest, void>(BASE_URL + WITHDRAW_BET_PATH, {
 			gameId: this.gameId,
 			requester: this.privateId,
 			target
@@ -108,7 +111,7 @@ export class GameInstanceService extends Closeable {
 	}
 	
 	public endPhase(): Observable<void> {
-		return this.backend.postJson<EndPhaseRequest, void>("/api/game/endphase", {
+		return this.backend.postJson<EndPhaseRequest, void>(BASE_URL + END_PHASE_PATH, {
 			gameId: this.gameId,
 			requester: this.privateId
 		});

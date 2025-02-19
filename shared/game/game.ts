@@ -4,6 +4,9 @@ import { PublicIdSchema } from "../player.js";
 import { RgbSchema } from "../rgb.js";
 
 
+export const GAME_API_ROOT = "/api/game";
+
+
 // ID and join code of the game.
 export const GameIdSchema = pipe(string(), nonEmpty());
 export type GameId = InferOutput<typeof GameIdSchema>;

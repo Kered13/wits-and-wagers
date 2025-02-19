@@ -4,6 +4,9 @@ import { BetTargetSchema, GameIdSchema } from "./game.js";
 import { PrivateIdSchema } from "../player.js";
 
 
+export const SUBMIT_BET_PATH = "/submitbet";
+
+
 // During the betting phase, submit a bet for the given player on the given
 // target.
 export const SubmitBetRequestSchema = strictObject({

@@ -16,7 +16,7 @@ export class GlobalErrorHandler implements ErrorHandler {
 	public handleError(error: unknown): void {
 		// For some reason HttpErrorResponse is not a subclass of Error.
 		if (!(error instanceof Error) && !(error instanceof HttpErrorResponse)) {
-			this.handle(new Error("Unknown error: ", { cause: error }));
+			this.handle(new Error("Unknown error.", { cause: error }));
 			return;
 		}
 		this.handle(error);

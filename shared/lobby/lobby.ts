@@ -4,6 +4,9 @@ import { PublicIdSchema } from "../player.js";
 import { RgbSchema } from "../rgb.js";
 
 
+export const LOBBY_API_ROOT = "/api/lobby";
+
+
 // ID and join code of the lobby. This will become the GameId.
 export const LobbyIdSchema = pipe(string(), nonEmpty());
 export type LobbyId = InferOutput<typeof LobbyIdSchema>;

@@ -8,11 +8,11 @@ import { verifyRequest } from "../utils/verifyrequest.js";
 import { WebSocketUtil } from "../utils/websocket.js";
 import { type GameId } from "../../shared/game/game.js";
 import { type GameError, type GameNotification } from "../../shared/game/notifications.js";
-import { SubscribeRequestSchema } from "../../shared/game/subscribe.js";
-import { SubmitGuessRequestSchema } from "../../shared/game/submit-guess.js";
-import { SubmitBetRequestSchema } from "../../shared/game/submit-bet.js";
-import { WithdrawBetRequestSchema } from "../../shared/game/withdraw-bet.js";
-import { EndPhaseRequestSchema } from "../../shared/game/end-phase.js";
+import { SUBSCRIBE_PATH, SubscribeRequestSchema } from "../../shared/game/subscribe.js";
+import { SUBMIT_GUESS_PATH, SubmitGuessRequestSchema } from "../../shared/game/submit-guess.js";
+import { SUBMIT_BET_PATH, SubmitBetRequestSchema } from "../../shared/game/submit-bet.js";
+import { WITHDRAW_BET_PATH, WithdrawBetRequestSchema } from "../../shared/game/withdraw-bet.js";
+import { END_PHASE_PATH, EndPhaseRequestSchema } from "../../shared/game/end-phase.js";
 
 
 class GameNotifier extends Notifier<GameNotification> {}
@@ -55,8 +55,6 @@ export class GameApp {
 	}
 	
 	private submitGuess(req: Request, res: Response): void {
-		console.log("POST /api/game/submitguess " + JSON.stringify(req.body));
-		
 		const { gameId, requester, guess } = verifyRequest(
 			req.body, SubmitGuessRequestSchema, `Invalid SubmitGuessRequest: ${req.body}`);
 		
@@ -67,8 +65,6 @@ export class GameApp {
 	}
 	
 	private submitBet(req: Request, res: Response): void {
-		console.log("POST /api/game/submitbet " + JSON.stringify(req.body));
-		
 		const { gameId, requester, target, wager } = verifyRequest(
 			req.body, SubmitBetRequestSchema, `Invalid SubmitBetRequest: ${req.body}`);
 		
@@ -79,8 +75,6 @@ export class GameApp {
 	}
 	
 	private withdrawBet(req: Request, res: Response): void {
-		console.log("POST /api/game/withdrawbet " + JSON.stringify(req.body));
-		
 		const { gameId, requester, target } = verifyRequest(
 			req.body, WithdrawBetRequestSchema, `Invalid WithdrawBetRequest: ${req.body}`);
 		
@@ -91,8 +85,6 @@ export class GameApp {
 	}
 	
 	private endPhase(req: Request, res: Response): void {
-		console.log("POST /api/game/endphase " + JSON.stringify(req.body));
-		
 		const { gameId, requester } = verifyRequest(
 			req.body, EndPhaseRequestSchema, `Invalid WithdrawBetRequest: ${req.body}`);
 		
@@ -102,10 +94,10 @@ export class GameApp {
 		res.end();
 	}
 	
-	private wsState(webSocket: WebSocket) {
+	private subscribe(webSocket: WebSocket) {
 		const ws = new WebSocketUtil(webSocket);
 		ws.onMethod("subscribe", (msg: unknown) => {
-			console.log("WS /api/game/state " + JSON.stringify(msg));
+			console.log("WS /api/game/subscribe " + JSON.stringify(msg));
 			
 			try {
 				const { privateId, gameId } = verifyRequest(
@@ -134,10 +126,11 @@ export class GameApp {
 	
 	public getRouter() : Router {
 		return express.Router()
-			.post("/submitguess", (req, res) => this.submitGuess(req, res))
-			.post("/submitbet", (req, res) => this.submitBet(req, res))
-			.post("/withdrawbet", (req, res) => this.withdrawBet(req, res))
-			.post("/endphase", (req, res) => this.endPhase(req, res))
-			.ws("/state", ws => this.wsState(ws));
+			.post(SUBMIT_GUESS_PATH, (req, res) => this.submitGuess(req, res))
+			.post(SUBMIT_BET_PATH, (req, res) => this.submitBet(req, res))
+			.post(WITHDRAW_BET_PATH, (req, res) => this.withdrawBet(req, res))
+			.post(END_PHASE_PATH, (req, res) => this.endPhase(req, res))
+			.ws(SUBSCRIBE_PATH, ws => this.subscribe(ws));
 	}
 }
+ 

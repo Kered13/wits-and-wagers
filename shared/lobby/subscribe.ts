@@ -4,6 +4,9 @@ import { LobbyIdSchema } from "./lobby.js";
 import { PrivateIdSchema } from "../player.js";
 
 
+export const SUBSCRIBE_PATH = "/subscribe";
+
+
 // Subscribes to a WebSocket notification stream for the given lobby and player.
 export const SubscribeRequestSchema = strictObject({
 	// ID of lobby to add the player to.

@@ -4,6 +4,9 @@ import { LobbyIdSchema } from "./lobby.js";
 import { PrivatePlayerSchema } from "../player.js";
 
 
+export const CREATE_PATH = "/create";
+
+
 // Creates a new lobby and adds the host to it.
 export const CreateLobbyRequestSchema = strictObject({
 	// Name of the lobby and subsequent game.
