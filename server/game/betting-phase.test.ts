@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, test } from "vitest";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { BettingPhase } from "./betting-phase";
 import { Player, PlayerManager } from "./player";
@@ -26,7 +26,8 @@ function makeBettingPhase(obj: {question?: string, answer?: number, round?: numb
 		answer,
 		new PlayerManager(guesses.map(([player, guess]) => player)),
 		round,
-		new Map(guesses));
+		new Map(guesses),
+		{});
 }
 
 
@@ -147,7 +148,8 @@ describe("BettingPhase", () => {
 			42,
 			new PlayerManager([alice, bob, charlie, derek]),
 			1,
-			new Map([[alice, 42], [bob, 13], [charlie, 7], [derek, 60]]));
+			new Map([[alice, 42], [bob, 13], [charlie, 7], [derek, 60]]),
+			{});
 		
 		phase.submitBet(alice.privateId, "AllTooHigh", 37);
 		phase.submitBet(bob.privateId, "Red", 10);
@@ -175,6 +177,17 @@ describe("BettingPhase", () => {
 		expectBettingPhaseJsonEqual(phase.toJson(bob.privateId), expected);
 		expectBettingPhaseJsonEqual(phase.toJson(charlie.privateId), expected);
 		expectBettingPhaseJsonEqual(phase.toJson(derek.privateId), expected);
+	});
+	
+	test("endPhase notifies subscribers", () => {
+		const alice = makePlayer("Alice");
+		const phase = makeBettingPhase({ guesses: [[alice, 42]] });
+		
+		const callback = vi.fn();
+		phase.onEndPhase().subscribe(callback);
+		phase.endPhase();
+		
+		expect(callback).toHaveBeenCalled();
 	});
 	
 	describe("bets on ties are normalized to best payout", () => {

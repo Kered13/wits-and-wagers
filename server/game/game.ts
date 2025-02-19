@@ -1,18 +1,26 @@
 import { Observable, Subject } from "rxjs"
 
-import { BettingPhase } from "./betting-phase.js";
+import { BettingPhase, type BettingPhaseOptions } from "./betting-phase.js";
 import { Player, PlayerManager, type PlayerParams } from "./player.js";
-import { QuestionPhase } from "./question-phase.js";
+import { QuestionPhase, type QuestionPhaseOptions } from "./question-phase.js";
 import { HttpError } from "../utils/httperror.js";
 import { type BetTarget, type GameId, type GameJson } from "../../shared/game/game.js";
 import { type PrivateId } from "../../shared/player.js";
 import { type GameEnd, type GameUpdate } from "../../shared/game/notifications.js";
 
 
+export type GameOptions = QuestionPhaseOptions & BettingPhaseOptions;
+
+const defaultOptions: GameOptions = {
+	endQuestionPhaseWhenAllGuessesSubmitted: true
+};
+
+
 export class Game {
 	private readonly players: PlayerManager;
 	private readonly updates = new Subject<void>();
 	private readonly gameEnd = new Subject<void>();
+	private readonly options: GameOptions;
 	
 	private round: number = 1;
 	private question: string;
@@ -22,13 +30,18 @@ export class Game {
 	constructor(
 			private readonly id: GameId,
 			private readonly title: string,
-			players: PlayerParams[] | Player[]) {
+			players: PlayerParams[] | Player[],
+			options?: GameOptions) {
 		this.players = new PlayerManager(players);
 		
 		const [question, answer] = this.nextQuestion();
 		this.question = question;
 		this.answer = answer;
-		this.phase = new QuestionPhase(question, this.players);
+		
+		this.options = Object.assign(defaultOptions, options);
+		
+		this.phase = new QuestionPhase(question, this.players, this.options);
+		this.startPhase(this.phase);
 	}
 	
 	public getId(): GameId {
@@ -71,7 +84,14 @@ export class Game {
 		this.updates.next();
 	}
 	
-	public endPhase(): void {
+	public endPhase(requester: PrivateId): void {
+		if (this.round > 7) {
+			throw new HttpError(400, "Game is over, cannot end phase.");
+		}
+		this.phase.endPhase();
+	}
+	
+	nextPhase(): void {
 		if (this.phase instanceof QuestionPhase) {
 			const guesses = this.phase.getGuesses();
 			if (guesses.size == 0) {
@@ -80,7 +100,7 @@ export class Game {
 			} else {
 				this.startBettingPhase(guesses);
 			}
-		} else {
+		} else if (this.phase instanceof BettingPhase) {
 			this.phase.resolve();
 			this.newRound();
 		}
@@ -93,15 +113,23 @@ export class Game {
 		}
 		
 		this.round++;
+		this.startQuestionPhase();
+	}
+	
+	private startQuestionPhase(): void {
 		const [question, answer] = this.nextQuestion();
 		this.question = question;
 		this.answer = answer;
-		this.phase = new QuestionPhase(this.question, this.players);
-		this.updates.next();
+		this.startPhase(new QuestionPhase(this.question, this.players, this.options));
 	}
 	
 	private startBettingPhase(guesses: Map<Player, number>): void {
-		this.phase = new BettingPhase(this.question, this.answer, this.players, this.round, guesses);
+		this.startPhase(new BettingPhase(this.question, this.answer, this.players, this.round, guesses, this.options))
+	}
+	
+	private startPhase(phase: QuestionPhase | BettingPhase): void {
+		this.phase = phase;
+		phase.onEndPhase().subscribe(() => this.nextPhase());
 		this.updates.next();
 	}
 	

@@ -12,6 +12,7 @@ import { SubscribeRequestSchema } from "../../shared/game/subscribe.js";
 import { SubmitGuessRequestSchema } from "../../shared/game/submit-guess.js";
 import { SubmitBetRequestSchema } from "../../shared/game/submit-bet.js";
 import { WithdrawBetRequestSchema } from "../../shared/game/withdraw-bet.js";
+import { EndPhaseRequestSchema } from "../../shared/game/end-phase.js";
 
 
 class GameNotifier extends Notifier<GameNotification> {}
@@ -89,6 +90,18 @@ export class GameApp {
 		res.end();
 	}
 	
+	private endPhase(req: Request, res: Response): void {
+		console.log("POST /api/game/endphase " + JSON.stringify(req.body));
+		
+		const { gameId, requester } = verifyRequest(
+			req.body, EndPhaseRequestSchema, `Invalid WithdrawBetRequest: ${req.body}`);
+		
+		const { notifier, game } = this.getGame(gameId);
+		game.endPhase(requester);
+		
+		res.end();
+	}
+	
 	private wsState(webSocket: WebSocket) {
 		const ws = new WebSocketUtil(webSocket);
 		ws.onMethod("subscribe", (msg: unknown) => {
@@ -124,6 +137,7 @@ export class GameApp {
 			.post("/submitguess", (req, res) => this.submitGuess(req, res))
 			.post("/submitbet", (req, res) => this.submitBet(req, res))
 			.post("/withdrawbet", (req, res) => this.withdrawBet(req, res))
+			.post("/endphase", (req, res) => this.endPhase(req, res))
 			.ws("/state", ws => this.wsState(ws));
 	}
 }

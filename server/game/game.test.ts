@@ -15,11 +15,17 @@ function makePlayer(name: string): Player {
 }
 
 
+function makeGame(id: string, title: string, players: Player[]): Game {
+	// Do not automatically end the question phase. This makes testing easier.
+	return new Game(id, title, players, { endQuestionPhaseWhenAllGuessesSubmitted: false });
+}
+
+
 describe("Game", () => {
 	describe("toJson", () => {
 		test("initial state", () => {
 			const alice = makePlayer("Alice");
-			const game = new Game("id", "Game", [alice]);
+			const game = makeGame("id", "Game", [alice]);
 			
 			expect(game.toJson(alice.privateId)).to.deep.equal({
 				title: "Game",
@@ -43,7 +49,7 @@ describe("Game", () => {
 		test("toJson only shows own player", () => {
 			const alice = makePlayer("Alice");
 			const bob = makePlayer("Bob");
-			const game = new Game("id", "Game", [alice, bob]);
+			const game = makeGame("id", "Game", [alice, bob]);
 			
 			game.submitGuess(alice.privateId, 42);
 			game.submitGuess(bob.privateId, 42);
@@ -77,7 +83,7 @@ describe("Game", () => {
 	
 	test("makeUpdate", () => {
 		const alice = makePlayer("Alice");
-		const game = new Game("id", "Game", [alice]);
+		const game = makeGame("id", "Game", [alice]);
 		
 		expect(game.makeUpdate(alice.privateId)).to.deep.equal({
 			type: "update",
@@ -90,7 +96,7 @@ describe("Game", () => {
 		const alice = makePlayer("Alice");
 		const bob = makePlayer("Bob");
 		const charlie = makePlayer("Charlie");
-		const game = new Game("id", "Game", [alice, bob, charlie]);
+		const game = makeGame("id", "Game", [alice, bob, charlie]);
 		
 		alice.chips = 30;
 		bob.chips = 10;
@@ -105,62 +111,62 @@ describe("Game", () => {
 	
 	test("question phase followed by betting phase", () => {
 		const alice = makePlayer("Alice");
-		const game = new Game("id", "Game", [alice]);
+		const game = makeGame("id", "Game", [alice]);
 		game.submitGuess(alice.privateId, 42);
-		game.endPhase();
+		game.endPhase(alice.privateId);
 		
 		expect(game.toJson(alice.privateId).phase.phase).to.equal("betting");
 	});
 	
 	test("betting phase skipped if no guesses submitted", () => {
 		const alice = makePlayer("Alice");
-		const game = new Game("id", "Game", [alice]);
-		game.endPhase();
+		const game = makeGame("id", "Game", [alice]);
+		game.endPhase(alice.privateId);
 		
 		expect(game.toJson(alice.privateId).phase.phase).to.equal("question");
 	});
 	
 	test("betting phase followed by question phase", () => {
 		const alice = makePlayer("Alice");
-		const game = new Game("id", "Game", [alice]);
+		const game = makeGame("id", "Game", [alice]);
 		game.submitGuess(alice.privateId, 42);
-		game.endPhase();
+		game.endPhase(alice.privateId);
 		game.submitBet(alice.privateId, "Red", 2);
-		game.endPhase();
+		game.endPhase(alice.privateId);
 		
 		expect(game.toJson(alice.privateId).phase.phase).to.equal("question");
 	});
 	
 	test("round counter increments after betting phase", () => {
 		const alice = makePlayer("Alice");
-		const game = new Game("id", "Game", [alice]);
+		const game = makeGame("id", "Game", [alice]);
 		
 		expect(game.getRound()).to.equal(1);
 		
 		game.submitGuess(alice.privateId, 42);
-		game.endPhase();
+		game.endPhase(alice.privateId);
 		
 		expect(game.getRound()).to.equal(1);
 		
-		game.endPhase();
+		game.endPhase(alice.privateId);
 		
 		expect(game.getRound()).to.equal(2);
 	});
 	
 	test("round counter increments after question phase if no guesses submitted", () => {
 		const alice = makePlayer("Alice");
-		const game = new Game("id", "Game", [alice]);
+		const game = makeGame("id", "Game", [alice]);
 		
 		expect(game.getRound()).to.equal(1);
 		
-		game.endPhase();
+		game.endPhase(alice.privateId);
 		
 		expect(game.getRound()).to.equal(2);
 	});
 	
 	test("submitGuess notifies update", () => {
 		const alice = makePlayer("Alice");
-		const game = new Game("id", "Game", [alice]);
+		const game = makeGame("id", "Game", [alice]);
 		
 		const callback = vi.fn();
 		game.getUpdates().subscribe(callback);
@@ -172,9 +178,9 @@ describe("Game", () => {
 	
 	test("submitBet notifies update", () => {
 		const alice = makePlayer("Alice");
-		const game = new Game("id", "Game", [alice]);
+		const game = makeGame("id", "Game", [alice]);
 		game.submitGuess(alice.privateId, 42);
-		game.endPhase();
+		game.endPhase(alice.privateId);
 		
 		const callback = vi.fn();
 		game.getUpdates().subscribe(callback);
@@ -186,9 +192,9 @@ describe("Game", () => {
 	
 	test("withdrawBet notifies update", () => {
 		const alice = makePlayer("Alice");
-		const game = new Game("id", "Game", [alice]);
+		const game = makeGame("id", "Game", [alice]);
 		game.submitGuess(alice.privateId, 42);
-		game.endPhase();
+		game.endPhase(alice.privateId);
 		game.submitBet(alice.privateId, "Red", 2);
 		
 		const callback = vi.fn();
@@ -201,24 +207,24 @@ describe("Game", () => {
 	
 	test("endPhase notifies update", () => {
 		const alice = makePlayer("Alice");
-		const game = new Game("id", "Game", [alice]);
+		const game = makeGame("id", "Game", [alice]);
 		game.submitGuess(alice.privateId, 42);
 		
 		const callback = vi.fn();
 		game.getUpdates().subscribe(callback);
 		
-		game.endPhase();
+		game.endPhase(alice.privateId);
 		
 		expect(callback).toHaveBeenCalled();
 	});
 	
 	test("endphase notifies gameEnd after final round", () => {
 		const alice = makePlayer("Alice");
-		const game = new Game("id", "Game", [alice]);
+		const game = makeGame("id", "Game", [alice]);
 		
 		// End the first six rounds.
 		for (let i = 0; i < 6; i++) {
-			game.endPhase();
+			game.endPhase(alice.privateId);
 		}
 		
 		const updateCallback = vi.fn();
@@ -226,7 +232,7 @@ describe("Game", () => {
 		game.getUpdates().subscribe(updateCallback);
 		game.getGameEnd().subscribe(gameEndCallback);
 		
-		game.endPhase();
+		game.endPhase(alice.privateId);
 		
 		expect(updateCallback).not.toHaveBeenCalled();
 		expect(gameEndCallback).toHaveBeenCalled();
@@ -234,16 +240,16 @@ describe("Game", () => {
 	
 	test("can submit guess during question phase", () => {
 		const alice = makePlayer("Alice");
-		const game = new Game("id", "Game", [alice]);
+		const game = makeGame("id", "Game", [alice]);
 		
 		expect(() => game.submitGuess(alice.privateId, 42)).to.not.throw();
 	});
 	
 	test("cannot submit guess during betting phase", () => {
 		const alice = makePlayer("Alice");
-		const game = new Game("id", "Game", [alice]);
+		const game = makeGame("id", "Game", [alice]);
 		game.submitGuess(alice.privateId, 42);
-		game.endPhase();
+		game.endPhase(alice.privateId);
 		
 		expect(() => game.submitGuess(alice.privateId, 42))
 			.to.throw(HttpError, "Cannot submit guesses during the betting phase.");
@@ -251,16 +257,16 @@ describe("Game", () => {
 	
 	test("can submit bet during betting phase", () => {
 		const alice = makePlayer("Alice");
-		const game = new Game("id", "Game", [alice]);
+		const game = makeGame("id", "Game", [alice]);
 		game.submitGuess(alice.privateId, 42);
-		game.endPhase();
+		game.endPhase(alice.privateId);
 		
 		expect(() => game.submitBet(alice.privateId, "Red", 2)).to.not.throw();
 	});
 	
 	test("cannot submit bet during guessing phase", () => {
 		const alice = makePlayer("Alice");
-		const game = new Game("id", "Game", [alice]);
+		const game = makeGame("id", "Game", [alice]);
 		
 		expect(() => game.submitBet(alice.privateId, "Red", 2))
 			.to.throw(HttpError, "Cannot submit bets during the question phase.");
@@ -268,9 +274,9 @@ describe("Game", () => {
 	
 	test("can withdraw bet during betting phase", () => {
 		const alice = makePlayer("Alice");
-		const game = new Game("id", "Game", [alice]);
+		const game = makeGame("id", "Game", [alice]);
 		game.submitGuess(alice.privateId, 42);
-		game.endPhase();
+		game.endPhase(alice.privateId);
 		game.submitBet(alice.privateId, "Red", 2);
 		
 		expect(() => game.withdrawBet(alice.privateId, "Red")).to.not.throw();
@@ -278,7 +284,7 @@ describe("Game", () => {
 	
 	test("cannot withdraw bet during guessing phase", () => {
 		const alice = makePlayer("Alice");
-		const game = new Game("id", "Game", [alice]);
+		const game = makeGame("id", "Game", [alice]);
 		
 		expect(() => game.withdrawBet(alice.privateId, "Red"))
 			.to.throw(HttpError, "Cannot withdraw bets during the question phase.");
@@ -286,11 +292,11 @@ describe("Game", () => {
 	
 	test("cannot submit guess after game end", () => {
 		const alice = makePlayer("Alice");
-		const game = new Game("id", "Game", [alice]);
+		const game = makeGame("id", "Game", [alice]);
 		
 		// End all seven rounds.
 		for (let i = 0; i < 7; i++) {
-			game.endPhase();
+			game.endPhase(alice.privateId);
 		}
 		
 		expect(() => game.submitGuess(alice.privateId, 42))
@@ -299,11 +305,11 @@ describe("Game", () => {
 	
 	test("cannot submit bets after game end", () => {
 		const alice = makePlayer("Alice");
-		const game = new Game("id", "Game", [alice]);
+		const game = makeGame("id", "Game", [alice]);
 		
 		// End all seven rounds.
 		for (let i = 0; i < 7; i++) {
-			game.endPhase();
+			game.endPhase(alice.privateId);
 		}
 		
 		expect(() => game.submitBet(alice.privateId, "Red", 2))
@@ -312,14 +318,27 @@ describe("Game", () => {
 	
 	test("cannot withdraw bets after game end", () => {
 		const alice = makePlayer("Alice");
-		const game = new Game("id", "Game", [alice]);
+		const game = makeGame("id", "Game", [alice]);
 		
 		// End all seven rounds.
 		for (let i = 0; i < 7; i++) {
-			game.endPhase();
+			game.endPhase(alice.privateId);
 		}
 		
 		expect(() => game.withdrawBet(alice.privateId, "Red"))
 			.to.throw(HttpError, "Game is over, cannot withdraw bets.");
+	});
+	
+	test("cannot endPhase after game end", () => {
+		const alice = makePlayer("Alice");
+		const game = makeGame("id", "Game", [alice]);
+		
+		// End all seven rounds.
+		for (let i = 0; i < 7; i++) {
+			game.endPhase(alice.privateId);
+		}
+		
+		expect(() => game.endPhase(alice.privateId))
+			.to.throw(HttpError, "Game is over, cannot end phase.");
 	});
 });

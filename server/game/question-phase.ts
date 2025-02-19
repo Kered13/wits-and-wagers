@@ -1,22 +1,42 @@
+import type { Phase } from "./phase.js";
 import type { Player, PlayerManager } from "./player.js";
 import { type QuestionPhaseJson } from "../../shared/game/game.js";
 import { type PrivateId } from "../../shared/player.js";
+import { Subject, type Observable } from "rxjs";
 
 
-export class QuestionPhase {
+export type QuestionPhaseOptions = {
+	endQuestionPhaseWhenAllGuessesSubmitted: boolean;
+}
+
+
+export class QuestionPhase implements Phase {
 	private readonly guesses = new Map<Player, number>();
+	private readonly endPhaseSubj: Subject<void> = new Subject<void>();
 	
 	constructor(
 		private readonly question: string,
-		private readonly players: PlayerManager) {}
+		private readonly players: PlayerManager,
+		private readonly options: QuestionPhaseOptions) {}
 	
 	public submitGuess(playerId: PrivateId, guess: number): void {
 		const player = this.players.getPrivatePlayer(playerId);
 		this.guesses.set(player, guess);
+		
+		// If every player has submitted a guess, end the phase.
+		const submittedPlayers = Array.from(this.guesses.keys());
+		if (this.options.endQuestionPhaseWhenAllGuessesSubmitted &&
+				this.players.getAll().every(p => submittedPlayers.includes(p))) {
+			this.endPhase();
+		}
 	}
 	
 	public getGuesses(): Map<Player, number> {
 		return this.guesses;
+	}
+	
+	public onEndPhase(): Observable<void> {
+		return this.endPhaseSubj.asObservable();
 	}
 	
 	public toJson(forPlayer: PrivateId): QuestionPhaseJson {
@@ -31,5 +51,10 @@ export class QuestionPhase {
 					return [player.publicId, report];
 				}))
 		};
+	}
+	
+	public endPhase(): void {
+		this.endPhaseSubj.next();
+		this.endPhaseSubj.complete();
 	}
 }

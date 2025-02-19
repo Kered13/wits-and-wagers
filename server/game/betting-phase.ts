@@ -1,7 +1,10 @@
+import { Subject, type Observable } from "rxjs";
+
+import type { Phase } from "./phase.js";
 import type { Player, PlayerManager } from "./player.js";
 import { HttpError } from "../utils/httperror.js";
 import { type BetJson, type BetTarget, type BettingPhaseJson, type GuessJson } from "../../shared/game/game.js";
-import { type PrivateId, type PublicId } from "../../shared/player.js";
+import { type PrivateId } from "../../shared/player.js";
 
 
 // Indicates whether each guess is Red or Black, by number of players in
@@ -17,16 +20,21 @@ type Guess = GuessJson & {
 };
 
 
-export class BettingPhase {
+export type BettingPhaseOptions = {};
+
+
+export class BettingPhase implements Phase {
 	private readonly bets: BetJson[] = [];
 	private readonly guesses: Guess[];
+	private readonly endPhaseSubj = new Subject<void>();
 	
 	constructor(
 			private readonly question: string,
 			private readonly answer: number,
 			private readonly players: PlayerManager,
 			private readonly round: number,
-			guesses: Map<Player, number>) {
+			guesses: Map<Player, number>,
+			private readonly options: BettingPhaseOptions) {
 		// Payouts, by number of players in the game.
 		const payoutMultipliers = [
 			[],  // 0 guesses should never happen.
@@ -133,6 +141,16 @@ export class BettingPhase {
 			})),
 			bets: this.bets
 		};
+	}
+	
+	public onEndPhase(): Observable<void> {
+		return this.endPhaseSubj.asObservable();
+	}
+	
+	// TODO: We probably don't want this long term.
+	public endPhase(): void {
+		this.endPhaseSubj.next();
+		this.endPhaseSubj.complete();
 	}
 	
 	// Return all the colors that have a winning guess.
