@@ -13,9 +13,10 @@ import { CANCEL_PATH, CancelLobbyRequestSchema } from "../../shared/lobby/cancel
 import { JOIN_LOBBY_PATH, JoinLobbyRequestSchema, type JoinLobbyResponse, } from "../../shared/lobby/joinlobby.js";
 import { type LobbyId } from "../../shared/lobby/lobby.js";
 import { CREATE_PATH, CreateLobbyRequestSchema, CreateLobbyResponseSchema, type CreateLobbyResponse } from "../../shared/lobby/create.js";
-import { type LobbyError, type LobbyNotification } from "../../shared/lobby/notifications.js";
+import { type LobbyNotification } from "../../shared/lobby/notifications.js";
 import { SUBSCRIBE_PATH, SubscribeRequestSchema } from "../../shared/lobby/subscribe.js";
 import { type PrivateId } from "../../shared/player.js";
+import type { WsError } from "../../shared/ws-error.js";
 
 
 class LobbyNotifier extends Notifier<LobbyNotification> {}
@@ -166,11 +167,7 @@ export class LobbyApp {
 			} catch (err) {
 				if (err instanceof HttpError) {
 					console.error(err.message);
-					ws.send<LobbyError>({
-						type: "error",
-						status: err.status,
-						message: err.message
-					});
+					ws.error(err.status, err.message);
 					ws.close();
 				}
 			}

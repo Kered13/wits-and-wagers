@@ -7,12 +7,13 @@ import { Notifier } from "../utils/notifier.js";
 import { verifyRequest } from "../utils/verifyrequest.js";
 import { WebSocketUtil } from "../utils/websocket.js";
 import { type GameId } from "../../shared/game/game.js";
-import { type GameError, type GameNotification } from "../../shared/game/notifications.js";
+import { type GameNotification } from "../../shared/game/notifications.js";
 import { SUBSCRIBE_PATH, SubscribeRequestSchema } from "../../shared/game/subscribe.js";
 import { SUBMIT_GUESS_PATH, SubmitGuessRequestSchema } from "../../shared/game/submit-guess.js";
 import { SUBMIT_BET_PATH, SubmitBetRequestSchema } from "../../shared/game/submit-bet.js";
 import { WITHDRAW_BET_PATH, WithdrawBetRequestSchema } from "../../shared/game/withdraw-bet.js";
 import { END_PHASE_PATH, EndPhaseRequestSchema } from "../../shared/game/end-phase.js";
+import { type WsError } from "../../shared/ws-error.js";
 
 
 class GameNotifier extends Notifier<GameNotification> {}
@@ -113,11 +114,7 @@ export class GameApp {
 			} catch (err) {
 				if (err instanceof HttpError) {
 					console.error(err.message);
-					ws.send<GameError>({
-						type: "error",
-						status: err.status,
-						message: err.message
-					});
+					ws.error(err.status, err.message);
 					ws.close();
 				}
 			}

@@ -1,6 +1,7 @@
-import { array, literal, number, strictObject, string, variant, type InferOutput } from "valibot";
+import { array, literal, strictObject, variant, type InferOutput } from "valibot";
 
 import { GameIdSchema, GameJsonSchema, GamePlayerJsonSchema } from "./game.js";
+import { WsErrorSchema } from "../ws-error.js";
 
 
 // Represents an update to the game state.
@@ -22,20 +23,11 @@ export const GameEndSchema = strictObject({
 export type GameEnd = InferOutput<typeof GameEndSchema>;
 
 
-// Indicates an error communicated to the client.
-export const GameErrorSchema = strictObject({
-	type: literal("error"),
-	status: number(),
-	message: string()
-});
-export type GameError = InferOutput<typeof GameErrorSchema>;
-
-
 // A notification about some change to the game.
 export const GameNotificationSchema =
 	variant("type", [
 		GameUpdateSchema,
 		GameEndSchema,
-		GameErrorSchema
+		WsErrorSchema
 	]);
 export type GameNotification = InferOutput<typeof GameNotificationSchema>;

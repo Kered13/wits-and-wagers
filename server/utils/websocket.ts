@@ -1,24 +1,26 @@
 import { is } from "valibot";
 import { WebSocket } from "ws";
 
-import { HttpError } from "./httperror.js";
 import { WebSocketRequestSchema } from "../../shared/websocket.interface.js";
+import type { WsError } from "../../shared/ws-error.js";
 
 
 export class WebSocketUtil {
 	constructor(private readonly ws: WebSocket) {
-		this.ws.on("error", error => {
-			if (!(error instanceof HttpError)) {
-				console.error(error.stack);
-				ws.close(500, error.message);
-			} else {
-				ws.close(error.status, error.message);
-			}
-		});
+		this.ws.on("error", error => console.error);
 	}
 	
 	public send<T>(payload: T): this {
 		this.ws.send(JSON.stringify(payload));
+		return this;
+	}
+	
+	public error(status: number, message: string): this {
+		this.send<WsError>({
+			type: "error",
+			status,
+			message
+		});
 		return this;
 	}
 	
@@ -31,7 +33,9 @@ export class WebSocketUtil {
 		this.ws.on("message", (msg: string) => {
 			const json = JSON.parse(msg);
 			if (!is(WebSocketRequestSchema, json)) {
-				throw new HttpError(400, `Bad Request: ${msg}`);
+				console.error(`Bad Request: ${msg}`);
+				this.error(400, `Bad Request: ${msg}`);
+				return;
 			}
 			
 			if (json.method !== method) {
