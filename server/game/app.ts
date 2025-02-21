@@ -57,7 +57,7 @@ export class GameApp {
 	
 	private submitGuess(req: Request, res: Response): void {
 		const { gameId, requester, guess } = verifyRequest(
-			req.body, SubmitGuessRequestSchema, `Invalid SubmitGuessRequest: ${req.body}`);
+			req.body, SubmitGuessRequestSchema, `Invalid SubmitGuessRequest: ${JSON.stringify(req.body)}`);
 		
 		const { notifier, game } = this.getGame(gameId);
 		game.submitGuess(requester, guess);
@@ -67,7 +67,7 @@ export class GameApp {
 	
 	private submitBet(req: Request, res: Response): void {
 		const { gameId, requester, target, wager } = verifyRequest(
-			req.body, SubmitBetRequestSchema, `Invalid SubmitBetRequest: ${req.body}`);
+			req.body, SubmitBetRequestSchema, `Invalid SubmitBetRequest: ${JSON.stringify(req.body)}`);
 		
 		const { notifier, game } = this.getGame(gameId);
 		game.submitBet(requester, target, wager);
@@ -77,7 +77,7 @@ export class GameApp {
 	
 	private withdrawBet(req: Request, res: Response): void {
 		const { gameId, requester, target } = verifyRequest(
-			req.body, WithdrawBetRequestSchema, `Invalid WithdrawBetRequest: ${req.body}`);
+			req.body, WithdrawBetRequestSchema, `Invalid WithdrawBetRequest: ${JSON.stringify(req.body)}`);
 		
 		const { notifier, game } = this.getGame(gameId);
 		game.withdrawBet(requester, target);
@@ -87,7 +87,7 @@ export class GameApp {
 	
 	private endPhase(req: Request, res: Response): void {
 		const { gameId, requester } = verifyRequest(
-			req.body, EndPhaseRequestSchema, `Invalid WithdrawBetRequest: ${req.body}`);
+			req.body, EndPhaseRequestSchema, `Invalid WithdrawBetRequest: ${JSON.stringify(req.body)}`);
 		
 		const { notifier, game } = this.getGame(gameId);
 		game.endPhase(requester);
@@ -102,7 +102,7 @@ export class GameApp {
 			
 			try {
 				const { privateId, gameId } = verifyRequest(
-					msg, SubscribeRequestSchema, `Invalid SubscribeRequest: ${msg}`);
+					msg, SubscribeRequestSchema, `Invalid SubscribeRequest: ${JSON.stringify(msg)}`);
 				
 				const { game, notifier } = this.getGame(gameId);
 				notifier.addClient(privateId, ws);

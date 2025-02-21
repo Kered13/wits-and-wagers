@@ -63,7 +63,7 @@ export class LobbyApp {
 	
 	private create(req: Request, res: Response): void {
 		const request = verifyRequest(
-			req.body, CreateLobbyRequestSchema, `Invalid CreateLobbyRequest: ${req.body}`);
+			req.body, CreateLobbyRequestSchema, `Invalid CreateLobbyRequest: ${JSON.stringify(req.body)}`);
 		
 		const lobby = new Lobby(this.createLobbyId(), request.title, request.host);
 		this.lobbies.set(lobby.getId(), { lobby: lobby, notifier: new LobbyNotifier });
@@ -78,7 +78,7 @@ export class LobbyApp {
 	
 	private joinLobby(req: Request, res: Response): void {
 		const request = verifyRequest(
-			req.body, JoinLobbyRequestSchema, `Invalid JoinLobbyRequest: ${req.body}`);
+			req.body, JoinLobbyRequestSchema, `Invalid JoinLobbyRequest: ${JSON.stringify(req.body)}`);
 		
 		const data = this.tryGetLobby(request.lobbyId);
 		if (!data) {
@@ -106,7 +106,7 @@ export class LobbyApp {
 	
 	private beginGame(req: Request, res: Response): void {
 		const request = verifyRequest(
-			req.body, BeginGameRequestSchema, `Invalid BeginGameRequest: ${req.body}`);
+			req.body, BeginGameRequestSchema, `Invalid BeginGameRequest: ${JSON.stringify(req.body)}`);
 		
 		const { lobby, notifier } = this.getLobby(request.lobbyId);
 		this.verifyHost(lobby, request.requester);
@@ -123,7 +123,7 @@ export class LobbyApp {
 	
 	private cancel(req: Request, res: Response): void {
 		const request = verifyRequest(
-			req.body, CancelLobbyRequestSchema, `Invalid CancelLobbyRequest: ${req.body}`);
+			req.body, CancelLobbyRequestSchema, `Invalid CancelLobbyRequest: ${JSON.stringify(req.body)}`);
 		
 		const { lobby, notifier } = this.getLobby(request.lobbyId);
 		this.verifyHost(lobby, request.requester);
@@ -143,7 +143,7 @@ export class LobbyApp {
 			
 			try {
 				const { privateId, lobbyId } = verifyRequest(
-					msg, SubscribeRequestSchema, `Invalid SubscribeRequest: ${msg}`);
+					msg, SubscribeRequestSchema, `Invalid SubscribeRequest: ${JSON.stringify(msg)}`);
 				
 				const { lobby, notifier } = this.getLobby(lobbyId);
 				notifier.addClient(privateId, ws);

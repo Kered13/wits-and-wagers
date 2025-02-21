@@ -1,6 +1,7 @@
 import { HttpErrorResponse } from "@angular/common/http";
 import { ErrorHandler, Injectable, Provider } from "@angular/core";
 import { MatDialog } from "@angular/material/dialog";
+import { Observable } from "rxjs";
 
 import { ErrorDialogComponent } from "./error-dialog.component.js";
 
@@ -13,17 +14,16 @@ export class GlobalErrorHandler implements ErrorHandler {
 		return { provide: ErrorHandler, useClass: GlobalErrorHandler };
 	}
 	
-	public handleError(error: unknown): void {
+	public handleError(error: unknown): Observable<any> {
 		// For some reason HttpErrorResponse is not a subclass of Error.
 		if (!(error instanceof Error) && !(error instanceof HttpErrorResponse)) {
-			this.handle(new Error("Unknown error.", { cause: error }));
-			return;
+			return this.handle(new Error("Unknown error.", { cause: error }));
 		}
-		this.handle(error);
+		return this.handle(error);
 	}
 	
-	private handle(error: Error): void {
+	private handle(error: Error): Observable<any> {
 		console.error(error);
-		this.dialog.open(ErrorDialogComponent, { data: error });
+		return this.dialog.open(ErrorDialogComponent, { data: error }).afterClosed();
 	}
 }

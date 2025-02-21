@@ -1,6 +1,6 @@
 import { Injectable } from "@angular/core";
-import { Observable, map, filter, take } from "rxjs";
-import { webSocket, WebSocketSubject } from 'rxjs/webSocket';
+import { Observable, map, filter, take, catchError, NEVER } from "rxjs";
+import { WebSocketSubject } from 'rxjs/webSocket';
 import { assert, is } from "valibot";
 
 import { BackendService } from "../utils/backend.service.js";
@@ -15,6 +15,7 @@ import { LOBBY_API_ROOT, type LobbyId, type LobbyJson } from "../../shared/lobby
 import { LobbyNotificationSchema, type LobbyNotification } from "../../shared/lobby/notifications.js";
 import { SUBSCRIBE_PATH, type SubscribeRequest } from "../../shared/lobby/subscribe.js";
 import { PrivateId } from "../../shared/player.js";
+import { WebSocketRequest } from "../../shared/websocket.interface.js";
 
 
 @Injectable({providedIn: "root"})
@@ -72,28 +73,30 @@ export class LobbyInstanceService extends Closeable {
 		super();
 		
 		this.wsSubject = this.backend.webSocket(LOBBY_API_ROOT + SUBSCRIBE_PATH);
-		this.wsSubject.next({
-			method: "subscribe",
-			payload: {
-				lobbyId: this.lobbyId,
-				privateId: this.privateId,
-			} satisfies SubscribeRequest
-		});
 		
 		const notifications: Observable<LobbyNotification> =
 			this.wsSubject.pipe(filter(object => is(LobbyNotificationSchema, object)));
 		
 		this.lobbyUpdate = notifications.pipe(
+			// Filter out errors. They can be caught by subscribing to the error
+			// observable.
+			catchError(err => NEVER),
 			filter(notification => notification.type === "update"),
 			map(update => update.state));
 		
 		this.begin = notifications.pipe(
+			// Filter out errors. They can be caught by subscribing to the error
+			// observable.
+			catchError(err => NEVER),
 			filter(notification => notification.type === "begin-game"),
 			map(update => update.gameId),
 			// take(1) instead of first() so we don't error when the connection is closed.
 			take(1));
 		
 		this.canceled = notifications.pipe(
+			// Filter out errors. They can be caught by subscribing to the error
+			// observable.
+			catchError(err => NEVER),
 			filter(notification => notification.type === "canceled"),
 			map(_ => undefined),
 			// take(1) instead of first() so we don't error when the connection is closed.
@@ -106,6 +109,14 @@ export class LobbyInstanceService extends Closeable {
 		// If the server closes the connection, close this lobby. This does not
 		// handle unexpected closures like the server crashing.
 		this.wsSubject.subscribe({ complete: () => this.close() });
+		
+		this.wsSubject.next({
+			method: "subscribe",
+			payload: {
+				lobbyId: this.lobbyId,
+				privateId: this.privateId,
+			}
+		} satisfies WebSocketRequest<SubscribeRequest>);
 	}
 	
 	public beginGame(): Observable<void> {
@@ -141,6 +152,5 @@ export class LobbyInstanceService extends Closeable {
 	public override doClose(): void {
 		this.wsSubject.complete();
 		this.lobbyService.removeLobby(this.lobbyId);
-		console.log("Closed LobbyInstanceService");
 	}
 };

@@ -6,15 +6,16 @@ import { MatCardModule } from "@angular/material/card";
 import { MatInputModule } from "@angular/material/input";
 import { Title } from "@angular/platform-browser";
 import { ActivatedRoute } from "@angular/router";
-import { combineLatest, map, pairwise, startWith, Subscription, switchMap } from "rxjs";
+import { catchError, combineLatest, EMPTY, map, pairwise, startWith, Subscription, switchMap } from "rxjs";
 
 import { GameInstanceService, GameService } from "./game.service.js";
 import { GlobalErrorHandler } from "../error-dialog/error-handler.js";
 import { GameRoute, TypedRouteFor } from "../routes/routes.js";
+import { RoutingService } from "../routes/routing.service.js";
 import { RefCounted } from "../utils/refcounted.js";
 import { PrivatePlayer } from "../../shared/player.js";
 import { GameJson } from "../../shared/game/game.js";
-import { RoutingService } from "../routes/routing.service.js";
+import { ErrorDialogComponent } from "../error-dialog/error-dialog.component.js";
 
 
 @Component({
@@ -48,7 +49,7 @@ export class GameComponent implements OnDestroy {
 		const instanceService = combineLatest([route.params, route.data]).pipe(
 			map(([params, data]) => gameService.getGameInstanceService(params.gameId, data.player.privateId)));
 		this.instanceSub = instanceService.pipe(startWith(undefined), pairwise())
-			.subscribe(([oldService, newService]) => this.onNewLobby(newService!, oldService));
+			.subscribe(([oldService, newService]) => this.onNewGame(newService!, oldService));
 		
 		this.gameService = toSignal(instanceService, { requireSync: true });
 		this.game = toSignal(
@@ -70,16 +71,18 @@ export class GameComponent implements OnDestroy {
 		effect(() => titleService.setTitle(route.routeConfig!.title! + " - " + this.game().title));
 	}
 	
-	private onNewLobby(newService: RefCounted<GameInstanceService>, oldService?: RefCounted<GameInstanceService>): void {
+	private onNewGame(newService: RefCounted<GameInstanceService>, oldService?: RefCounted<GameInstanceService>): void {
 		if (oldService) {
 			this.closeGameService(oldService);
 		}
 		
 		newService.acquire();
+		
+		// Set up the handlers for game end and errors.
 		this.subs.push(
-			newService.get().onError().subscribe(error => {
-				this.errorHandler.handleError(error);
-				this.routing.toHome();
+			newService.get().onError().subscribe(err => {
+				this.errorHandler.handleError(err)
+					.subscribe(_ => this.routing.toHome());
 			}));
 	}
 	

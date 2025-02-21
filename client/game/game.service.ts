@@ -1,6 +1,6 @@
 import { Injectable } from "@angular/core";
-import { Observable, map, filter } from "rxjs";
-import { webSocket, WebSocketSubject } from 'rxjs/webSocket';
+import { Observable, map, filter, takeWhile, catchError, of, NEVER } from "rxjs";
+import { WebSocketSubject } from 'rxjs/webSocket';
 import { is } from "valibot";
 
 import { BackendService } from "../utils/backend.service.js";
@@ -14,6 +14,7 @@ import { SUBMIT_GUESS_PATH, SubmitGuessRequest } from "../../shared/game/submit-
 import { SUBSCRIBE_PATH, SubscribeRequest } from "../../shared/game/subscribe.js";
 import { WITHDRAW_BET_PATH, WithdrawBetRequest } from "../../shared/game/withdraw-bet.js";
 import { PrivateId } from "../../shared/player.js";
+import { type WebSocketRequest } from "../../shared/websocket.interface.js";
 
 
 @Injectable({providedIn: "root"})
@@ -55,31 +56,45 @@ export class GameInstanceService extends Closeable {
 		super()
 		
 		this.wsSubject = this.backend.webSocket(GAME_API_ROOT + SUBSCRIBE_PATH);
+		const notifications: Observable<GameNotification> =
+			this.wsSubject.pipe(filter(object => is(GameNotificationSchema, object)));
+		
+		this.gameUpdate = notifications.pipe(
+			// Filter out errors. They can be caught by subscribing to the error
+			// observable.
+			catchError(err => NEVER),
+			filter(notification => notification.type === "update"),
+			map(update => update.state));
+		
+		this.gameEnd = notifications.pipe(
+			catchError(err => NEVER),
+			filter(notification => notification.type === "end"));
+		
+		this.error = notifications.pipe(
+			filter(notification => notification.type === "error"),
+			map(err => new WebsocketError(err.status, err.message)),
+			catchError(err => {
+				if (err instanceof CloseEvent) {
+					return of(new WebsocketError(500, `Server unexpectedly closed the connection: ${err}`))
+				} else {
+					return of(new WebsocketError(0, `Unknown error occured: ${err}`));
+				};
+			}));
+		
+		// If the server closes the connection, close the websocket. This does
+		// not handle unexpected closures like the server crashing.
+		this.wsSubject.subscribe({
+			complete: () => this.close(),
+			error: err => undefined
+		 });
+		
 		this.wsSubject.next({
 			method: "subscribe",
 			payload: {
 				gameId: this.gameId,
 				privateId: this.privateId,
-			} satisfies SubscribeRequest
-		});
-		
-		const notifications: Observable<GameNotification> =
-			this.wsSubject.pipe(filter(object => is(GameNotificationSchema, object)));
-		
-		this.gameUpdate = notifications.pipe(
-			filter(notification => notification.type === "update"),
-			map(update => update.state));
-		
-		this.gameEnd = notifications.pipe(
-			filter(notification => notification.type === "end"));
-		
-		this.error = notifications.pipe(
-			filter(notification => notification.type === "error"),
-			map(err => new WebsocketError(err.status, err.message)));
-		
-		// If the server closes the connection, close this lobby. This does not
-		// handle unexpected closures like the server crashing.
-		this.wsSubject.subscribe({ complete: () => this.close() });
+			}
+		} satisfies WebSocketRequest<SubscribeRequest>);
 	}
 	
 	public submitGuess(guess: number): Observable<void> {
@@ -114,12 +129,9 @@ export class GameInstanceService extends Closeable {
 		});
 	}
 	
+	// Completes when the game ends. Errors if an error notification is received.
 	public onGameUpdate(): Observable<GameJson> {
 		return this.gameUpdate;
-	}
-	
-	public onGameEnd(): Observable<GameEnd> {
-		return this.gameEnd;
 	}
 	
 	public onError(): Observable<WebsocketError> {

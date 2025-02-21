@@ -6,7 +6,7 @@ import { MatInputModule } from '@angular/material/input';
 import { Title } from "@angular/platform-browser";
 import { ActivatedRoute } from "@angular/router";
 import { toSignal } from "@angular/core/rxjs-interop";
-import { map, pairwise, Subscription, startWith, switchMap, combineLatest } from "rxjs";
+import { map, pairwise, Subscription, startWith, switchMap, combineLatest, catchError, EMPTY } from "rxjs";
 
 import { LobbyInstanceService, LobbyService } from "./lobby.service.js";
 import { GAME_ID } from "../app/localstorage.keys.js";
@@ -71,9 +71,9 @@ export class LobbyComponent implements OnDestroy {
 				localStorage.removeItem(GAME_ID);
 				this.routing.toHome();
 			}),
-			newService.get().onError().subscribe(error => {
-				this.errorHandler.handleError(error);
-				this.routing.toHome();
+			newService.get().onError().subscribe(err => {
+				this.errorHandler.handleError(err)
+					.subscribe(_ => this.routing.toHome());
 			}));
 	}
 	
