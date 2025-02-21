@@ -44,14 +44,17 @@ export class GameApp {
 		const notifier = new GameNotifier();
 		this.games.set(game.getId(), { game, notifier });
 		
-		game.getUpdates().subscribe(() => {
-			for (const player of game.getPlayers().getAll()) {
-				notifier.notifyPlayer(player.privateId, game.makeUpdate(player.privateId));
+		game.onUpdates().subscribe({
+			next: () => { 
+				for (const player of game.getPlayers().getAll()) {
+					notifier.notifyPlayer(player.privateId, game.makeUpdate(player.privateId));
+				}
+			},
+			complete: () => {
+				// Close all connections and delete the game, we are done with it.
+				notifier.close();
+				this.games.delete(game.getId());
 			}
-		});
-		
-		game.getGameEnd().subscribe(() => {
-			notifier.notifyClients(game.makeGameEnd());
 		});
 	}
 	

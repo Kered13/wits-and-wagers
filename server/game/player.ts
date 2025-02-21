@@ -85,7 +85,7 @@ export class PlayerManager {
 		return this.players.map(player => player.toJson());
 	}
 	
-	public rankPlayers(): GamePlayerJson[] {
+	public toRankedJson(): GamePlayerJson[] {
 		return this.players
 			.sort((first, second) => second.chips - first.chips)
 			.map(player => player.toJson());

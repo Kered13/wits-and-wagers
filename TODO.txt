@@ -1,14 +1,15 @@
 * Implement game.
-  * Round transition. Report correct answer, winner, and payouts.
-  * Clean up game on end.
-  * Players can finish betting to end phase.
+  * Round transition.
+    * Report correct answer, winner, and payouts.
+    * Indicate round skipped because no guesses.
+  * Only host can end phase.
+  * Add option for host to not be a player.
+  * Players can finish betting to end phase?
   * Allow withdrawing guesses? (Currently, new guesses override old.)
   * Question generation (pull randomly from CSV/JSON file).
-  * Indication of round skipped because no guesses?
   * Add color picking.
 * Implement desktop UI.
   * Clear selections when a new round begins.
-  * Report end game result.
 * Implement mobile UI.
 * Implement game options.
   * Round timers.

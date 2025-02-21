@@ -1,12 +1,14 @@
 import { Observable, Subject } from "rxjs"
 
 import { BettingPhase, type BettingPhaseOptions } from "./betting-phase.js";
+import { EndPhase } from "./end-phase.js";
+import { type Phase } from "./phase.js";
 import { Player, PlayerManager, type PlayerParams } from "./player.js";
 import { QuestionPhase, type QuestionPhaseOptions } from "./question-phase.js";
 import { HttpError } from "../utils/httperror.js";
 import { type BetTarget, type GameId, type GameJson } from "../../shared/game/game.js";
 import { type PrivateId } from "../../shared/player.js";
-import { type GameEnd, type GameUpdate } from "../../shared/game/notifications.js";
+import { type GameUpdate } from "../../shared/game/notifications.js";
 
 
 export type GameOptions = QuestionPhaseOptions & BettingPhaseOptions;
@@ -19,13 +21,13 @@ const defaultOptions: GameOptions = {
 export class Game {
 	private readonly players: PlayerManager;
 	private readonly updates = new Subject<void>();
-	private readonly gameEnd = new Subject<void>();
 	private readonly options: GameOptions;
 	
+	// round = 8 if the game is over.
 	private round: number = 1;
 	private question: string;
 	private answer: number;
-	private phase: QuestionPhase | BettingPhase;
+	private phase: Phase;
 	
 	constructor(
 			private readonly id: GameId,
@@ -127,7 +129,7 @@ export class Game {
 		this.startPhase(new BettingPhase(this.question, this.answer, this.players, this.round, guesses, this.options))
 	}
 	
-	private startPhase(phase: QuestionPhase | BettingPhase): void {
+	private startPhase(phase: Phase): void {
 		this.phase = phase;
 		phase.onEndPhase().subscribe(() => this.nextPhase());
 		this.updates.next();
@@ -138,16 +140,16 @@ export class Game {
 	}
 	
 	private endGame(): void {
-		this.gameEnd.next();
-		this.gameEnd.complete();
-		this.updates.complete();
+		this.phase = new EndPhase();
 		this.round = 8;
+		this.updates.next();
+		this.updates.complete();
 	}
 	
 	public toJson(forPlayer: PrivateId): GameJson {
 		return {
 			title: this.title,
-			players: this.players.toJson(),
+			players: this.players.toRankedJson(),
 			round: this.round,
 			phase: this.phase.toJson(forPlayer)
 		};
@@ -162,14 +164,6 @@ export class Game {
 		};
 	}
 	
-	public makeGameEnd(): GameEnd {
-		return {
-			type: "end",
-			id: this.id,
-			rankings: this.players.rankPlayers()
-		}
-	}
-	
 	public getPlayers(): PlayerManager {
 		return this.players;
 	}
@@ -178,11 +172,10 @@ export class Game {
 		return this.round;
 	}
 	
-	public getUpdates(): Observable<void> {
+	// Notifies when a new update is available. Subscribers should call
+	// makeUpdate() to get the update. When this observable completes, the game
+	// is over.
+	public onUpdates(): Observable<void> {
 		return this.updates.asObservable();
-	}
-	
-	public getGameEnd(): Observable<void> {
-		return this.gameEnd.asObservable();
 	}
 }

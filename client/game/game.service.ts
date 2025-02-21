@@ -8,7 +8,7 @@ import { Closeable, RefCounted } from "../utils/refcounted.js";
 import { WebsocketError } from "../utils/websocket-error.js";
 import { END_PHASE_PATH, EndPhaseRequest } from "../../shared/game/end-phase.js";
 import { BetTarget, GAME_API_ROOT, type GameId, type GameJson } from "../../shared/game/game.js";
-import { type GameEnd, GameNotificationSchema, type GameNotification } from "../../shared/game/notifications.js";
+import { GameNotificationSchema, type GameNotification } from "../../shared/game/notifications.js";
 import { SUBMIT_BET_PATH, SubmitBetRequest } from "../../shared/game/submit-bet.js";
 import { SUBMIT_GUESS_PATH, SubmitGuessRequest } from "../../shared/game/submit-guess.js";
 import { SUBSCRIBE_PATH, SubscribeRequest } from "../../shared/game/subscribe.js";
@@ -45,7 +45,6 @@ export class GameService {
 export class GameInstanceService extends Closeable {
 	private readonly wsSubject: WebSocketSubject<Object>;
 	private readonly gameUpdate: Observable<GameJson>;
-	private readonly gameEnd: Observable<GameEnd>;
 	private readonly error: Observable<WebsocketError>;
 	
 	constructor(
@@ -65,10 +64,6 @@ export class GameInstanceService extends Closeable {
 			catchError(err => NEVER),
 			filter(notification => notification.type === "update"),
 			map(update => update.state));
-		
-		this.gameEnd = notifications.pipe(
-			catchError(err => NEVER),
-			filter(notification => notification.type === "end"));
 		
 		this.error = notifications.pipe(
 			filter(notification => notification.type === "error"),

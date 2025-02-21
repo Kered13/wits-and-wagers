@@ -71,15 +71,21 @@ export const BettingPhaseJsonSchema = strictObject({
 export type BettingPhaseJson = InferOutput<typeof BettingPhaseJsonSchema>;
 
 
+export const EndPhaseJsonSchema = strictObject({
+	phase: literal("end")
+});
+export type EndPhaseJson = InferOutput<typeof EndPhaseJsonSchema>;
+
+
 // Represents the state of the game.
 export const GameJsonSchema = strictObject({
 	// The title of the game.
 	title: pipe(string(), nonEmpty()),
-	// Players in the game.
+	// Players in the game, ranked by number of chips.
 	players: array(GamePlayerJsonSchema),
 	// The current round number.
 	round: pipe(number(), integer()),
 	// The current phase of the round.
-	phase: variant("phase", [QuestionPhaseJsonSchema, BettingPhaseJsonSchema])
+	phase: variant("phase", [QuestionPhaseJsonSchema, BettingPhaseJsonSchema, EndPhaseJsonSchema])
 });
 export type GameJson = InferOutput<typeof GameJsonSchema>;

@@ -1,6 +1,6 @@
-import { array, literal, strictObject, variant, type InferOutput } from "valibot";
+import { literal, strictObject, variant, type InferOutput } from "valibot";
 
-import { GameIdSchema, GameJsonSchema, GamePlayerJsonSchema } from "./game.js";
+import { GameIdSchema, GameJsonSchema } from "./game.js";
 import { WsErrorSchema } from "../ws-error.js";
 
 
@@ -13,21 +13,10 @@ export const GameUpdateSchema = strictObject({
 export type GameUpdate = InferOutput<typeof GameUpdateSchema>;
 
 
-// Indicates the end of the game. After sending a GameEnd notification, no other
-// notifications may be sent for this game.
-export const GameEndSchema = strictObject({
-	type: literal("end"),
-	id: GameIdSchema,
-	rankings: array(GamePlayerJsonSchema)
-});
-export type GameEnd = InferOutput<typeof GameEndSchema>;
-
-
 // A notification about some change to the game.
 export const GameNotificationSchema =
 	variant("type", [
 		GameUpdateSchema,
-		GameEndSchema,
 		WsErrorSchema
 	]);
 export type GameNotification = InferOutput<typeof GameNotificationSchema>;

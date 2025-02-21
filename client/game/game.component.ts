@@ -3,19 +3,20 @@ import { toSignal } from "@angular/core/rxjs-interop";
 import { FormsModule } from "@angular/forms";
 import { MatButton } from "@angular/material/button";
 import { MatCardModule } from "@angular/material/card";
+import { MatDialog } from "@angular/material/dialog";
 import { MatInputModule } from "@angular/material/input";
 import { Title } from "@angular/platform-browser";
 import { ActivatedRoute } from "@angular/router";
-import { catchError, combineLatest, EMPTY, map, pairwise, startWith, Subscription, switchMap } from "rxjs";
+import { combineLatest, map, pairwise, startWith, Subscription, switchMap } from "rxjs";
 
 import { GameInstanceService, GameService } from "./game.service.js";
+import { GameEndDialogComponent } from "../game-end-dialog/game-end-dialog.component.js";
 import { GlobalErrorHandler } from "../error-dialog/error-handler.js";
 import { GameRoute, TypedRouteFor } from "../routes/routes.js";
 import { RoutingService } from "../routes/routing.service.js";
 import { RefCounted } from "../utils/refcounted.js";
 import { PrivatePlayer } from "../../shared/player.js";
 import { GameJson } from "../../shared/game/game.js";
-import { ErrorDialogComponent } from "../error-dialog/error-dialog.component.js";
 
 
 @Component({
@@ -41,6 +42,7 @@ export class GameComponent implements OnDestroy {
 	constructor(
 			private readonly errorHandler: GlobalErrorHandler,
 			private readonly routing: RoutingService,
+			private readonly dialog: MatDialog,
 			gameService: GameService,
 			titleService: Title,
 			@Inject(ActivatedRoute) route: TypedRouteFor<GameRoute>) {
@@ -80,6 +82,12 @@ export class GameComponent implements OnDestroy {
 		
 		// Set up the handlers for game end and errors.
 		this.subs.push(
+			newService.get().onGameUpdate().subscribe({
+				complete: () => {
+					// TODO: Disable controls.
+					this.dialog.open(GameEndDialogComponent, { data: this.game() });
+				}
+			}),
 			newService.get().onError().subscribe(err => {
 				this.errorHandler.handleError(err)
 					.subscribe(_ => this.routing.toHome());
