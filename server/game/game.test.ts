@@ -79,6 +79,52 @@ describe("Game", () => {
 				}
 			});
 		});
+		
+		test("game end", () => {
+			const alice = makePlayer("Alice");
+			const bob = makePlayer("Bob");
+			const charlie = makePlayer("Charlie");
+			const game = makeGame("id", "Game", [alice, bob, charlie]);
+			
+			alice.chips = 30;
+			bob.chips = 10;
+			charlie.chips = 60;
+			
+			for (let i = 0; i < 7; i++) {
+				game.endPhase(alice.publicId);
+			}
+			
+			const expectedPlayers = [{
+				name: charlie.name,
+				publicId: charlie.publicId,
+				color: charlie.color,
+				chips: 60
+			},
+			{
+				name: alice.name,
+				publicId: alice.publicId,
+				color: alice.color,
+				chips: 30
+			},
+			{
+				name: bob.name,
+				publicId: bob.publicId,
+				color: bob.color,
+				chips: 10
+			}];
+			
+			const actualJson = game.toJson(alice.publicId);
+			
+			expect(actualJson).to.deep.equal({
+				title: "Game",
+				players: expectedPlayers,
+				round: 8,
+				phase: {
+					phase: "end"
+				}
+			});
+			expect(actualJson.players).to.deep.ordered.members(expectedPlayers);
+		});
 	});
 	
 	test("makeUpdate", () => {
@@ -89,23 +135,6 @@ describe("Game", () => {
 			type: "update",
 			id: "id",
 			state: game.toJson(alice.privateId)
-		});
-	});
-	
-	test("makeEnd", () => {
-		const alice = makePlayer("Alice");
-		const bob = makePlayer("Bob");
-		const charlie = makePlayer("Charlie");
-		const game = makeGame("id", "Game", [alice, bob, charlie]);
-		
-		alice.chips = 30;
-		bob.chips = 10;
-		charlie.chips = 60;
-		
-		expect(game.makeGameEnd()).to.deep.equal({
-			type: "end",
-			id: "id",
-			rankings: game.getPlayers().rankPlayers()
 		});
 	});
 	
@@ -165,11 +194,11 @@ describe("Game", () => {
 	});
 	
 	test("submitGuess notifies update", () => {
-		const alice = makePlayer("Alice");
+		const alice = makePlayer("Alice");1
 		const game = makeGame("id", "Game", [alice]);
 		
 		const callback = vi.fn();
-		game.getUpdates().subscribe(callback);
+		game.onUpdates().subscribe(callback);
 		
 		game.submitGuess(alice.privateId, 42);
 		
@@ -183,7 +212,7 @@ describe("Game", () => {
 		game.endPhase(alice.privateId);
 		
 		const callback = vi.fn();
-		game.getUpdates().subscribe(callback);
+		game.onUpdates().subscribe(callback);
 		
 		game.submitBet(alice.privateId, "Red", 2);
 		
@@ -198,7 +227,7 @@ describe("Game", () => {
 		game.submitBet(alice.privateId, "Red", 2);
 		
 		const callback = vi.fn();
-		game.getUpdates().subscribe(callback);
+		game.onUpdates().subscribe(callback);
 		
 		game.withdrawBet(alice.privateId, "Red");
 		
@@ -211,14 +240,66 @@ describe("Game", () => {
 		game.submitGuess(alice.privateId, 42);
 		
 		const callback = vi.fn();
-		game.getUpdates().subscribe(callback);
+		game.onUpdates().subscribe(callback);
 		
 		game.endPhase(alice.privateId);
 		
 		expect(callback).toHaveBeenCalled();
 	});
 	
-	test("endphase notifies gameEnd after final round", () => {
+	test("end betting phase notifies roundEnd with EndRoundNotification", () => {
+		const alice = makePlayer("Alice");
+		const game = makeGame("id", "Game", [alice]);
+		
+		const callback = vi.fn();
+		game.onRoundEnd().subscribe(callback);
+		
+		game.submitGuess(alice.privateId, 42);
+		game.endPhase(alice.privateId);
+		
+		game.submitBet(alice.privateId, "AllTooHigh", 2);
+		game.endPhase(alice.privateId);
+		
+		expect(callback).toHaveBeenCalledWith({
+			type: "end-round",
+			id: "id",
+			endRound: {
+				question: "Guess a number?",
+				answer: 7,
+				outcome: {
+					type: "conclusion",
+					winners: [],
+					earnings: {
+						[alice.publicId]: 14
+					}
+				}
+			}
+		});
+	});
+	
+	test("end question phase with no guesses notifies roundEnd with EndRoundNotification", () => {
+		const alice = makePlayer("Alice");
+		const game = makeGame("id", "Game", [alice]);
+		
+		const callback = vi.fn();
+		game.onRoundEnd().subscribe(callback);
+		
+		game.endPhase(alice.privateId);
+		
+		expect(callback).toHaveBeenCalledWith({
+			type: "end-round",
+			id: "id",
+			endRound: {
+				question: "Guess a number?",
+				answer: 7,
+				outcome: {
+					type: "skipped",
+				}
+			}
+		});
+	});
+	
+	test("endPhase completes updates and roundEnd after final round", () => {
 		const alice = makePlayer("Alice");
 		const game = makeGame("id", "Game", [alice]);
 		
@@ -229,13 +310,23 @@ describe("Game", () => {
 		
 		const updateCallback = vi.fn();
 		const gameEndCallback = vi.fn();
-		game.getUpdates().subscribe(updateCallback);
-		game.getGameEnd().subscribe(gameEndCallback);
+		const roundEndCallback = vi.fn();
+		const roundEndGameEndCallback = vi.fn();
+		game.onUpdates().subscribe({
+			next: updateCallback,
+			complete: gameEndCallback
+		});
+		game.onRoundEnd().subscribe({
+			next: roundEndCallback,
+			complete: roundEndGameEndCallback
+		});
 		
 		game.endPhase(alice.privateId);
 		
-		expect(updateCallback).not.toHaveBeenCalled();
+		expect(updateCallback).toHaveBeenCalled();
 		expect(gameEndCallback).toHaveBeenCalled();
+		expect(roundEndCallback).toHaveBeenCalled();
+		expect(roundEndGameEndCallback).toHaveBeenCalled();
 	});
 	
 	test("can submit guess during question phase", () => {

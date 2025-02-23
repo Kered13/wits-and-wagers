@@ -95,35 +95,7 @@ describe("PlayerManager", () => {
 		expect(manager.getAll()).to.have.members([alice, bob, charlie]);
 	});
 	
-	test("toJson returns all players", () => {
-		const alice = makePlayer("Alice");
-		const bob = makePlayer("Bob");
-		const charlie = makePlayer("Charlie");
-		const manager = new PlayerManager([alice, bob, charlie]);
-		
-		expect(manager.toJson()).to.have.deep.members([
-			{
-				name: "Alice",
-				publicId: "public-Alice",
-				color: "#FF0000",
-				chips: 2
-			},
-			{
-				name: "Bob",
-				publicId: "public-Bob",
-				color: "#FF0000",
-				chips: 2
-			},
-			{
-				name: "Charlie",
-				publicId: "public-Charlie",
-				color: "#FF0000",
-				chips: 2
-			},
-		]);
-	});
-	
-	test("rankPlayers sorts players by chips", () => {
+	test("toJson returns all players sorted by chips", () => {
 		const alice = makePlayer("Alice");
 		const bob = makePlayer("Bob");
 		const charlie = makePlayer("Charlie");
@@ -133,6 +105,25 @@ describe("PlayerManager", () => {
 		bob.chips = 20;
 		charlie.chips = 5;
 		
-		expect(manager.rankPlayers()).to.have.deep.ordered.members([bob, alice, charlie].map(player => player.toJson()));
+		expect(manager.toJson()).to.have.deep.ordered.members([
+			{
+				name: "Bob",
+				publicId: "public-Bob",
+				color: "#FF0000",
+				chips: 20
+			},
+			{
+				name: "Alice",
+				publicId: "public-Alice",
+				color: "#FF0000",
+				chips: 10
+			},
+			{
+				name: "Charlie",
+				publicId: "public-Charlie",
+				color: "#FF0000",
+				chips: 5
+			},
+		]);
 	});
 });

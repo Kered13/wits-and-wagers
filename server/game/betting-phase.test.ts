@@ -273,12 +273,19 @@ describe("BettingPhase", () => {
 			
 			phase.submitBet(alice.privateId, "AllTooHigh", 10);
 			phase.submitBet(alice.privateId, 0, 15);
-			phase.resolve();
+			const conclusion = phase.resolve();
+			
+			expect(conclusion).to.deep.equal({
+				type: "conclusion",
+				winners: [alice.publicId],
+				earnings: {
+					[alice.publicId]: 3*15 + 1 + 3
+				}
+			});
 			
 			// Alice wins 2x her bet on 0 and loses her bet on AllTooHigh, but
 			// gets her reserved chip back and gets the round bonus chips.
-			// 100 + 2*15 - 10 + 1 + 3 = 124
-			expect(alice.chips).to.equal(124);
+			expect(alice.chips).to.equal(100 + 2*15 - 10 + 1 + 3);
 		});
 		
 		test("guess one over answer loses", () => {
@@ -291,12 +298,19 @@ describe("BettingPhase", () => {
 			
 			phase.submitBet(alice.privateId, "AllTooHigh", 10);
 			phase.submitBet(alice.privateId, 0, 15);
-			phase.resolve();
+			const conclusion = phase.resolve();
+			
+			expect(conclusion).to.deep.equal({
+				type: "conclusion",
+				winners: [],
+				earnings: {
+					[alice.publicId]: 7 * 10 + 1
+				}
+			});
 			
 			// Alice wins 6x her bet on AllTooHigh and loses her bet on 0, but
 			// gets her reserved chip back.
-			// 100 + 6*10 - 15 + 1 = 146
-			expect(alice.chips).to.equal(146);
+			expect(alice.chips).to.equal(100 + 6*10 - 15 + 1);
 		});
 		
 		test("guess order is irrelevent", () => {
@@ -321,17 +335,13 @@ describe("BettingPhase", () => {
 			
 			// Alice loses her bet but gets her reserved chips back and wins the
 			// round bonus chips.
-			// 100 - 10 + 2 + 3 = 95
-			expect(alice.chips).to.equal(95);
+			expect(alice.chips).to.equal(100 - 10 + 2 + 3);
 			// Bob wins 3x on his bet.
-			// 100 + 3*10 = 130
-			expect(bob.chips).to.equal(130);
+			expect(bob.chips).to.equal(100 + 3*10);
 			// Charlie loses his bet but gets his reserved chips back.
-			// 100 - 10 + 2 = 92
-			expect(charlie.chips).to.equal(92);
+			expect(charlie.chips).to.equal(100 - 10 + 2);
 			// Derek loses his bet but gets his reserved chips back.
-			// 100 - 10 + 2 = 91
-			expect(derek.chips).to.equal(92);
+			expect(derek.chips).to.equal(100 - 10 + 2);
 		});
 		
 		test("ties pay out bonus chips to all players", () => {
@@ -346,14 +356,26 @@ describe("BettingPhase", () => {
 				guesses: [[alice, 50], [bob, 50], [charlie, 50], [derek, 50], [elizabeth, 60]]
 			});
 			
-			phase.resolve();
+			const conclusion = phase.resolve();
+			
+			expect(conclusion).to.deep.equal({
+				type: "conclusion",
+				winners: [alice.publicId, bob.publicId, charlie.publicId, derek.publicId],
+				earnings: {
+					[alice.publicId]: 3,
+					[bob.publicId]: 3,
+					[charlie.publicId]: 3,
+					[derek.publicId]: 3,
+					[elizabeth.publicId]: 0
+				}
+			});
 			
 			// No one bets, but the four-way tie pays out the round bonus to all
 			// winning players.
-			expect(alice.chips).to.equal(103);
-			expect(bob.chips).to.equal(103);
-			expect(charlie.chips).to.equal(103);
-			expect(derek.chips).to.equal(103);
+			expect(alice.chips).to.equal(100 + 3);
+			expect(bob.chips).to.equal(100 + 3);
+			expect(charlie.chips).to.equal(100 + 3);
+			expect(derek.chips).to.equal(100 + 3);
 			expect(elizabeth.chips).to.equal(100);
 		});
 		
@@ -373,20 +395,30 @@ describe("BettingPhase", () => {
 			phase.submitBet(bob.privateId, 2, 10);
 			phase.submitBet(charlie.privateId, 3, 10);
 			
-			phase.resolve();
+			const conclusion = phase.resolve();
+			
+			expect(conclusion).to.deep.equal({
+				type: "conclusion",
+				winners: [bob.publicId, charlie.publicId, derek.publicId],
+				earnings: {
+					[alice.publicId]: 4*10,
+					[bob.publicId]: 4*10 + 3,
+					[charlie.publicId]: 4*10 + 3,
+					[derek.publicId]: 3,
+					[elizabeth.publicId]: 0
+				}
+			});
 			
 			// Alice wins 3x her bet on 1.
-			// 100 + 3*10 = 130
-			expect(alice.chips).to.equal(130);
+			expect(alice.chips).to.equal(100 + 3*10);
 			// Bob wins 3x his bet on 1, and wins the round bonus chips.
-			// 100 + 3*10 + 3 = 133
-			expect(bob.chips).to.equal(133);
+			expect(bob.chips).to.equal(100 + 3*10 + 3);
 			// Charlie wins 3x his bet on 1, and wins the round bonus chips.
-			// 100 + 3*10 + 3 = 133
-			expect(charlie.chips).to.equal(133);
+			expect(charlie.chips).to.equal(100 + 3*10 + 3);
 			// Derek wins the round bonus chips.
-			// 100 + 3 = 103
-			expect(derek.chips).to.equal(103);
+			expect(derek.chips).to.equal(100 + 3);
+			// Elizabeth placed no bets.
+			expect(elizabeth.chips).to.equal(100);
 		});
 		
 		test("both red and black can win on ties", () => {
@@ -407,20 +439,15 @@ describe("BettingPhase", () => {
 			phase.resolve();
 			
 			// Alice wins 1x her bet on Red.
-			// 100 + 1*10 = 110
-			expect(alice.chips).to.equal(110);
+			expect(alice.chips).to.equal(100 + 1*10);
 			// Bob wins the round bonus chips.
-			// 100 + 3 = 103
-			expect(bob.chips).to.equal(103);
+			expect(bob.chips).to.equal(100 + 3);
 			// Charlie wins the round bonus chips.
-			// 100 + 3 = 103
-			expect(charlie.chips).to.equal(103);
+			expect(charlie.chips).to.equal(100 + 3);
 			// Derek wins the round bonus chips.
-			// 100 + 3 = 103
-			expect(derek.chips).to.equal(103);
+			expect(derek.chips).to.equal(100 + 3);
 			// Elizabeth wins 1x her bet on Black.
-			// 100 + 1*10 = 110
-			expect(elizabeth.chips).to.equal(110);
+			expect(elizabeth.chips).to.equal(100 + 1*10);
 		});
 		
 		test("returns correct number of reserved chips", () => {
@@ -444,15 +471,12 @@ describe("BettingPhase", () => {
 			phase.resolve();
 			
 			// Alice loses both of her bets, but gets both reserved chips back.
-			// 100 - 10 - 10 + 2 = 82
-			expect(alice.chips).to.equal(82);
+			expect(alice.chips).to.equal(100 - 10 - 10 + 2);
 			// Bob loses his bet, but gets both reserved chips back.
-			// 100 - 20 + 2 = 82
-			expect(bob.chips).to.equal(82);
+			expect(bob.chips).to.equal(100 - 20 + 2);
 			// Charlie wins 6x on his bet on AllTooHigh and loses his bet on 2,
 			// but gets his reserved chip back.
-			// 100 + 6*10 - 10 + 1 = 151
-			expect(charlie.chips).to.equal(151);
+			expect(charlie.chips).to.equal(100 + 6*10 - 10 + 1);
 			// Derek loses his bet, but gets one reserved chip back because he
 			// only wagered 1.
 			expect(derek.chips).to.equal(100);
@@ -472,7 +496,7 @@ describe("BettingPhase", () => {
 				phase.resolve();
 				
 				// Alice wins 6x her bet.
-				expect(alice.chips).to.equal(160);
+				expect(alice.chips).to.equal(100 + 6*10);
 			});
 			
 			test("pays out winning bet", () => {
@@ -488,7 +512,7 @@ describe("BettingPhase", () => {
 				phase.resolve();
 				
 				// Alice wins 2x her bet and get the round bonus chips.
-				expect(alice.chips).to.equal(123);
+				expect(alice.chips).to.equal(100 + 2*10 + 3);
 			});
 			
 			test("AllTooHigh does not pay out color", () => {
@@ -505,8 +529,7 @@ describe("BettingPhase", () => {
 				phase.resolve();
 				
 				// Alice loses her bet, but gets her reserved chips back.
-				// 100 - 10 - 10 + 2 = 82.
-				expect(alice.chips).to.equal(82);
+				expect(alice.chips).to.equal(100 - 10 - 10 + 2);
 			});
 			
 			test("Winning bet does not pay out color", () => {
@@ -524,8 +547,7 @@ describe("BettingPhase", () => {
 				
 				// Alice loses her bet, but gets her reserved chips back and the
 				// round bonus chips.
-				// 100 - 10 - 10 + 2 + 3 = 85.
-				expect(alice.chips).to.equal(85);
+				expect(alice.chips).to.equal(100 - 10 - 10 + 2 + 3);
 			});
 		});
 		
@@ -548,11 +570,9 @@ describe("BettingPhase", () => {
 				
 				// Alice wins 6x her bet on AllTooHigh and loses her bet on 0,
 				// but gets her reserved chip back.
-				// 100 + 6*10 - 15 + 1 = 146
-				expect(alice.chips).to.equal(146);
-				// Both loses both of his best, but gets his reserved chips
+				expect(alice.chips).to.equal(100 + 6*10 - 15 + 1);
+				// Both loses both of his bets, but gets his reserved chips
 				// back.
-				// 100 - 10 - 15 + 2 = 77
 				expect(bob.chips).to.equal(77);
 			});
 			
@@ -574,11 +594,9 @@ describe("BettingPhase", () => {
 				
 				// Alice wins 3x on her bet on 0, 1x on her bet on Red, and wins
 				// the round bonus chips.
-				// 100 + 3*10 + 1*15 + 3 = 148
-				expect(alice.chips).to.equal(148);
+				expect(alice.chips).to.equal(100 + 3*10 + 1*15 + 3);
 				// Bob loses both of his bets, but gets his reserved chips back.
-				// 100 - 10 - 15 + 2 = 77
-				expect(bob.chips).to.equal(77);
+				expect(bob.chips).to.equal(100 - 10 - 15 + 2);
 			});
 			
 			test("pays out when second guess wins", () => {
@@ -599,11 +617,9 @@ describe("BettingPhase", () => {
 				
 				// Alice loses both of her bets, but gets her reserved chips
 				// back and wins the round bonus chips.
-				// 100 - 10 - 15 + 2 + 3 = 80
-				expect(alice.chips).to.equal(80);
+				expect(alice.chips).to.equal(100 - 10 - 15 + 2 + 3);
 				// Bob wins 3x on his bet on 1 and 1x on his bet on Black.
-				// 100 + 3*10 + 1*15 = 145
-				expect(bob.chips).to.equal(145);
+				expect(bob.chips).to.equal(100 + 3*10 + 1*15);
 			});
 			
 			test("pays out when third guess wins", () => {
@@ -624,11 +640,9 @@ describe("BettingPhase", () => {
 				
 				// Alice loses both of her bets, but gets her reserved chips
 				// back and wins the round bonus chips.
-				// 100 - 10 - 15 + 2 + 3 = 80
-				expect(alice.chips).to.equal(80);
+				expect(alice.chips).to.equal(100 - 10 - 15 + 2 + 3);
 				// Bob wins 3x on his bet on 1 and 1x on his bet on Black.
-				// 100 + 3*10 + 1*15 = 145
-				expect(bob.chips).to.equal(145);
+				expect(bob.chips).to.equal(100 + 3*10 + 1*15);
 			});
 		});
 		
@@ -654,15 +668,11 @@ describe("BettingPhase", () => {
 				
 				// Alice wins 6x her bet on AllTooHigh and loses her bet on 0,
 				// but gets her reserved chip back.
-				// 100 + 6*10 - 15 + 1 = 146
-				expect(alice.chips).to.equal(146);
-				// Both loses both of his best, but gets his reserved chips
-				// back.
-				// 100 - 10 - 15 + 2 = 77
-				expect(bob.chips).to.equal(77);
-				// Charlie loses both of his, but gets his reserved chips back.
-				// 100 - 10 - 15 + 2 = 77
-				expect(charlie.chips).to.equal(77);
+				expect(alice.chips).to.equal(100 + 6*10 - 15 + 1);
+				// Both loses both of his bets, but gets his reserved chips back.
+				expect(bob.chips).to.equal(100 - 10 - 15 + 2);
+				// Charlie loses both of his bets, but gets his reserved chips back.
+				expect(charlie.chips).to.equal(100 - 10 - 15 + 2);
 			});
 			
 			test("pays out when first guess wins", () => {
@@ -686,15 +696,12 @@ describe("BettingPhase", () => {
 				
 				// Alice wins 1x her bet on Red and loses her bet on AllTooHigh,
 				// but gets her reserved chip back and the round bonus chips.
-				// 100 + 1*15 - 10 + 1 + 3 = 109
-				expect(alice.chips).to.equal(109);
+				expect(alice.chips).to.equal(100 + 1*15 - 10 + 1 + 3);
 				// Bob loses both of his bets, but gets his reserved chips back.
-				// 100 - 10 - 15 + 2 = 77
-				expect(bob.chips).to.equal(77);
+				expect(bob.chips).to.equal(100 - 10 - 15 + 2);
 				// Charlie wins 3x his bet on 0 and loses his bet on 2, but
 				// gets his reserved chip back.
-				// 100 + 3*10 - 15 + 1 = 116
-				expect(charlie.chips).to.equal(116);
+				expect(charlie.chips).to.equal(100 + 3*10 - 15 + 1);
 			});
 			
 			test("pays out when second guess wins", () => {
@@ -718,16 +725,13 @@ describe("BettingPhase", () => {
 				
 				// Alice loses both of her bets, but gets her reserved chips
 				// back.
-				// 100 - 10 - 15 + 2 = 77
-				expect(alice.chips).to.equal(77);
+				expect(alice.chips).to.equal(100 - 10 - 15 + 2);
 				// Bob wins 2x on his bet on 1 and loses his bet on Black, but
 				// gets his reserved chip back and wins the round bonus chips.
-				// 100 + 2*10 - 15 + 1 + 3 = 109
-				expect(bob.chips).to.equal(109);
+				expect(bob.chips).to.equal(100 + 2*10 - 15 + 1 + 3);
 				// Charlie loses both of his bets, but gets his reserved chips
 				// back.
-				// 100 - 10 - 15 + 2 = 77
-				expect(charlie.chips).to.equal(77);
+				expect(charlie.chips).to.equal(100 - 10 - 15 + 2);
 			});
 			
 			test("pays out when third guess wins", () => {
@@ -751,16 +755,13 @@ describe("BettingPhase", () => {
 				
 				// Alice loses both of her bets, but gets her reserved chips
 				// back.
-				// 100 - 10 - 15 + 2 = 77
-				expect(alice.chips).to.equal(77);
+				expect(alice.chips).to.equal(100 - 10 - 15 + 2);
 				// Bob wins 1x his bet on Black and loses his bet on 1, but gets
 				// his reserved chip back.
-				// 100 + 1*15 - 10 + 1 = 106
-				expect(bob.chips).to.equal(106);
+				expect(bob.chips).to.equal(100 + 1*15 - 10 + 1);
 				// Charlie wins 3x his bet on 2 and loses his bet on 0, but
 				// gets his reserved chip back and wins the round bonus chips.
-				// 100 + 3*15 - 10 + 1 + 3 = 139
-				expect(charlie.chips).to.equal(139);
+				expect(charlie.chips).to.equal(100 + 3*15 - 10 + 1 + 3);
 			});
 		});
 		
@@ -788,18 +789,14 @@ describe("BettingPhase", () => {
 				
 				// Alice wins 6x her bet on AllTooHigh and loses her bet on 0,
 				// but gets her reserved chip back.
-				// 100 + 6*10 - 15 + 1 = 146
-				expect(alice.chips).to.equal(146);
-				// Both loses both of his best, but gets his reserved chips
+				expect(alice.chips).to.equal(100 + 6*10 - 15 + 1);
+				// Both loses both of his bets, but gets his reserved chips
 				// back.
-				// 100 - 10 - 15 + 2 = 77
-				expect(bob.chips).to.equal(77);
+				expect(bob.chips).to.equal(100 - 10 - 15 + 2);
 				// Charlie loses both of his, but gets his reserved chips back.
-				// 100 - 10 - 15 + 2 = 77
-				expect(charlie.chips).to.equal(77);
+				expect(charlie.chips).to.equal(100 - 10 - 15 + 2);
 				// Derek loses his bet on 3, but gets his reserved chips back.
-				// 100 - 20 + 2 = 82
-				expect(derek.chips).to.equal(82);
+				expect(derek.chips).to.equal(100 - 20 + 2);
 			});
 			
 			test("pays out when first guess wins", () => {
@@ -825,18 +822,14 @@ describe("BettingPhase", () => {
 				
 				// Alice wins 1x her bet on Red and loses her bet on AllTooHigh,
 				// but gets her reserved chip back and the round bonus chips.
-				// 100 + 1*15 - 10 + 1 + 3 = 109
-				expect(alice.chips).to.equal(109);
+				expect(alice.chips).to.equal(100 + 1*15 - 10 + 1 + 3);
 				// Bob loses both of his bets, but gets his reserved chips back.
-				// 100 - 10 - 15 + 2 = 77
-				expect(bob.chips).to.equal(77);
+				expect(bob.chips).to.equal(100 - 10 - 15 + 2);
 				// Charlie wins 4x his bet on 0 and loses his bet on 2, but
 				// gets his reserved chip back.
-				// 100 + 4*10 - 15 + 1 = 126
-				expect(charlie.chips).to.equal(126);
+				expect(charlie.chips).to.equal(100 + 4*10 - 15 + 1);
 				// Derek loses his bet on 3, but gets his reserved chips back.
-				// 100 - 20 + 2 = 82
-				expect(derek.chips).to.equal(82);
+				expect(derek.chips).to.equal(100 - 20 + 2);
 			});
 			
 			test("pays out when second guess wins", () => {
@@ -862,19 +855,15 @@ describe("BettingPhase", () => {
 				
 				// Alice wins 1x her bet on Red and loses her bet on
 				// AllTooHigh, but gets her reserved chip back.
-				// 100 + 1*15 - 10 + 1 = 106
-				expect(alice.chips).to.equal(106);
+				expect(alice.chips).to.equal(100 + 1*15 - 10 + 1);
 				// Bob wins 3x on his bet on 1 and loses his bet on Black, but
 				// gets his reserved chip back and wins the round bonus chips.
-				// 100 + 3*10 - 15 + 1 + 3 = 119
-				expect(bob.chips).to.equal(119);
+				expect(bob.chips).to.equal(100 + 3*10 - 15 + 1 + 3);
 				// Charlie loses both of his bets, but gets his reserved chips
 				// back.
-				// 100 - 10 - 15 + 2 = 77
-				expect(charlie.chips).to.equal(77);
+				expect(charlie.chips).to.equal(100 - 10 - 15 + 2);
 				// Derek loses his bet on 3, but gets his reserved chip2 back.
-				// 100 - 20 + 2 = 82
-				expect(derek.chips).to.equal(82);
+				expect(derek.chips).to.equal(100 - 20 + 2);
 			});
 			
 			test("pays out when third guess wins", () => {
@@ -900,19 +889,15 @@ describe("BettingPhase", () => {
 				
 				// Alice loses both of her bets, but gets her reserved chips
 				// back.
-				// 100 - 10 - 15 + 2 = 77
-				expect(alice.chips).to.equal(77);
+				expect(alice.chips).to.equal(100 - 10 - 15 + 2);
 				// Bob wins 1x his bet on Black and loses his bet on 1, but gets
 				// his reserved chip back.
-				// 100 + 1*15 - 10 + 1 = 106
-				expect(bob.chips).to.equal(106);
+				expect(bob.chips).to.equal(100 + 1*15 - 10 + 1);
 				// Charlie wins 3x his bet on 2 and loses his bet on 0, but
 				// gets his reserved chip back and wins the round bonus chips.
-				// 100 + 3*15 - 10 + 1 + 3 = 139
-				expect(charlie.chips).to.equal(139);
+				expect(charlie.chips).to.equal(100 + 3*15 - 10 + 1 + 3);
 				// Derek loses his bet on 3, but gets his reserved chips back.
-				// 100 - 20 + 2 = 82
-				expect(derek.chips).to.equal(82);
+				expect(derek.chips).to.equal(100 - 20 + 2);
 			});
 			
 			test("pays out when fourth guess wins", () => {
@@ -938,19 +923,15 @@ describe("BettingPhase", () => {
 				
 				// Alice loses both of her bets, but gets her reserved chips
 				// back.
-				// 100 - 10 - 15 + 2 = 77
-				expect(alice.chips).to.equal(77);
+				expect(alice.chips).to.equal(100 - 10 - 15 + 2);
 				// Bob wins 1x his bet on Black and loses his bet on 1, but gets
 				// his reserved chip back.
-				// 100 + 1*15 - 10 + 1 = 106
-				expect(bob.chips).to.equal(106);
+				expect(bob.chips).to.equal(100 + 1*15 - 10 + 1);
 				// Charlie loses both of his bets, but gets his reserved chips
 				// back.
-				// 100 - 10 - 15 + 2 = 77
-				expect(charlie.chips).to.equal(77);
+				expect(charlie.chips).to.equal(100 - 10 - 15 + 2);
 				// Derek wins 4x his bet on 3, and wins the round bonus chips.
-				// 100 + 4*20 + 3 = 183
-				expect(derek.chips).to.equal(183);
+				expect(derek.chips).to.equal(100 + 4*20 + 3);
 			});
 		});
 		
@@ -981,22 +962,17 @@ describe("BettingPhase", () => {
 				
 				// Alice wins 6x her bet on AllTooHigh and loses her bet on 0,
 				// but gets her reserved chip back.
-				// 100 + 6*10 - 15 + 1 = 146
-				expect(alice.chips).to.equal(146);
-				// Both loses both of his best, but gets his reserved chips
+				expect(alice.chips).to.equal(100 + 6*10 - 15 + 1);
+				// Both loses both of his bets, but gets his reserved chips
 				// back.
-				// 100 - 10 - 15 + 2 = 77
-				expect(bob.chips).to.equal(77);
+				expect(bob.chips).to.equal(100 - 10 - 15 + 2);
 				// Charlie loses both of his, but gets his reserved chips back.
-				// 100 - 10 - 15 + 2 = 77
-				expect(charlie.chips).to.equal(77);
+				expect(charlie.chips).to.equal(100 - 10 - 15 + 2);
 				// Derek loses his bet on 3, but gets his reserved chips back.
-				// 100 - 20 + 2 = 82
-				expect(derek.chips).to.equal(82);
+				expect(derek.chips).to.equal(100 - 20 + 2);
 				// Elizabeth loses both of her bets, but gets her reserved chips
 				// back.
-				// 100 - 5 - 25 + 2 = 72
-				expect(elizabeth.chips).to.equal(72);
+				expect(elizabeth.chips).to.equal(100 - 5 - 25 + 2);
 			});
 			
 			test("pays out when first guess wins", () => {
@@ -1025,22 +1001,17 @@ describe("BettingPhase", () => {
 				
 				// Alice wins 1x her bet on Red and loses her bet on AllTooHigh,
 				// but gets her reserved chip back and the round bonus chips.
-				// 100 + 1*15 - 10 + 1 + 3 = 109
-				expect(alice.chips).to.equal(109);
+				expect(alice.chips).to.equal(100 + 1*15 - 10 + 1 + 3);
 				// Bob loses both of his bets, but gets his reserved chips back.
-				// 100 - 10 - 15 + 2 = 77
-				expect(bob.chips).to.equal(77);
+				expect(bob.chips).to.equal(100 - 10 - 15 + 2);
 				// Charlie wins 4x his bet on 0 and loses his bet on 2, but
 				// gets his reserved chip back.
-				// 100 + 4*10 - 15 + 1 = 126
-				expect(charlie.chips).to.equal(126);
+				expect(charlie.chips).to.equal(100 + 4*10 - 15 + 1);
 				// Derek loses his bet on 3, but gets his reserved chips back.
-				// 100 - 20 + 2 = 82
-				expect(derek.chips).to.equal(82);
+				expect(derek.chips).to.equal(100 - 20 + 2);
 				// Elizabeth loses both of her bets, but gets her reserved chips
 				// back.
-				// 100 - 5 - 25 + 2 = 72
-				expect(elizabeth.chips).to.equal(72);
+				expect(elizabeth.chips).to.equal(100 - 5 - 25 + 2);
 			});
 			
 			test("pays out when second guess wins", () => {
@@ -1069,23 +1040,18 @@ describe("BettingPhase", () => {
 				
 				// Alice wins 1x her bet on Red and loses her bet on
 				// AllTooHigh, but gets her reserved chip back.
-				// 100 + 1*15 - 10 + 1 = 106
-				expect(alice.chips).to.equal(106);
+				expect(alice.chips).to.equal(100 + 1*15 - 10 + 1);
 				// Bob wins 3x on his bet on 1 and loses his bet on Black, but
 				// gets his reserved chip back and wins the round bonus chips.
-				// 100 + 3*10 - 15 + 1 + 3 = 119
-				expect(bob.chips).to.equal(119);
+				expect(bob.chips).to.equal(100 + 3*10 - 15 + 1 + 3);
 				// Charlie loses both of his bets, but gets his reserved chips
 				// back.
-				// 100 - 10 - 15 + 2 = 77
-				expect(charlie.chips).to.equal(77);
+				expect(charlie.chips).to.equal(100 - 10 - 15 + 2);
 				// Derek loses his bet on 3, but gets his reserved chips back.
-				// 100 - 20 + 2 = 82
-				expect(derek.chips).to.equal(82);
+				expect(derek.chips).to.equal(100 - 20 + 2);
 				// Elizabeth loses both of her bets, but gets her reserved chips
 				// back.
-				// 100 - 5 - 25 + 2 = 72
-				expect(elizabeth.chips).to.equal(72);
+				expect(elizabeth.chips).to.equal(100 - 5 - 25 + 2);
 			});
 			
 			test("pays out when third guess wins", () => {
@@ -1114,22 +1080,17 @@ describe("BettingPhase", () => {
 				
 				// Alice loses both of her bets, but gets her reserved chips
 				// back.
-				// 100 - 10 - 15 + 2 = 77
-				expect(alice.chips).to.equal(77);
+				expect(alice.chips).to.equal(100 - 10 - 15 + 2);
 				// Bob loses both of his bets, but gets his reserved chip back.
-				// 100 - 10 - 15 + 2 = 77
-				expect(bob.chips).to.equal(77);
+				expect(bob.chips).to.equal(100 - 10 - 15 + 2);
 				// Charlie wins 2x his bet on 2 and loses his bet on 0, but
 				// gets his reserved chip back and wins the round bonus chips.
-				// 100 + 2*15 - 10 + 1 + 3 = 124
-				expect(charlie.chips).to.equal(124);
+				expect(charlie.chips).to.equal(100 + 2*15 - 10 + 1 + 3);
 				// Derek loses his bet on 3, but gets his reserved chips back.
-				// 100 - 20 + 2 = 82
-				expect(derek.chips).to.equal(82);
+				expect(derek.chips).to.equal(100 - 20 + 2);
 				// Elizabeth wins 2x her bet on 2 and loses her bet on 4, but
 				// gets her reserved chip back.
-				// 100 + 2*25 - 5 + 1 = 146
-				expect(elizabeth.chips).to.equal(146);
+				expect(elizabeth.chips).to.equal(100 + 2*25 - 5 + 1);
 			});
 			
 			test("pays out when fourth guess wins", () => {
@@ -1158,23 +1119,18 @@ describe("BettingPhase", () => {
 				
 				// Alice loses both of her bets, but gets her reserved chips
 				// back.
-				// 100 - 10 - 15 + 2 = 77
-				expect(alice.chips).to.equal(77);
+				expect(alice.chips).to.equal(100 - 10 - 15 + 2);
 				// Bob wins 1x his bet on Black and loses his bet on 1, but gets
 				// his reserved chip back.
-				// 100 + 1*15 - 10 + 1 = 106
-				expect(bob.chips).to.equal(106);
+				expect(bob.chips).to.equal(100 + 1*15 - 10 + 1);
 				// Charlie loses both of his bets, but gets his reserved chips
 				// back.
-				// 100 - 10 - 15 + 2 = 77
-				expect(charlie.chips).to.equal(77);
+				expect(charlie.chips).to.equal(100 - 10 - 15 + 2);
 				// Derek wins 3x his bet on 3, and wins the round bonus chips.
-				// 100 + 3*20 + 3 = 163
-				expect(derek.chips).to.equal(163);
+				expect(derek.chips).to.equal(100 + 3*20 + 3);
 				// Elizabeth loses both of her bets, but gets her reserved chips
 				// back.
-				// 100 - 5 - 25 + 2 = 72
-				expect(elizabeth.chips).to.equal(72);
+				expect(elizabeth.chips).to.equal(100 - 5 - 25 + 2);
 			});
 			
 			test("pays out when fifth guess wins", () => {
@@ -1203,23 +1159,18 @@ describe("BettingPhase", () => {
 				
 				// Alice loses both of her bets, but gets her reserved chips
 				// back.
-				// 100 - 10 - 15 + 2 = 77
-				expect(alice.chips).to.equal(77);
+				expect(alice.chips).to.equal(100 - 10 - 15 + 2);
 				// Bob wins 1x his bet on Black and loses his bet on 1, but gets
 				// his reserved chip back.
-				// 100 + 1*15 - 10 + 1 = 106
-				expect(bob.chips).to.equal(106);
+				expect(bob.chips).to.equal(100 + 1*15 - 10 + 1);
 				// Charlie loses both of his bets, but gets his reserved chips
 				// back.
-				// 100 - 10 - 15 + 2 = 77
-				expect(charlie.chips).to.equal(77);
+				expect(charlie.chips).to.equal(100 - 10 - 15 + 2);
 				// Derek loses his bet on 3, but gets his reserved chips back.
-				// 100 - 20 + 2 = 82
-				expect(derek.chips).to.equal(82);
+				expect(derek.chips).to.equal(100 - 20 + 2);
 				// Elizabeth wins 4x her bet on 4 and loses her bet on 2, but
 				// gets her reserved chip back and wins the round bonus chips.
-				// 100 + 4*5 - 25 + 1 + 3 = 99
-				expect(elizabeth.chips).to.equal(99);
+				expect(elizabeth.chips).to.equal(100 + 4*5 - 25 + 1 + 3);
 			});
 		});
 		
@@ -1253,26 +1204,20 @@ describe("BettingPhase", () => {
 				
 				// Alice wins 6x her bet on AllTooHigh and loses her bet on 0,
 				// but gets her reserved chip back.
-				// 100 + 6*10 - 15 + 1 = 146
-				expect(alice.chips).to.equal(146);
-				// Both loses both of his best, but gets his reserved chips
+				expect(alice.chips).to.equal(100 + 6*10 - 15 + 1);
+				// Both loses both of his bets, but gets his reserved chips
 				// back.
-				// 100 - 10 - 15 + 2 = 77
-				expect(bob.chips).to.equal(77);
+				expect(bob.chips).to.equal(100 - 10 - 15 + 2);
 				// Charlie loses both of his, but gets his reserved chips back.
-				// 100 - 10 - 15 + 2 = 77
-				expect(charlie.chips).to.equal(77);
+				expect(charlie.chips).to.equal(100 - 10 - 15 + 2);
 				// Derek loses his bet on 3, but gets his reserved chips back.
-				// 100 - 20 + 2 = 82
-				expect(derek.chips).to.equal(82);
+				expect(derek.chips).to.equal(100 - 20 + 2);
 				// Elizabeth loses both of her bets, but gets her reserved chips
 				// back.
-				// 100 - 5 - 25 + 2 = 72
-				expect(elizabeth.chips).to.equal(72);
+				expect(elizabeth.chips).to.equal(100 - 5 - 25 + 2);
 				// Frieren loses both of her bets, but gets her reserved chips
 				// back.
-				// 100 - 15 - 20 + 2 = 67
-				expect(frieren.chips).to.equal(67);
+				expect(frieren.chips).to.equal(100 - 15 - 20 + 2);
 			});
 			
 			test("pays out when first guess wins", () => {
@@ -1304,26 +1249,20 @@ describe("BettingPhase", () => {
 				
 				// Alice wins 1x her bet on Red and loses her bet on AllTooHigh,
 				// but gets her reserved chip back and the round bonus chips.
-				// 100 + 1*15 - 10 + 1 + 3 = 109
-				expect(alice.chips).to.equal(109);
+				expect(alice.chips).to.equal(100 + 1*15 - 10 + 1 + 3);
 				// Bob loses both of his bets, but gets his reserved chips back.
-				// 100 - 10 - 15 + 2 = 77
-				expect(bob.chips).to.equal(77);
+				expect(bob.chips).to.equal(100 - 10 - 15 + 2);
 				// Charlie wins 5x his bet on 0 and loses his bet on 2, but
 				// gets his reserved chip back.
-				// 100 + 5*10 - 15 + 1 = 136
-				expect(charlie.chips).to.equal(136);
+				expect(charlie.chips).to.equal(100 + 5*10 - 15 + 1);
 				// Derek loses his bet on 3, but gets his reserved chips back.
-				// 100 - 20 + 2 = 82
-				expect(derek.chips).to.equal(82);
+				expect(derek.chips).to.equal(100 - 20 + 2);
 				// Elizabeth loses both of her bets, but gets her reserved chips
 				// back.
-				// 100 - 5 - 25 + 2 = 72
-				expect(elizabeth.chips).to.equal(72);
+				expect(elizabeth.chips).to.equal(100 - 5 - 25 + 2);
 				// Frieren loses both of her bets, but gets her reserved chips
 				// back.
-				// 100 - 15 - 20 + 2 = 67
-				expect(frieren.chips).to.equal(67);
+				expect(frieren.chips).to.equal(100 - 15 - 20 + 2);
 			});
 			
 			test("pays out when second guess wins", () => {
@@ -1355,27 +1294,21 @@ describe("BettingPhase", () => {
 				
 				// Alice wins 1x her bet on Red and loses her bet on
 				// AllTooHigh, but gets her reserved chip back.
-				// 100 + 1*15 - 10 + 1 = 106
-				expect(alice.chips).to.equal(106);
+				expect(alice.chips).to.equal(100 + 1*15 - 10 + 1);
 				// Bob wins 4x on his bet on 1 and loses his bet on Black, but
 				// gets his reserved chip back and wins the round bonus chips.
-				// 100 + 4*10 - 15 + 1 + 3 = 129
-				expect(bob.chips).to.equal(129);
+				expect(bob.chips).to.equal(100 + 4*10 - 15 + 1 + 3);
 				// Charlie loses both of his bets, but gets his reserved chips
 				// back.
-				// 100 - 10 - 15 + 2 = 77
-				expect(charlie.chips).to.equal(77);
+				expect(charlie.chips).to.equal(100 - 10 - 15 + 2);
 				// Derek loses his bet on 3, but gets his reserved chips back.
-				// 100 - 20 + 2 = 82
-				expect(derek.chips).to.equal(82);
+				expect(derek.chips).to.equal(100 - 20 + 2);
 				// Elizabeth loses both of her bets, but gets her reserved chips
 				// back.
-				// 100 - 5 - 25 + 2 = 72
-				expect(elizabeth.chips).to.equal(72);
+				expect(elizabeth.chips).to.equal(100 - 5 - 25 + 2);
 				// Frieren loses both of her bets, but gets her reserved chips
 				// back.
-				// 100 - 15 - 20 + 2 = 67
-				expect(frieren.chips).to.equal(67);
+				expect(frieren.chips).to.equal(100 - 15 - 20 + 2);
 			});
 			
 			test("pays out when third guess wins", () => {
@@ -1407,26 +1340,20 @@ describe("BettingPhase", () => {
 				
 				// Alice wins 1x her bet on Red and loses her bet on,
 				// AllTooHigh, but gets her reserved chips back.
-				// 100 + 1*15 - 10 + 1 = 106
-				expect(alice.chips).to.equal(106);
+				expect(alice.chips).to.equal(100 + 1*15 - 10 + 1);
 				// Bob loses both of his bets, but gets his reserved chips back.
-				// 100 - 10 - 15 + 2 = 77
-				expect(bob.chips).to.equal(77);
+				expect(bob.chips).to.equal(100 - 10 - 15 + 2);
 				// Charlie wins 3x his bet on 2 and loses his bet on 0, but
 				// gets his reserved chip back and wins the round bonus chips.
-				// 100 + 3*15 - 10 + 1 + 3 = 139
-				expect(charlie.chips).to.equal(139);
+				expect(charlie.chips).to.equal(100 + 3*15 - 10 + 1 + 3);
 				// Derek loses his bet on 3, but gets his reserved chips back.
-				// 100 - 20 + 2 = 82
-				expect(derek.chips).to.equal(82);
+				expect(derek.chips).to.equal(100 - 20 + 2);
 				// Elizabeth wins 3x her bet on 2 and loses her bet on 4, but
 				// gets her reserved chip back.
-				// 100 + 3*25 - 5 + 1 = 171
-				expect(elizabeth.chips).to.equal(171);
+				expect(elizabeth.chips).to.equal(100 + 3*25 - 5 + 1);
 				// Frieren loses both of her bets, but gets her reserved chips
 				// back.
-				// 100 - 15 - 20 + 2 = 67
-				expect(frieren.chips).to.equal(67);
+				expect(frieren.chips).to.equal(100 - 15 - 20 + 2);
 			});
 			
 			test("pays out when fourth guess wins", () => {
@@ -1458,27 +1385,21 @@ describe("BettingPhase", () => {
 				
 				// Alice loses both of her bets, but gets her reserved chips
 				// back.
-				// 100 - 10 - 15 + 2 = 77
-				expect(alice.chips).to.equal(77);
+				expect(alice.chips).to.equal(100 - 10 - 15 + 2);
 				// Bob wins 1x his bet on Black and loses his bet on 1, but gets
 				// his reserved chip back.
-				// 100 + 1*15 - 10 + 1 = 106
-				expect(bob.chips).to.equal(106);
+				expect(bob.chips).to.equal(100 + 1*15 - 10 + 1);
 				// Charlie loses both of his bets, but gets his reserved chips
 				// back.
-				// 100 - 10 - 15 + 2 = 77
-				expect(charlie.chips).to.equal(77);
+				expect(charlie.chips).to.equal(100 - 10 - 15 + 2);
 				// Derek wins 3x his bet on 3, and wins the round bonus chips.
-				// 100 + 3*20 + 3 = 163
-				expect(derek.chips).to.equal(163);
+				expect(derek.chips).to.equal(100 + 3*20 + 3);
 				// Elizabeth loses both of her bets, but gets her reserved chips
 				// back.
-				// 100 - 5 - 25 + 2 = 72
-				expect(elizabeth.chips).to.equal(72);
+				expect(elizabeth.chips).to.equal(100 - 5 - 25 + 2);
 				// Frieren wins 3x her bet on 3 and loses her bet on 5, but gets
 				// her reserved chips back.
-				// 100 + 3*20 - 15 + 1 = 146
-				expect(frieren.chips).to.equal(146);
+				expect(frieren.chips).to.equal(100 + 3*20 - 15 + 1);
 			});
 			
 			test("pays out when fifth guess wins", () => {
@@ -1510,27 +1431,21 @@ describe("BettingPhase", () => {
 				
 				// Alice loses both of her bets, but gets her reserved chips
 				// back.
-				// 100 - 10 - 15 + 2 = 77
-				expect(alice.chips).to.equal(77);
+				expect(alice.chips).to.equal(100 - 10 - 15 + 2);
 				// Bob wins 1x his bet on Black and loses his bet on 1, but gets
 				// his reserved chip back.
-				// 100 + 1*15 - 10 + 1 = 106
-				expect(bob.chips).to.equal(106);
+				expect(bob.chips).to.equal(100 + 1*15 - 10 + 1);
 				// Charlie loses both of his bets, but gets his reserved chips
 				// back.
-				// 100 - 10 - 15 + 2 = 77
-				expect(charlie.chips).to.equal(77);
+				expect(charlie.chips).to.equal(100 - 10 - 15 + 2);
 				// Derek loses his bet on 3, but gets his reserved chips back.
-				// 100 - 20 + 2 = 82
-				expect(derek.chips).to.equal(82);
+				expect(derek.chips).to.equal(100 - 20 + 2);
 				// Elizabeth wins 4x her bet on 4 and loses her bet on 2, but
 				// gets her reserved chip back and wins the round bonus chips.
-				// 100 + 4*5 - 25 + 1 + 3 = 99
-				expect(elizabeth.chips).to.equal(99);
+				expect(elizabeth.chips).to.equal(100 + 4*5 - 25 + 1 + 3);
 				// Frieren loses both of her bets, but gets her reserved chips
 				// back.
-				// 100 - 15 - 20 + 2 = 67
-				expect(frieren.chips).to.equal(67);
+				expect(frieren.chips).to.equal(100 - 15 - 20 + 2);
 			});
 			
 			test("pays out when sixth guess wins", () => {
@@ -1562,27 +1477,21 @@ describe("BettingPhase", () => {
 				
 				// Alice loses both of her bets, but gets her reserved chips
 				// back.
-				// 100 - 10 - 15 + 2 = 77
-				expect(alice.chips).to.equal(77);
+				expect(alice.chips).to.equal(100 - 10 - 15 + 2);
 				// Bob wins 1x his bet on Black and loses his bet on 1, but gets
 				// his reserved chip back.
-				// 100 + 1*15 - 10 + 1 = 106
-				expect(bob.chips).to.equal(106);
+				expect(bob.chips).to.equal(100 + 1*15 - 10 + 1);
 				// Charlie loses both of his bets, but gets his reserved chips
 				// back.
-				// 100 - 10 - 15 + 2 = 77
-				expect(charlie.chips).to.equal(77);
+				expect(charlie.chips).to.equal(100 - 10 - 15 + 2);
 				// Derek loses his bet on 3, but gets his reserved chips back.
-				// 100 - 20 + 2 = 82
-				expect(derek.chips).to.equal(82);
+				expect(derek.chips).to.equal(100 - 20 + 2);
 				// Elizabeth loses both of her bets, but gets her reserved chips
 				// back.
-				// 100 - 5 - 25 + 2 = 72
-				expect(elizabeth.chips).to.equal(72);
+				expect(elizabeth.chips).to.equal(100 - 5 - 25 + 2);
 				// Frieren wins 5x her bet on 5 and loses her bet on 3, but gets
 				// her reserved chip back and wins the round bonus chips.
-				// 100 + 5*15 - 20 + 1 + 3 = 159
-				expect(frieren.chips).to.equal(159);
+				expect(frieren.chips).to.equal(100 + 5*15 - 20 + 1 + 3);
 			});
 		});
 		
@@ -1619,30 +1528,23 @@ describe("BettingPhase", () => {
 				
 				// Alice wins 6x her bet on AllTooHigh and loses her bet on 0,
 				// but gets her reserved chip back.
-				// 100 + 6*10 - 15 + 1 = 146
-				expect(alice.chips).to.equal(146);
-				// Both loses both of his best, but gets his reserved chips
+				expect(alice.chips).to.equal(100 + 6*10 - 15 + 1);
+				// Both loses both of his bets, but gets his reserved chips
 				// back.
-				// 100 - 10 - 15 + 2 = 77
-				expect(bob.chips).to.equal(77);
+				expect(bob.chips).to.equal(100 - 10 - 15 + 2);
 				// Charlie loses both of his, but gets his reserved chips back.
-				// 100 - 10 - 15 + 2 = 77
-				expect(charlie.chips).to.equal(77);
+				expect(charlie.chips).to.equal(100 - 10 - 15 + 2);
 				// Derek loses his bet on 3, but gets his reserved chips back.
-				// 100 - 20 + 2 = 82
-				expect(derek.chips).to.equal(82);
+				expect(derek.chips).to.equal(100 - 20 + 2);
 				// Elizabeth loses both of her bets, but gets her reserved chips
 				// back.
-				// 100 - 5 - 25 + 2 = 72
-				expect(elizabeth.chips).to.equal(72);
+				expect(elizabeth.chips).to.equal(100 - 5 - 25 + 2);
 				// Frieren loses both of her bets, but gets her reserved chips
 				// back.
-				// 100 - 15 - 20 + 2 = 67
-				expect(frieren.chips).to.equal(67);
+				expect(frieren.chips).to.equal(100 - 15 - 20 + 2);
 				// George loses both of his bets, but gets his reserved chips
 				// back.
-				// 100 - 15 - 15 + 2 = 72
-				expect(george.chips).to.equal(72);
+				expect(george.chips).to.equal(100 - 15 - 15 + 2);
 			});
 			
 			test("pays out when first guess wins", () => {
@@ -1677,30 +1579,23 @@ describe("BettingPhase", () => {
 				
 				// Alice wins 1x her bet on Red and loses her bet on AllTooHigh,
 				// but gets her reserved chip back and the round bonus chips.
-				// 100 + 1*15 - 10 + 1 + 3 = 109
-				expect(alice.chips).to.equal(109);
+				expect(alice.chips).to.equal(100 + 1*15 - 10 + 1 + 3);
 				// Bob loses both of his bets, but gets his reserved chips back.
-				// 100 - 10 - 15 + 2 = 77
-				expect(bob.chips).to.equal(77);
+				expect(bob.chips).to.equal(100 - 10 - 15 + 2);
 				// Charlie wins 5x his bet on 0 and loses his bet on 2, but
 				// gets his reserved chip back.
-				// 100 + 5*10 - 15 + 1 = 136
-				expect(charlie.chips).to.equal(136);
+				expect(charlie.chips).to.equal(100 + 5*10 - 15 + 1);
 				// Derek loses his bet on 3, but gets his reserved chips back.
-				// 100 - 20 + 2 = 82
-				expect(derek.chips).to.equal(82);
+				expect(derek.chips).to.equal(100 - 20 + 2);
 				// Elizabeth loses both of her bets, but gets her reserved chips
 				// back.
-				// 100 - 5 - 25 + 2 = 72
-				expect(elizabeth.chips).to.equal(72);
+				expect(elizabeth.chips).to.equal(100 - 5 - 25 + 2);
 				// Frieren loses both of her bets, but gets her reserved chips
 				// back.
-				// 100 - 15 - 20 + 2 = 67
-				expect(frieren.chips).to.equal(67);
+				expect(frieren.chips).to.equal(100 - 15 - 20 + 2);
 				// George loses both of his bets, but gets his reserved chips
 				// back.
-				// 100 - 15 - 15 + 2 = 72
-				expect(george.chips).to.equal(72);
+				expect(george.chips).to.equal(100 - 15 - 15 + 2);
 			});
 			
 			test("pays out when second guess wins", () => {
@@ -1735,31 +1630,24 @@ describe("BettingPhase", () => {
 				
 				// Alice wins 1x her bet on Red and loses her bet on
 				// AllTooHigh, but gets her reserved chip back.
-				// 100 + 1*15 - 10 + 1 = 106
-				expect(alice.chips).to.equal(106);
+				expect(alice.chips).to.equal(100 + 1*15 - 10 + 1);
 				// Bob wins 4x on his bet on 1 and loses his bet on Black, but
 				// gets his reserved chip back and wins the round bonus chips.
-				// 100 + 4*10 - 15 + 1 + 3 = 129
-				expect(bob.chips).to.equal(129);
+				expect(bob.chips).to.equal(100 + 4*10 - 15 + 1 + 3);
 				// Charlie loses both of his bets, but gets his reserved chips
 				// back.
-				// 100 - 10 - 15 + 2 = 77
-				expect(charlie.chips).to.equal(77);
+				expect(charlie.chips).to.equal(100 - 10 - 15 + 2);
 				// Derek loses his bet on 3, but gets his reserved chips back.
-				// 100 - 20 + 2 = 82
-				expect(derek.chips).to.equal(82);
+				expect(derek.chips).to.equal(100 - 20 + 2);
 				// Elizabeth loses both of her bets, but gets her reserved chips
 				// back.
-				// 100 - 5 - 25 + 2 = 72
-				expect(elizabeth.chips).to.equal(72);
+				expect(elizabeth.chips).to.equal(100 - 5 - 25 + 2);
 				// Frieren loses both of her bets, but gets her reserved chips
 				// back.
-				// 100 - 15 - 20 + 2 = 67
-				expect(frieren.chips).to.equal(67);
+				expect(frieren.chips).to.equal(100 - 15 - 20 + 2);
 				// George loses both of his bets, but gets his reserved chips
 				// back.
-				// 100 - 15 - 15 + 2 = 72
-				expect(george.chips).to.equal(72);
+				expect(george.chips).to.equal(100 - 15 - 15 + 2);
 			});
 			
 			test("pays out when third guess wins", () => {
@@ -1794,30 +1682,23 @@ describe("BettingPhase", () => {
 				
 				// Alice wins 1x her bet on Red and loses her bet on,
 				// AllTooHigh, but gets her reserved chips back.
-				// 100 + 1*15 - 10 + 1 = 106
-				expect(alice.chips).to.equal(106);
+				expect(alice.chips).to.equal(100 + 1*15 - 10 + 1);
 				// Bob loses both of his bets, but gets his reserved chips back.
-				// 100 - 10 - 15 + 2 = 77
-				expect(bob.chips).to.equal(77);
+				expect(bob.chips).to.equal(100 - 10 - 15 + 2);
 				// Charlie wins 3x his bet on 2 and loses his bet on 0, but
 				// gets his reserved chip back and wins the round bonus chips.
-				// 100 + 3*15 - 10 + 1 + 3 = 139
-				expect(charlie.chips).to.equal(139);
+				expect(charlie.chips).to.equal(100 + 3*15 - 10 + 1 + 3);
 				// Derek loses his bet on 3, but gets his reserved chips back.
-				// 100 - 20 + 2 = 82
-				expect(derek.chips).to.equal(82);
+				expect(derek.chips).to.equal(100 - 20 + 2);
 				// Elizabeth wins 3x her bet on 2 and loses her bet on 4, but
 				// gets her reserved chip back.
-				// 100 + 3*25 - 5 + 1 = 171
-				expect(elizabeth.chips).to.equal(171);
+				expect(elizabeth.chips).to.equal(100 + 3*25 - 5 + 1);
 				// Frieren loses both of her bets, but gets her reserved chips
 				// back.
-				// 100 - 15 - 20 + 2 = 67
-				expect(frieren.chips).to.equal(67);
+				expect(frieren.chips).to.equal(100 - 15 - 20 + 2);
 				// George loses both of his bets, but gets his reserved chips
 				// back.
-				// 100 - 15 - 15 + 2 = 72
-				expect(george.chips).to.equal(72);
+				expect(george.chips).to.equal(100 - 15 - 15 + 2);
 			});
 			
 			test("pays out when fourth guess wins", () => {
@@ -1852,30 +1733,23 @@ describe("BettingPhase", () => {
 				
 				// Alice loses both of her bets, but gets her reserved chips
 				// back.
-				// 100 - 10 - 15 + 2 = 77
-				expect(alice.chips).to.equal(77);
+				expect(alice.chips).to.equal(100 - 10 - 15 + 2);
 				// Bob loses both of his bets, but gets his reserved chips back.
-				// 100 - 10 - 15 + 2 = 77
-				expect(bob.chips).to.equal(77);
+				expect(bob.chips).to.equal(100 - 10 - 15 + 2);
 				// Charlie loses both of his bets, but gets his reserved chips
 				// back.
-				// 100 - 10 - 15 + 2 = 77
-				expect(charlie.chips).to.equal(77);
+				expect(charlie.chips).to.equal(100 - 10 - 15 + 2);
 				// Derek wins 2x his bet on 3, and wins the round bonus chips.
-				// 100 + 2*20 + 3 = 143
-				expect(derek.chips).to.equal(143);
+				expect(derek.chips).to.equal(100 + 2*20 + 3);
 				// Elizabeth loses both of her bets, but gets her reserved chips
 				// back.
-				// 100 - 5 - 25 + 2 = 72
-				expect(elizabeth.chips).to.equal(72);
+				expect(elizabeth.chips).to.equal(100 - 5 - 25 + 2);
 				// Frieren wins 2x her bet on 3 and loses her bet on 5, but gets
 				// her reserved chips back.
-				// 100 + 2*20 - 15 + 1 = 126
-				expect(frieren.chips).to.equal(126);
+				expect(frieren.chips).to.equal(100 + 2*20 - 15 + 1);
 				// George loses both of his bets, but gets his reserved chips
 				// back.
-				// 100 - 15 - 15 + 2 = 72
-				expect(george.chips).to.equal(72);
+				expect(george.chips).to.equal(100 - 15 - 15 + 2);
 			});
 			
 			test("pays out when fifth guess wins", () => {
@@ -1910,31 +1784,24 @@ describe("BettingPhase", () => {
 				
 				// Alice loses both of her bets, but gets her reserved chips
 				// back.
-				// 100 - 10 - 15 + 2 = 77
-				expect(alice.chips).to.equal(77);
+				expect(alice.chips).to.equal(100 - 10 - 15 + 2);
 				// Bob wins 1x his bet on Black and loses his bet on 1, but gets
 				// his reserved chip back.
-				// 100 + 1*15 - 10 + 1 = 106
-				expect(bob.chips).to.equal(106);
+				expect(bob.chips).to.equal(100 + 1 * 15 - 10 + 1);
 				// Charlie loses both of his bets, but gets his reserved chips
 				// back.
-				// 100 - 10 - 15 + 2 = 77
-				expect(charlie.chips).to.equal(77);
+				expect(charlie.chips).to.equal(100 - 10 - 15 + 2);
 				// Derek loses his bet on 3, but gets his reserved chips back.
-				// 100 - 20 + 2 = 82
-				expect(derek.chips).to.equal(82);
+				expect(derek.chips).to.equal(100 - 20 + 2);
 				// Elizabeth wins 3x her bet on 4 and loses her bet on 2, but
 				// gets her reserved chip back and wins the round bonus chips.
-				// 100 + 3*5 - 25 + 1 + 3 = 94
-				expect(elizabeth.chips).to.equal(94);
+				expect(elizabeth.chips).to.equal(100 + 3*5 - 25 + 1 + 3);
 				// Frieren loses both of her bets, but gets her reserved chips
 				// back.
-				// 100 - 15 - 20 + 2 = 67
-				expect(frieren.chips).to.equal(67);
+				expect(frieren.chips).to.equal(100 - 15 - 20 + 2);
 				// George wins 1x his bet on Black and loses his bet on 6, but
 				// gets his reserved chip back.
-				// 100 + 1*15 - 15 + 1 = 101
-				expect(george.chips).to.equal(101);
+				expect(george.chips).to.equal(100 + 1*15 - 15 + 1);
 			});
 			
 			test("pays out when sixth guess wins", () => {
@@ -1969,31 +1836,24 @@ describe("BettingPhase", () => {
 				
 				// Alice loses both of her bets, but gets her reserved chips
 				// back.
-				// 100 - 10 - 15 + 2 = 77
-				expect(alice.chips).to.equal(77);
+				expect(alice.chips).to.equal(100 - 10 - 15 + 2);
 				// Bob wins 1x his bet on Black and loses his bet on 1, but gets
 				// his reserved chip back.
-				// 100 + 1*15 - 10 + 1 = 106
-				expect(bob.chips).to.equal(106);
+				expect(bob.chips).to.equal(100 + 1 * 15 - 10 + 1);
 				// Charlie loses both of his bets, but gets his reserved chips
 				// back.
-				// 100 - 10 - 15 + 2 = 77
-				expect(charlie.chips).to.equal(77);
+				expect(charlie.chips).to.equal(100 - 10 - 15 + 2);
 				// Derek loses his bet on 3, but gets his reserved chips back.
-				// 100 - 20 + 2 = 82
-				expect(derek.chips).to.equal(82);
+				expect(derek.chips).to.equal(100 - 20 + 2);
 				// Elizabeth loses both of her bets, but gets her reserved chips
 				// back.
-				// 100 - 5 - 25 + 2 = 72
-				expect(elizabeth.chips).to.equal(72);
+				expect(elizabeth.chips).to.equal(100 - 5 - 25 + 2);
 				// Frieren loses both of her bets, but gets her reserved chips
 				// back and wins the round bonus chips.
-				// 100 - 15 - 20 + 2 + 3 = 70
-				expect(frieren.chips).to.equal(70);
+				expect(frieren.chips).to.equal(100 - 15 - 20 + 2 + 3);
 				// George wins 1x his bet on Black and loses his bet on 6, but
 				// gets his reserved chip back.
-				// 100 + 1*15 - 15 + 1 = 101
-				expect(george.chips).to.equal(101);
+				expect(george.chips).to.equal(100 + 1*15 - 15 + 1);
 			});
 			
 			test("pays out when seventh guess wins", () => {
@@ -2028,31 +1888,24 @@ describe("BettingPhase", () => {
 				
 				// Alice loses both of her bets, but gets her reserved chips
 				// back.
-				// 100 - 10 - 15 + 2 = 77
-				expect(alice.chips).to.equal(77);
+				expect(alice.chips).to.equal(100 - 10 - 15 + 2);
 				// Bob wins 1x his bet on Black and loses his bet on 1, but gets
 				// his reserved chip back.
-				// 100 + 1*15 - 10 + 1 = 106
-				expect(bob.chips).to.equal(106);
+				expect(bob.chips).to.equal(100 + 1*15 - 10 + 1);
 				// Charlie loses both of his bets, but gets his reserved chips
 				// back.
-				// 100 - 10 - 15 + 2 = 77
-				expect(charlie.chips).to.equal(77);
+				expect(charlie.chips).to.equal(100 - 10 - 15 + 2);
 				// Derek loses his bet on 3, but gets his reserved chips back.
-				// 100 - 20 + 2 = 82
-				expect(derek.chips).to.equal(82);
+				expect(derek.chips).to.equal(100 - 20 + 2);
 				// Elizabeth loses both of her bets, but gets her reserved chips
 				// back.
-				// 100 - 5 - 25 + 2 = 72
-				expect(elizabeth.chips).to.equal(72);
+				expect(elizabeth.chips).to.equal(100 - 5 - 25 + 2);
 				// Frieren wins 5x her bet on 6 and loses her bet on 3, but gets
 				// her reserved chip back.
-				// 100 + 5*15 - 20 + 1 = 156
-				expect(frieren.chips).to.equal(156);
+				expect(frieren.chips).to.equal(100 + 5*15 - 20 + 1);
 				// George wins 1x his bet on Black and 5x his bet on 6, and wins
 				// the round bonus chips.
-				// 100 + 1*15 + 5*15 + 3 = 193
-				expect(george.chips).to.equal(193);
+				expect(george.chips).to.equal(100 + 1*15 + 5*15 + 3);
 			});
 		});
 	});

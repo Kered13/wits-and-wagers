@@ -3,7 +3,7 @@ import { Subject, type Observable } from "rxjs";
 import type { Phase } from "./phase.js";
 import type { Player, PlayerManager } from "./player.js";
 import { HttpError } from "../utils/httperror.js";
-import { type BetJson, type BetTarget, type BettingPhaseJson, type GuessJson } from "../../shared/game/game.js";
+import { type BetJson, type BetTarget, type BettingConclusion, type BettingPhaseJson, type GuessJson } from "../../shared/game/game.js";
 import { type PrivateId } from "../../shared/player.js";
 
 
@@ -94,8 +94,15 @@ export class BettingPhase implements Phase {
 		}
 	}
 	
-	// Finds the winning guess and computes payouts based on bets.
-	public resolve(): void {
+	// Finds the winning guess and computes payouts based on bets. Returns a
+	// summary of the results of the round.
+	public resolve(): BettingConclusion {
+		const conclusion: BettingConclusion = {
+			type: "conclusion",
+			winners: [],
+			earnings: Object.fromEntries(this.players.getAll().map(player => [player.publicId, 0]))
+		};
+		
 		let winningGuessIdx = -1;
 		for (const guess of this.guesses) {
 			if (guess.guess > this.answer) {
@@ -119,6 +126,8 @@ export class BettingPhase implements Phase {
 			const payout = Math.max(this.reservedChipsFor(bet), (multiplier + 1) * bet.wager);
 			const player = this.players.getPublicPlayer(bet.player);
 			player.chips += payout;
+			
+			conclusion.earnings[player.publicId]! += payout;
 		}
 		
 		// Award bonus chips to the player who got the correct guess. Handle
@@ -127,8 +136,14 @@ export class BettingPhase implements Phase {
 			this.guesses
 				.filter(guess => guess.guess === winningGuess.guess)
 				.map(guess => this.players.getPublicPlayer(guess.player))
-				.forEach(player => player.chips += this.round);
+				.forEach(player => {
+					player.chips += this.round;
+					conclusion.winners.push(player.publicId);
+					conclusion.earnings[player.publicId]! += this.round;
+				});
 		}
+		
+		return conclusion;
 	}
 	
 	public toJson(forPlayer: PrivateId): BettingPhaseJson {

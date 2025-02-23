@@ -14,6 +14,7 @@ import { SUBMIT_BET_PATH, SubmitBetRequestSchema } from "../../shared/game/submi
 import { WITHDRAW_BET_PATH, WithdrawBetRequestSchema } from "../../shared/game/withdraw-bet.js";
 import { END_PHASE_PATH, EndPhaseRequestSchema } from "../../shared/game/end-phase.js";
 import { type WsError } from "../../shared/ws-error.js";
+import { merge } from "rxjs";
 
 
 class GameNotifier extends Notifier<GameNotification> {}
@@ -44,14 +45,16 @@ export class GameApp {
 		const notifier = new GameNotifier();
 		this.games.set(game.getId(), { game, notifier });
 		
-		game.onUpdates().subscribe({
-			next: () => { 
-				for (const player of game.getPlayers().getAll()) {
-					notifier.notifyPlayer(player.privateId, game.makeUpdate(player.privateId));
-				}
-			},
+		game.onUpdates().subscribe(() =>
+			game.getPlayers().getAll().forEach(
+				player => notifier.notifyPlayer(player.privateId, game.makeUpdate(player.privateId))))
+		game.onRoundEnd().subscribe(endRound => notifier.notifyClients(endRound));
+		
+		// Both onUpdates and onRoundEnd should complete at the same time, but
+		// to be safe we wait for both to complete. Then we close all
+		// connections and delete the game, we are done with it.
+		merge(game.onUpdates(), game.onRoundEnd()).subscribe({
 			complete: () => {
-				// Close all connections and delete the game, we are done with it.
 				notifier.close();
 				this.games.delete(game.getId());
 			}

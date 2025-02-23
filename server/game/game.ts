@@ -6,9 +6,9 @@ import { type Phase } from "./phase.js";
 import { Player, PlayerManager, type PlayerParams } from "./player.js";
 import { QuestionPhase, type QuestionPhaseOptions } from "./question-phase.js";
 import { HttpError } from "../utils/httperror.js";
-import { type BetTarget, type GameId, type GameJson } from "../../shared/game/game.js";
+import { type BetTarget, type BettingConclusion, type GameId, type GameJson, type SkippedBettingPhase } from "../../shared/game/game.js";
 import { type PrivateId } from "../../shared/player.js";
-import { type GameUpdate } from "../../shared/game/notifications.js";
+import { type EndRoundNotification, type GameUpdate } from "../../shared/game/notifications.js";
 
 
 export type GameOptions = QuestionPhaseOptions & BettingPhaseOptions;
@@ -20,8 +20,9 @@ const defaultOptions: GameOptions = {
 
 export class Game {
 	private readonly players: PlayerManager;
-	private readonly updates = new Subject<void>();
 	private readonly options: GameOptions;
+	private readonly updates = new Subject<void>();
+	private readonly roundEnd = new Subject<EndRoundNotification>();
 	
 	// round = 8 if the game is over.
 	private round: number = 1;
@@ -93,28 +94,29 @@ export class Game {
 		this.phase.endPhase();
 	}
 	
-	nextPhase(): void {
+	private startNextPhase(): void {
 		if (this.phase instanceof QuestionPhase) {
 			const guesses = this.phase.getGuesses();
 			if (guesses.size == 0) {
 				// Skip the betting phase if no one submitted guesses.
-				this.newRound();
+				this.startNewRound({ type: "skipped" });
 			} else {
 				this.startBettingPhase(guesses);
 			}
 		} else if (this.phase instanceof BettingPhase) {
-			this.phase.resolve();
-			this.newRound();
+			this.startNewRound(this.phase.resolve());
 		}
 	}
 	
-	private newRound(): void {
-		if (this.round >= 7) {
+	private startNewRound(outcome: SkippedBettingPhase | BettingConclusion): void {
+		this.roundEnd.next(this.makeEndRound(outcome));
+		this.round++;
+		
+		if (this.round > 7) {
 			this.endGame();
 			return;
 		}
 		
-		this.round++;
 		this.startQuestionPhase();
 	}
 	
@@ -131,7 +133,7 @@ export class Game {
 	
 	private startPhase(phase: Phase): void {
 		this.phase = phase;
-		phase.onEndPhase().subscribe(() => this.nextPhase());
+		phase.onEndPhase().subscribe(() => this.startNextPhase());
 		this.updates.next();
 	}
 	
@@ -144,12 +146,13 @@ export class Game {
 		this.round = 8;
 		this.updates.next();
 		this.updates.complete();
+		this.roundEnd.complete();
 	}
 	
 	public toJson(forPlayer: PrivateId): GameJson {
 		return {
 			title: this.title,
-			players: this.players.toRankedJson(),
+			players: this.players.toJson(),
 			round: this.round,
 			phase: this.phase.toJson(forPlayer)
 		};
@@ -161,6 +164,18 @@ export class Game {
 			type: "update",
 			id: this.id,
 			state: this.toJson(forPlayer)
+		};
+	}
+	
+	private makeEndRound(outcome: SkippedBettingPhase | BettingConclusion): EndRoundNotification {
+		return {
+			type: "end-round",
+			id: this.id,
+			endRound: {
+				question: this.question,
+				answer: this.answer,
+				outcome: outcome
+			}
 		};
 	}
 	
@@ -177,5 +192,12 @@ export class Game {
 	// is over.
 	public onUpdates(): Observable<void> {
 		return this.updates.asObservable();
+	}
+	
+	// Notifies when a round ends. Subscribers should call makeRoundEnd() to get
+	// information on how the round ended. This observable completes when the
+	// game is over.
+	public onRoundEnd(): Observable<EndRoundNotification> {
+		return this.roundEnd.asObservable();
 	}
 }

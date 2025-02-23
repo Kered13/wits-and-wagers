@@ -89,3 +89,25 @@ export const GameJsonSchema = strictObject({
 	phase: variant("phase", [QuestionPhaseJsonSchema, BettingPhaseJsonSchema, EndPhaseJsonSchema])
 });
 export type GameJson = InferOutput<typeof GameJsonSchema>;
+
+
+export const SkippedBettingPhaseSchema = strictObject({
+	type: literal("skipped")
+});
+export type SkippedBettingPhase = InferOutput<typeof SkippedBettingPhaseSchema>;
+
+
+export const BettingConclusionSchema = strictObject({
+	type: literal("conclusion"),
+	winners: array(PublicIdSchema),
+	earnings: record(PublicIdSchema, pipe(number(), integer()))
+});
+export type BettingConclusion = InferOutput<typeof BettingConclusionSchema>;
+
+
+export const EndRoundSchema = strictObject({
+	question: pipe(string(), nonEmpty()),
+	answer: pipe(number(), integer()),
+	outcome: variant("type", [SkippedBettingPhaseSchema, BettingConclusionSchema])
+});
+export type EndRound = InferOutput<typeof EndRoundSchema>;

@@ -81,11 +81,8 @@ export class PlayerManager {
 		return this.players;
 	}
 	
+	// Returns players ranked by chips.
 	public toJson(): GamePlayerJson[] {
-		return this.players.map(player => player.toJson());
-	}
-	
-	public toRankedJson(): GamePlayerJson[] {
 		return this.players
 			.sort((first, second) => second.chips - first.chips)
 			.map(player => player.toJson());

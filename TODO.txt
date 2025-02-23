@@ -1,7 +1,5 @@
+* Rename GameJson (and other types?) to something better?
 * Implement game.
-  * Round transition.
-    * Report correct answer, winner, and payouts.
-    * Indicate round skipped because no guesses.
   * Only host can end phase.
   * Add option for host to not be a player.
   * Players can finish betting to end phase?
