@@ -7,7 +7,7 @@ import { BackendService } from "../utils/backend.service.js";
 import { Closeable, RefCounted } from "../utils/refcounted.js";
 import { WebsocketError } from "../utils/websocket-error.js";
 import { END_PHASE_PATH, EndPhaseRequest } from "../../shared/game/end-phase.js";
-import { BetTarget, GAME_API_ROOT, type GameId, type GameJson } from "../../shared/game/game.js";
+import { BetTarget, EndRound, GAME_API_ROOT, type GameId, type GameJson } from "../../shared/game/game.js";
 import { GameNotificationSchema, type GameNotification } from "../../shared/game/notifications.js";
 import { SUBMIT_BET_PATH, SubmitBetRequest } from "../../shared/game/submit-bet.js";
 import { SUBMIT_GUESS_PATH, SubmitGuessRequest } from "../../shared/game/submit-guess.js";
@@ -46,6 +46,7 @@ export class GameInstanceService extends Closeable {
 	private readonly wsSubject: WebSocketSubject<Object>;
 	private readonly gameUpdate: Observable<GameJson>;
 	private readonly error: Observable<WebsocketError>;
+	private readonly endRound: Observable<EndRound>;
 	
 	constructor(
 			private readonly gameService: GameService,
@@ -64,6 +65,13 @@ export class GameInstanceService extends Closeable {
 			catchError(err => NEVER),
 			filter(notification => notification.type === "update"),
 			map(update => update.state));
+		
+		this.endRound = notifications.pipe(
+			// Filter out errors. They can be caught by subscribing to the error
+			// observable.
+			catchError(err => NEVER),
+			filter(notification => notification.type === "end-round"),
+			map(update => update.endRound));
 		
 		this.error = notifications.pipe(
 			filter(notification => notification.type === "error"),
@@ -124,11 +132,17 @@ export class GameInstanceService extends Closeable {
 		});
 	}
 	
-	// Completes when the game ends. Errors if an error notification is received.
+	// Completes when the game ends. Will not error.
 	public onGameUpdate(): Observable<GameJson> {
 		return this.gameUpdate;
 	}
 	
+	// Completes when the game ends. Will not error.
+	public onEndRound(): Observable<EndRound> {
+		return this.endRound;
+	}
+	
+	// Notifies on any errors in the notification stream.
 	public onError(): Observable<WebsocketError> {
 		return this.error;
 	}

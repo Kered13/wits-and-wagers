@@ -7,11 +7,12 @@ import { MatDialog } from "@angular/material/dialog";
 import { MatInputModule } from "@angular/material/input";
 import { Title } from "@angular/platform-browser";
 import { ActivatedRoute } from "@angular/router";
-import { combineLatest, map, pairwise, startWith, Subscription, switchMap } from "rxjs";
+import { combineLatest, map, pairwise, startWith, Subscription, switchMap, take } from "rxjs";
 
 import { GameInstanceService, GameService } from "./game.service.js";
 import { GameEndDialogComponent } from "../game-end-dialog/game-end-dialog.component.js";
 import { GlobalErrorHandler } from "../error-dialog/error-handler.js";
+import { RoundEndDialogComponent } from "../round-end-dialog/round-end-dialog.component.js";
 import { GameRoute, TypedRouteFor } from "../routes/routes.js";
 import { RoutingService } from "../routes/routing.service.js";
 import { RefCounted } from "../utils/refcounted.js";
@@ -84,9 +85,17 @@ export class GameComponent implements OnDestroy {
 		this.subs.push(
 			newService.get().onGameUpdate().subscribe({
 				complete: () => {
-					// TODO: Disable controls.
-					this.dialog.open(GameEndDialogComponent, { data: this.game() });
+					this.dialog.afterAllClosed.pipe(take(1)).subscribe(() => 
+						this.dialog.open(GameEndDialogComponent, { data: this.game() }));
 				}
+			}),
+			newService.get().onEndRound().subscribe(endRound => {
+				this.dialog.open(RoundEndDialogComponent, {
+					data: {
+						endRound,
+						players: this.game().players
+					}
+				});
 			}),
 			newService.get().onError().subscribe(err => {
 				this.errorHandler.handleError(err)
