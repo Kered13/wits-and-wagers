@@ -12,7 +12,7 @@ export const LobbyIdSchema = pipe(string(), nonEmpty());
 export type LobbyId = InferOutput<typeof LobbyIdSchema>;
 
 
-export const LobbyPlayerJsonSchema = strictObject({
+export const LobbyPlayerSchema = strictObject({
 	// An ID used to uniquely identify the user.
 	publicId: PublicIdSchema,
 	// Display name for the user. Not unique.
@@ -20,16 +20,16 @@ export const LobbyPlayerJsonSchema = strictObject({
 	// The color for the user. Unique within a lobby or game.
 	color: RgbSchema
 });
-export type LobbyPlayerJson = InferOutput<typeof LobbyPlayerJsonSchema>;
+export type LobbyPlayer = InferOutput<typeof LobbyPlayerSchema>;
 
 
 // Represents the state of the lobby.
-export const LobbyJsonSchema = strictObject({
+export const LobbyStateSchema = strictObject({
 	// Title of the lobby and subsequent game.
 	title: pipe(string(), nonEmpty()),
 	// Public ID of the host.
 	host: pipe(string(), nonEmpty()),
 	// The public information of each player in the lobby.
-	players: array(LobbyPlayerJsonSchema)
+	players: array(LobbyPlayerSchema)
 });
-export type LobbyJson = InferOutput<typeof LobbyJsonSchema>;
+export type LobbyState = InferOutput<typeof LobbyStateSchema>;

@@ -1,6 +1,6 @@
 import { literal, strictObject, variant, type InferOutput } from "valibot";
 
-import { LobbyIdSchema, LobbyJsonSchema } from "./lobby.js";
+import { LobbyIdSchema, LobbyStateSchema } from "./lobby.js";
 import { GameIdSchema } from "../game/game.js";
 import { WsErrorSchema } from "../ws-error.js";
 
@@ -9,7 +9,7 @@ import { WsErrorSchema } from "../ws-error.js";
 export const LobbyUpdateSchema = strictObject({
 	type: literal("update"),
 	id: LobbyIdSchema,
-	state: LobbyJsonSchema
+	state: LobbyStateSchema
 });
 export type LobbyUpdate = InferOutput<typeof LobbyUpdateSchema>;
 

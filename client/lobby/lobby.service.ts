@@ -11,7 +11,7 @@ import { BEGIN_PATH, type BeginGameRequest } from "../../shared/lobby/begin.js";
 import { CANCEL_PATH, type CancelLobbyRequest } from "../../shared/lobby/cancel.js";
 import { CREATE_PATH, CreateLobbyRequestSchema, type CreateLobbyRequest, type CreateLobbyResponse } from "../../shared/lobby/create.js";
 import { JOIN_LOBBY_PATH, type JoinLobbyRequest, type JoinLobbyResponse } from "../../shared/lobby/joinlobby.js";
-import { LOBBY_API_ROOT, type LobbyId, type LobbyJson } from "../../shared/lobby/lobby.js";
+import { LOBBY_API_ROOT, type LobbyId, type LobbyState } from "../../shared/lobby/lobby.js";
 import { LobbyNotificationSchema, type LobbyNotification } from "../../shared/lobby/notifications.js";
 import { SUBSCRIBE_PATH, type SubscribeRequest } from "../../shared/lobby/subscribe.js";
 import { PrivateId } from "../../shared/player.js";
@@ -60,7 +60,7 @@ export class LobbyService {
 
 export class LobbyInstanceService extends Closeable {
 	private readonly wsSubject: WebSocketSubject<Object>;
-	private readonly lobbyUpdate: Observable<LobbyJson>;
+	private readonly lobbyUpdate: Observable<LobbyState>;
 	private readonly begin: Observable<GameId>;
 	private readonly canceled: Observable<void>;
 	private readonly error: Observable<WebsocketError>;
@@ -133,7 +133,7 @@ export class LobbyInstanceService extends Closeable {
 		});
 	}
 	
-	public onLobbyUpdate(): Observable<LobbyJson> {
+	public onLobbyUpdate(): Observable<LobbyState> {
 		return this.lobbyUpdate;
 	}
 	

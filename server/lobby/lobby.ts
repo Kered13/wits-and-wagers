@@ -3,12 +3,12 @@ import * as uuid from "uuid";
 import { Game } from "../game/game.js";
 import { type PlayerParams } from "../game/player.js";
 import { type GameId } from "../../shared/game/game.js";
-import { type LobbyPlayerJson, type LobbyJson, type LobbyId } from "../../shared/lobby/lobby.js";
+import { type LobbyPlayer, type LobbyState, type LobbyId } from "../../shared/lobby/lobby.js";
 import { type LobbyBeginGame, type LobbyCanceled, type LobbyUpdate } from "../../shared/lobby/notifications.js";
 import { type PrivateId, type PrivatePlayer, type PublicId } from "../../shared/player.js";
 
 
-export class LobbyPlayer implements PlayerParams {
+export class Player implements PlayerParams {
 	// Display name for the user. Not unique.
 	public readonly name: string;
 	// An ID used to uniquely identify the user.
@@ -25,7 +25,7 @@ export class LobbyPlayer implements PlayerParams {
 		this.color = player.color;
 	}
 	
-	public toJson(): LobbyPlayerJson {
+	public toJson(): LobbyPlayer {
 		return {
 			name: this.name,
 			publicId: this.publicId,
@@ -44,8 +44,8 @@ export class LobbyPlayer implements PlayerParams {
 
 
 export class Lobby {
-	private readonly players: LobbyPlayer[] = [];
-	private readonly host: LobbyPlayer;
+	private readonly players: Player[] = [];
+	private readonly host: Player;
 	
 	public static gameIdFromLobbyId(lobbyId: LobbyId): GameId {
 		return lobbyId;
@@ -66,11 +66,11 @@ export class Lobby {
 		return requester === this.host.privateId;
 	}
 	
-	public getHost(): LobbyPlayer {
+	public getHost(): Player {
 		return this.host;
 	}
 	
-	public addPlayer(name: string, existingId?: PrivateId): LobbyPlayer {
+	public addPlayer(name: string, existingId?: PrivateId): Player {
 		return this.players.find(player => player.privateId === existingId)
 			|| this.generatePlayer(name);
 	}
@@ -85,7 +85,7 @@ export class Lobby {
 		return [game, this.makeBeginGame(game.getId())];
 	}
 	
-	public toJson(): LobbyJson {
+	public toJson(): LobbyState {
 		return {
 			title: this.title,
 			host: this.host.publicId,
@@ -116,15 +116,15 @@ export class Lobby {
 		};
 	}
 
-	private generatePlayer(name: string): LobbyPlayer {
+	private generatePlayer(name: string): Player {
 		const { privateId, publicId } = this.generatePlayerIds();
-		this.players.push(new LobbyPlayer({
+		this.players.push(new Player({
 			name: name,
 			publicId: publicId,
 			privateId: privateId,
 			color: this.generateColor()
 		}));
-		const player: LobbyPlayer = this.players[this.players.length - 1]!;
+		const player: Player = this.players[this.players.length - 1]!;
 		return player;
 	}
 	

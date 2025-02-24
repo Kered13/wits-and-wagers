@@ -1,11 +1,11 @@
 import { EMPTY, type Observable } from "rxjs";
 
 import type { Phase } from "./phase.js";
-import type { EndPhaseJson } from "../../shared/game/game.js";
+import type { GameOverPhaseState } from "../../shared/game/game.js";
 import type { PrivateId } from "../../shared/player.js";
 
 
-export class EndPhase implements Phase {
+export class GameOverPhase implements Phase {
 	constructor() {}
 	
 	public endPhase(): void {
@@ -17,9 +17,9 @@ export class EndPhase implements Phase {
 		return EMPTY;
 	}
 	
-	public toJson(forPlayer: PrivateId): EndPhaseJson {
+	public toJson(forPlayer: PrivateId): GameOverPhaseState {
 		return {
-			phase: "end"
+			phase: "game-over"
 		};
 	}
 }

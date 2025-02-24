@@ -3,7 +3,7 @@ import { Subject, type Observable } from "rxjs";
 import type { Phase } from "./phase.js";
 import type { Player, PlayerManager } from "./player.js";
 import { HttpError } from "../utils/httperror.js";
-import { type BetJson, type BetTarget, type BettingConclusion, type BettingPhaseJson, type GuessJson } from "../../shared/game/game.js";
+import { type Bet, type BetTarget, type BettingConclusion, type BettingPhaseState, type Guess as GuessJson } from "../../shared/game/game.js";
 import { type PrivateId } from "../../shared/player.js";
 
 
@@ -24,7 +24,7 @@ export type BettingPhaseOptions = {};
 
 
 export class BettingPhase implements Phase {
-	private readonly bets: BetJson[] = [];
+	private readonly bets: Bet[] = [];
 	private readonly guesses: Guess[];
 	private readonly endPhaseSubj = new Subject<void>();
 	
@@ -146,7 +146,7 @@ export class BettingPhase implements Phase {
 		return conclusion;
 	}
 	
-	public toJson(forPlayer: PrivateId): BettingPhaseJson {
+	public toJson(forPlayer: PrivateId): BettingPhaseState {
 		return {
 			phase: "betting",
 			question: this.question,
@@ -220,7 +220,7 @@ export class BettingPhase implements Phase {
 	
 	// Returns the number of reserved chips a player should get for each of
 	// their losing bets.
-	private reservedChipsFor(bet: BetJson): number {
+	private reservedChipsFor(bet: Bet): number {
 		const numBets = this.bets.filter(bet2 => bet2.player === bet.player).length;
 		
 		// A player who made no bets gets no reserved chips back. A player who

@@ -13,7 +13,7 @@ import { GAME_ID } from "../app/localstorage.keys.js";
 import { GlobalErrorHandler } from "../error-dialog/error-handler.js";
 import { RefCounted } from "../utils/refcounted.js";
 import { LobbyRoute, TypedRouteFor } from "../routes/routes.js";
-import { LobbyJson } from "../../shared/lobby/lobby.js";
+import { LobbyState } from "../../shared/lobby/lobby.js";
 import { PrivatePlayer } from "../../shared/player.js";
 import { RoutingService } from "../routes/routing.service.js";
 
@@ -30,7 +30,7 @@ export class LobbyComponent implements OnDestroy {
 	private readonly subs: Subscription[] = [];
 	private readonly instanceSub: Subscription;
 	
-	readonly lobby: Signal<LobbyJson>;
+	readonly lobby: Signal<LobbyState>;
 	readonly player: Signal<PrivatePlayer>;
 	
 	constructor(

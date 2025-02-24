@@ -1,12 +1,12 @@
 import { Observable, Subject } from "rxjs"
 
 import { BettingPhase, type BettingPhaseOptions } from "./betting-phase.js";
-import { EndPhase } from "./end-phase.js";
+import { GameOverPhase } from "./game-over-phase.js";
 import { type Phase } from "./phase.js";
 import { Player, PlayerManager, type PlayerParams } from "./player.js";
 import { QuestionPhase, type QuestionPhaseOptions } from "./question-phase.js";
 import { HttpError } from "../utils/httperror.js";
-import { type BetTarget, type BettingConclusion, type GameId, type GameJson, type SkippedBettingPhase } from "../../shared/game/game.js";
+import { type BetTarget, type BettingConclusion, type GameId, type GameState, type SkippedBettingPhase } from "../../shared/game/game.js";
 import { type PrivateId } from "../../shared/player.js";
 import { type EndRoundNotification, type GameUpdate } from "../../shared/game/notifications.js";
 
@@ -142,14 +142,14 @@ export class Game {
 	}
 	
 	private endGame(): void {
-		this.phase = new EndPhase();
+		this.phase = new GameOverPhase();
 		this.round = 8;
 		this.updates.next();
 		this.updates.complete();
 		this.roundEnd.complete();
 	}
 	
-	public toJson(forPlayer: PrivateId): GameJson {
+	public toJson(forPlayer: PrivateId): GameState {
 		return {
 			title: this.title,
 			players: this.players.toJson(),

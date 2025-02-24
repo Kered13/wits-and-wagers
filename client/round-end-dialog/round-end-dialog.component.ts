@@ -2,7 +2,7 @@ import { Component, Inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 
-import { BettingConclusion, EndRound, GamePlayerJson } from '../../shared/game/game.js';
+import { BettingConclusion, EndRound, GamePlayer } from '../../shared/game/game.js';
 import { PublicId } from '../../shared/player.js';
 
 
@@ -14,9 +14,9 @@ import { PublicId } from '../../shared/player.js';
 })
 export class RoundEndDialogComponent {
 	readonly endRound: EndRound;
-	readonly players: GamePlayerJson[];
+	readonly players: GamePlayer[];
 	
-	constructor(@Inject(MAT_DIALOG_DATA) data: { endRound: EndRound, players: GamePlayerJson[] }) {
+	constructor(@Inject(MAT_DIALOG_DATA) data: { endRound: EndRound, players: GamePlayer[] }) {
 		this.endRound = data.endRound;
 		this.players = data.players;
 	}

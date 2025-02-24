@@ -1,6 +1,6 @@
 import { literal, strictObject, variant, type InferOutput } from "valibot";
 
-import { EndRoundSchema, GameIdSchema, GameJsonSchema } from "./game.js";
+import { EndRoundSchema, GameIdSchema, GameStateSchema } from "./game.js";
 import { WsErrorSchema } from "../ws-error.js";
 
 
@@ -8,7 +8,7 @@ import { WsErrorSchema } from "../ws-error.js";
 export const GameUpdateSchema = strictObject({
 	type: literal("update"),
 	id: GameIdSchema,
-	state: GameJsonSchema
+	state: GameStateSchema
 });
 export type GameUpdate = InferOutput<typeof GameUpdateSchema>;
 

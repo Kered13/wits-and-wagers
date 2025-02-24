@@ -2,7 +2,7 @@ import { Component, Inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 
-import { GameJson } from '../../shared/game/game.js';
+import { GameState } from '../../shared/game/game.js';
 
 
 @Component({
@@ -12,7 +12,7 @@ import { GameJson } from '../../shared/game/game.js';
 	styleUrl: './game-end-dialog.component.css'
 })
 export class GameEndDialogComponent {
-	constructor(@Inject(MAT_DIALOG_DATA) readonly game: GameJson) {}
+	constructor(@Inject(MAT_DIALOG_DATA) readonly game: GameState) {}
 	
 	rankedPlayersStr(): string {
 		return this.game.players.map(player => `${player.name}: ${player.chips}`).join("\n");

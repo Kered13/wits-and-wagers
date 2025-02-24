@@ -1,6 +1,6 @@
 import type { Phase } from "./phase.js";
 import type { Player, PlayerManager } from "./player.js";
-import { type QuestionPhaseJson } from "../../shared/game/game.js";
+import { type QuestionPhaseState } from "../../shared/game/game.js";
 import { type PrivateId } from "../../shared/player.js";
 import { Subject, type Observable } from "rxjs";
 
@@ -39,7 +39,7 @@ export class QuestionPhase implements Phase {
 		return this.endPhaseSubj.asObservable();
 	}
 	
-	public toJson(forPlayer: PrivateId): QuestionPhaseJson {
+	public toJson(forPlayer: PrivateId): QuestionPhaseState {
 		return {
 			phase: "question",
 			question: this.question,

@@ -57,7 +57,7 @@
 							Withdraw Bet
 						</button>
 					}
-					@if (game().phase.phase !== "end") {
+					@if (game().phase.phase !== "game-over") {
 						<button mat-raised-button
 								(click)="onEndPhase()"
 								style="margin-right: 8px">

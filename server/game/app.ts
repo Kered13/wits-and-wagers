@@ -13,7 +13,6 @@ import { SUBMIT_GUESS_PATH, SubmitGuessRequestSchema } from "../../shared/game/s
 import { SUBMIT_BET_PATH, SubmitBetRequestSchema } from "../../shared/game/submit-bet.js";
 import { WITHDRAW_BET_PATH, WithdrawBetRequestSchema } from "../../shared/game/withdraw-bet.js";
 import { END_PHASE_PATH, EndPhaseRequestSchema } from "../../shared/game/end-phase.js";
-import { type WsError } from "../../shared/ws-error.js";
 import { merge } from "rxjs";
 
 

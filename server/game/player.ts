@@ -1,5 +1,5 @@
 import { HttpError } from "../utils/httperror.js";
-import { type GamePlayerJson } from "../../shared/game/game.js";
+import { type GamePlayer } from "../../shared/game/game.js";
 import { type PrivateId, type PublicId } from "../../shared/player.js";
 import { type Rgb } from "../../shared/rgb.js";
 
@@ -28,7 +28,7 @@ export class Player {
 		this.color = player.color;
 	}
 	
-	public toJson(): GamePlayerJson {
+	public toJson(): GamePlayer {
 		return {
 			name: this.name,
 			publicId: this.publicId,
@@ -82,7 +82,7 @@ export class PlayerManager {
 	}
 	
 	// Returns players ranked by chips.
-	public toJson(): GamePlayerJson[] {
+	public toJson(): GamePlayer[] {
 		return this.players
 			.sort((first, second) => second.chips - first.chips)
 			.map(player => player.toJson());

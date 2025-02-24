@@ -17,7 +17,7 @@ import { GameRoute, TypedRouteFor } from "../routes/routes.js";
 import { RoutingService } from "../routes/routing.service.js";
 import { RefCounted } from "../utils/refcounted.js";
 import { PrivatePlayer } from "../../shared/player.js";
-import { GameJson } from "../../shared/game/game.js";
+import { GameState } from "../../shared/game/game.js";
 
 
 @Component({
@@ -32,7 +32,7 @@ export class GameComponent implements OnDestroy {
 	private readonly subs: Subscription[] = [];
 	private readonly instanceSub: Subscription;
 	
-	readonly game: Signal<GameJson>;
+	readonly game: Signal<GameState>;
 	readonly tempGameString: Signal<string>;
 	readonly thisPlayer: Signal<PrivatePlayer>;
 	
