@@ -3,7 +3,7 @@ import { Observable, Subject } from "rxjs"
 import { BettingPhase, type BettingPhaseOptions } from "./betting-phase.js";
 import { GameOverPhase } from "./game-over-phase.js";
 import { type Phase } from "./phase.js";
-import { Player, PlayerManager, type PlayerParams } from "./player.js";
+import { Player, PlayerManager, Spectator, type PlayerParams, type SpectatorParams } from "./player.js";
 import { QuestionPhase, type QuestionPhaseOptions } from "./question-phase.js";
 import { HttpError } from "../utils/httperror.js";
 import { type BetTarget, type BettingConclusion, type GameId, type GameState, type SkippedBettingPhase } from "../../shared/game/game.js";
@@ -33,6 +33,7 @@ export class Game {
 	constructor(
 			private readonly id: GameId,
 			private readonly title: string,
+			private readonly host: SpectatorParams | Spectator,
 			players: PlayerParams[] | Player[],
 			options?: GameOptions) {
 		this.players = new PlayerManager(players);
@@ -90,6 +91,9 @@ export class Game {
 	public endPhase(requester: PrivateId): void {
 		if (this.round > 7) {
 			throw new HttpError(400, "Game is over, cannot end phase.");
+		}
+		if (requester !== this.host.privateId) {
+			throw new HttpError(403, "Only the host can end the phase.");
 		}
 		this.phase.endPhase();
 	}
@@ -152,6 +156,7 @@ export class Game {
 	public toJson(forPlayer: PrivateId): GameState {
 		return {
 			title: this.title,
+			host: this.host.publicId,
 			players: this.players.toJson(),
 			round: this.round,
 			phase: this.phase.toJson(forPlayer)

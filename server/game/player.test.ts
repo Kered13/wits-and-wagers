@@ -1,7 +1,15 @@
 import { describe, expect, test } from "vitest";
 
-import { Player, PlayerManager } from "./player";
+import { Player, PlayerManager, Spectator } from "./player";
 
+
+function makeSpectator(name: string): Spectator {
+	return new Spectator({
+		name: name,
+		publicId: `public-${name}`,
+		privateId: `private-${name}`
+	});
+};
 
 function makePlayer(name: string): Player {
 	return new Player({
@@ -11,6 +19,31 @@ function makePlayer(name: string): Player {
 		color: "#FF0000"
 	});
 };
+
+
+describe("Spectator", () => {
+	test("toJson", () => {
+		const player = makeSpectator("Alice");
+		player.chips = 13;
+		
+		expect(player.toJson()).to.deep.equal({
+			name: "Alice",
+			publicId: "public-Alice",
+			chips: 13
+		});
+	});
+	
+	test("begins with 2 chips", () => {
+		const player = makeSpectator("Alice");
+		
+		expect(player.toJson()).to.deep.equal({
+			name: "Alice",
+			publicId: "public-Alice",
+			chips: 2
+		});
+	});
+});
+
 
 describe("Player", () => {
 	test("toJson", () => {
@@ -36,6 +69,7 @@ describe("Player", () => {
 		});
 	});
 });
+
 
 describe("PlayerManager", () => {
 	test("hasPrivatePlayer finds player", () => {

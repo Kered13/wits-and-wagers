@@ -57,7 +57,7 @@
 							Withdraw Bet
 						</button>
 					}
-					@if (game().phase.phase !== "game-over") {
+					@if (game().phase.phase !== "game-over" && game().host === thisPlayer().publicId) {
 						<button mat-raised-button
 								(click)="onEndPhase()"
 								style="margin-right: 8px">

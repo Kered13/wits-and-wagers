@@ -60,6 +60,7 @@ export class GameComponent implements OnDestroy {
 			{
 				initialValue: {
 					title: "",
+					host: "",
 					players: [],
 					round: 0,
 					phase: {

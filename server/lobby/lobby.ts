@@ -81,7 +81,7 @@ export class Lobby {
 	}
 	
 	public beginGame(): [Game, LobbyBeginGame] {
-		const game = new Game(Lobby.gameIdFromLobbyId(this.id), this.title, this.players);
+		const game = new Game(Lobby.gameIdFromLobbyId(this.id), this.title, this.host, this.players);
 		return [game, this.makeBeginGame(game.getId())];
 	}
 	

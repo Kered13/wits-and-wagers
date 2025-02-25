@@ -1,6 +1,4 @@
-* Rename GameJson (and other types?) to something better?
 * Implement game.
-  * Only host can end phase.
   * Add option for host to not be a player.
   * Players can finish betting to end phase?
   * Allow withdrawing guesses? (Currently, new guesses override old.)

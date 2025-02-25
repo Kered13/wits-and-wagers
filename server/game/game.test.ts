@@ -17,7 +17,7 @@ function makePlayer(name: string): Player {
 
 function makeGame(id: string, title: string, players: Player[]): Game {
 	// Do not automatically end the question phase. This makes testing easier.
-	return new Game(id, title, players, { endQuestionPhaseWhenAllGuessesSubmitted: false });
+	return new Game(id, title, players[0], players, { endQuestionPhaseWhenAllGuessesSubmitted: false });
 }
 
 
@@ -29,6 +29,7 @@ describe("Game", () => {
 			
 			expect(game.toJson(alice.privateId)).to.deep.equal({
 				title: "Game",
+				host: alice.publicId,
 				players: [{
 					name: alice.name,
 					publicId: alice.publicId,
@@ -56,6 +57,7 @@ describe("Game", () => {
 			
 			expect(game.toJson(alice.privateId)).to.deep.equal({
 				title: "Game",
+				host: alice.publicId,
 				players: [{
 					name: alice.name,
 					publicId: alice.publicId,
@@ -91,7 +93,7 @@ describe("Game", () => {
 			charlie.chips = 60;
 			
 			for (let i = 0; i < 7; i++) {
-				game.endPhase(alice.publicId);
+				game.endPhase(alice.privateId);
 			}
 			
 			const expectedPlayers = [{
@@ -113,14 +115,15 @@ describe("Game", () => {
 				chips: 10
 			}];
 			
-			const actualJson = game.toJson(alice.publicId);
+			const actualJson = game.toJson(alice.privateId);
 			
 			expect(actualJson).to.deep.equal({
 				title: "Game",
+				host: alice.publicId,
 				players: expectedPlayers,
 				round: 8,
 				phase: {
-					phase: "end"
+					phase: "game-over"
 				}
 			});
 			expect(actualJson.players).to.deep.ordered.members(expectedPlayers);
@@ -431,5 +434,15 @@ describe("Game", () => {
 		
 		expect(() => game.endPhase(alice.privateId))
 			.to.throw(HttpError, "Game is over, cannot end phase.");
+	});
+	
+	test("only host can end phase", () => {
+		const alice = makePlayer("Alice");
+		const bob = makePlayer("Bob");
+		// Alice is the host.
+		const game = makeGame("id", "Game", [alice, bob]);
+		
+		expect(() => game.endPhase(bob.privateId))
+			.to.throw(HttpError, "Only the host can end the phase.");
 	});
 });

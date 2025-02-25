@@ -1,4 +1,4 @@
-import { array, boolean, integer, literal, nonEmpty, number, pipe, record, strictObject, string, union, variant, type InferOutput } from "valibot";
+import { array, boolean, integer, intersect, literal, nonEmpty, number, pipe, record, strictObject, string, union, variant, type InferOutput } from "valibot";
 
 import { PublicIdSchema } from "../player.js";
 import { RgbSchema } from "../rgb.js";
@@ -12,13 +12,21 @@ export const GameIdSchema = pipe(string(), nonEmpty());
 export type GameId = InferOutput<typeof GameIdSchema>;
 
 
+// The state of a spectator during the game. Spectators can place bets but
+// cannot submit guesses.
+export const GameSpectatorSchema = strictObject({
+	name: pipe(string(), nonEmpty()),
+	publicId: pipe(string(), nonEmpty()),
+	chips: pipe(number(), integer())
+});
+export type GameSpectator = InferOutput<typeof GameSpectatorSchema>;
+
+
 // The state of a player during the game. Does not contain per-phase player
 // information.
 export const GamePlayerSchema = strictObject({
-	name: pipe(string(), nonEmpty()),
-	publicId: pipe(string(), nonEmpty()),
-	color: RgbSchema,
-	chips: pipe(number(), integer())
+	...GameSpectatorSchema.entries,
+	color: RgbSchema
 });
 export type GamePlayer = InferOutput<typeof GamePlayerSchema>;
 
@@ -81,6 +89,8 @@ export type GameOverPhaseState = InferOutput<typeof GameOverPhaseStateSchema>;
 export const GameStateSchema = strictObject({
 	// The title of the game.
 	title: pipe(string(), nonEmpty()),
+	// The host of the game.
+	host: PublicIdSchema,
 	// Players in the game, ranked by number of chips.
 	players: array(GamePlayerSchema),
 	// The current round number.
