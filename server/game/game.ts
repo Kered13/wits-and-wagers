@@ -9,6 +9,7 @@ import { HttpError } from "../utils/httperror.js";
 import { type BetTarget, type BettingConclusion, type GameId, type GameState, type SkippedBettingPhase } from "../../shared/game/game.js";
 import { type PrivateId } from "../../shared/player.js";
 import { type EndRoundNotification, type GameUpdate } from "../../shared/game/notifications.js";
+import type { QuestionGenerator } from "./question-generator.js";
 
 
 export type GameOptions = QuestionPhaseOptions & BettingPhaseOptions;
@@ -35,10 +36,11 @@ export class Game {
 			private readonly title: string,
 			private readonly host: SpectatorParams | Spectator,
 			players: PlayerParams[] | Player[],
+			private readonly questionGenerator: QuestionGenerator,
 			options?: GameOptions) {
 		this.players = new PlayerManager(players);
 		
-		const [question, answer] = this.nextQuestion();
+		const {question, answer} = this.questionGenerator.nextQuestion();
 		this.question = question;
 		this.answer = answer;
 		
@@ -125,7 +127,7 @@ export class Game {
 	}
 	
 	private startQuestionPhase(): void {
-		const [question, answer] = this.nextQuestion();
+		const {question, answer} = this.questionGenerator.nextQuestion();
 		this.question = question;
 		this.answer = answer;
 		this.startPhase(new QuestionPhase(this.question, this.players, this.options));
@@ -139,10 +141,6 @@ export class Game {
 		this.phase = phase;
 		phase.onEndPhase().subscribe(() => this.startNextPhase());
 		this.updates.next();
-	}
-	
-	private nextQuestion(): [string, number] {
-		return ["Guess a number?", 7];
 	}
 	
 	private endGame(): void {

@@ -3,6 +3,7 @@ import { describe, expect, test, vi } from "vitest";
 import { Game } from "./game";
 import { Player } from "./player";
 import { HttpError } from "../utils/httperror";
+import { QuestionGenerator } from "./question-generator";
 
 
 function makePlayer(name: string): Player {
@@ -15,9 +16,24 @@ function makePlayer(name: string): Player {
 }
 
 
+function makeQuestionGenerator() {
+	const question = {
+		question: "Guess a number?",
+		answer: 7
+	};
+	return new QuestionGenerator(new Array(7).fill(question));
+}
+
+
 function makeGame(id: string, title: string, players: Player[]): Game {
 	// Do not automatically end the question phase. This makes testing easier.
-	return new Game(id, title, players[0], players, { endQuestionPhaseWhenAllGuessesSubmitted: false });
+	return new Game(
+		id,
+		title,
+		players[0],
+		players,
+		makeQuestionGenerator(),
+		{ endQuestionPhaseWhenAllGuessesSubmitted: false });
 }
 
 
