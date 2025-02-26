@@ -9,7 +9,7 @@ import { HttpError } from "../utils/httperror.js";
 import { type BetTarget, type BettingConclusion, type GameId, type GameState, type SkippedBettingPhase } from "../../shared/game/game.js";
 import { type PrivateId } from "../../shared/player.js";
 import { type EndRoundNotification, type GameUpdate } from "../../shared/game/notifications.js";
-import type { QuestionGenerator } from "./question-generator.js";
+import type { QuestionGenerator } from "./questions/question-generator.js";
 
 
 export type GameOptions = QuestionPhaseOptions & BettingPhaseOptions;

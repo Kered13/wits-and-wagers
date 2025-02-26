@@ -3,7 +3,7 @@ import { describe, expect, test, vi } from "vitest";
 import { Game } from "./game";
 import { Player } from "./player";
 import { HttpError } from "../utils/httperror";
-import { QuestionGenerator } from "./question-generator";
+import { QuestionGenerator } from "./questions/question-generator";
 
 
 function makePlayer(name: string): Player {

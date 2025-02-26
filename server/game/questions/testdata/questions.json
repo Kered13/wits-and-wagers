@@ -1,0 +1,10 @@
+[
+  {
+    "question": "The first question.",
+    "answer": 42
+  },
+  {
+    "question": "The second question.",
+    "answer": 7
+  }
+]

@@ -6,6 +6,7 @@ import { type GameId } from "../../shared/game/game.js";
 import { type LobbyPlayer, type LobbyState, type LobbyId } from "../../shared/lobby/lobby.js";
 import { type LobbyBeginGame, type LobbyCanceled, type LobbyUpdate } from "../../shared/lobby/notifications.js";
 import { type PrivateId, type PrivatePlayer, type PublicId } from "../../shared/player.js";
+import { QuestionGenerator } from "../game/questions/question-generator.js";
 
 
 export class Player implements PlayerParams {
@@ -81,7 +82,16 @@ export class Lobby {
 	}
 	
 	public beginGame(): [Game, LobbyBeginGame] {
-		const game = new Game(Lobby.gameIdFromLobbyId(this.id), this.title, this.host, this.players);
+		const game = new Game(
+			Lobby.gameIdFromLobbyId(this.id),
+			this.title,
+			this.host,
+			this.players,
+			// TODO: Replace with real questions.
+			new QuestionGenerator(new Array(7).fill({
+				question: "Guess a number?",
+				answer: 7
+			})));
 		return [game, this.makeBeginGame(game.getId())];
 	}
 	

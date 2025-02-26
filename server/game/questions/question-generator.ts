@@ -1,12 +1,7 @@
 import random from "random";
 
-import { HttpError } from "../utils/httperror.js";
-
-
-export type Question = {
-	question: string,
-	answer: number
-};
+import { HttpError } from "../../utils/httperror.js";
+import type { Question } from "./question.js";
 
 
 export class QuestionGenerator {
