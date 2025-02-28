@@ -1,39 +1,50 @@
-import { parse } from "csv-parse/sync";
+import { parseIntSafe } from "complete-common";
+import { CsvError, parse, type CastingContext } from "csv-parse/sync";
 import { readFile } from "fs/promises";
-import { array, assert } from "valibot";
+import * as valibot from "valibot";
 
 import { QuestionSchema, type Question } from "./question.js";
+import { QuestionError, QuestionLoadingError } from "./question-loading-error.js";
 
 
+// Throws QuestionLoadingError if the input file is invalid.
 export async function loadQuestionsFromJson(file: string): Promise<Question[]> {
-	return parseJson(await read(file));
+	try {
+		return parseJson(await read(file));
+	} catch (err) {
+		if (err instanceof SyntaxError || err instanceof valibot.ValiError) {
+			throw new QuestionLoadingError(file, err);
+		}
+		throw err;
+	}
 }
 
 
-export function parseJson(jsonStr: string): Question[] {
-	const questions = JSON.parse(jsonStr);
-	assert(array(QuestionSchema), questions);
-	return questions;
-}
-
-
+// Throws QuestionLoadingError if the input file is invalid.
 export async function loadQuestionsFromCsv(file: string): Promise<Question[]> {
-	return parseCsvQuestions(await read(file));
+	return loadFromCsv(file, ",");
 }
 
 
+// Throws QuestionLoadingError if the input file is invalid.
 export async function loadQuestionsFromTsv(file: string): Promise<Question[]> {
-	return parseTsvQuestions(await read(file));
+	return loadFromCsv(file, "\t");
 }
 
 
-export function parseCsvQuestions(str: string): Question[] {
-	return parseCsv(str, ",");
-}
-
-
-export function parseTsvQuestions(str: string): Question[] {
-	return parseCsv(str, "\t");
+async function loadFromCsv(file: string, delimiter: string): Promise<Question[]> {
+	try {
+		const questionsOrErrors = parseCsv(await read(file), delimiter);
+		if (questionsOrErrors[0]! instanceof QuestionError) {
+			throw new QuestionLoadingError(file, questionsOrErrors as QuestionError[]);
+		}
+		return questionsOrErrors as Question[];
+	} catch (err) {
+		if (err instanceof CsvError) {
+			throw new QuestionLoadingError(file, err);
+		}
+		throw err;
+	}
 }
 
 
@@ -42,20 +53,74 @@ async function read(file: string): Promise<string> {
 }
 
 
-function parseCsv(csvStr: string, delimiter: string): Question[] {
-	const question = parse(
+// Exported for testing purposes.
+export function parseJson(jsonStr: string): Question[] {
+	const questions = JSON.parse(jsonStr);
+	return valibot.parse(valibot.array(QuestionSchema), questions);
+}
+
+
+// Exported for testing purposes.
+export function parseCsv(csvStr: string, delimiter: string): Question[] | QuestionError[] {
+	const errors: QuestionError[] = [];
+	
+	// Attempts to parse the given value. If parsing fails, the resulting error
+	// is pushed onto the error list.
+	type Parser<T> = (value: string, context: CastingContext) => T | QuestionError;
+	function cast<T>(parser: Parser<T>, value: string, context: CastingContext): T | undefined {
+		const valueOrError = parser(value, context);
+		if (valueOrError instanceof QuestionError) {
+			errors.push(valueOrError);
+			return undefined;
+		}
+		return valueOrError;
+	};
+	
+	const questions: Partial<Question>[] = parse(
 		csvStr,
 		{
-			columns: ["question", "answer"],
 			delimiter: delimiter,
-			skip_empty_lines: true,
-			cast: (value, context) => {
+			skipEmptyLines: true,
+			trim: true,
+			relaxColumnCount: true,
+			relaxQuotes: true,
+			onRecord: (record, context): Partial<Question> => {
+				// Validate that the question and answer are present and
+				// properly formatted, and that no unexpected data is present.
+				const question = cast(parseQuestion, record[0], context);
 				if (context.index === 1) {
-					return parseInt(value);
+					errors.push(new QuestionError(`Missing answer for question "${question}".`, context.lines));
+					return { question };
 				}
-				return value;
+				const answer = cast(parseAnswer, record[1], context);
+				for (let i = 2; i < context.index; i++) {
+					errors.push(new QuestionError(`Unexpected column ${i} with value "${record[i]}".`, context.lines));
+				}
+				return { question, answer };
 			}
 		});
-	assert(array(QuestionSchema), question);
-	return question;
+	
+	if (errors.length > 0) {
+		return errors;
+	}
+	return valibot.parse(valibot.array(QuestionSchema), questions);
+}
+
+
+function parseQuestion(value: string, context: CastingContext): string | QuestionError {
+	if (value === "") {
+		return new QuestionError("Question may not be empty.", context.lines);
+	}
+	return value;
+}
+
+
+function parseAnswer(value: string, context: CastingContext): number | QuestionError {
+	const answer = parseIntSafe(value);
+	if (answer === undefined) {
+		return new QuestionError(`Could not parse "${value}" as an integer.`, context.lines);
+	} else if (answer <= 0) {
+		return new QuestionError(`Answer ${answer} is not strictly positive.`, context.lines);
+	}
+	return answer;
 }
