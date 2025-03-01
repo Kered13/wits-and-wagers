@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component } from "@angular/core";
 import { MatButton } from "@angular/material/button";
 import { MatCardModule } from "@angular/material/card";
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 import { MatInputModule } from "@angular/material/input";
 
 import { GAME_ID, USERNAME } from "../app/localstorage.keys.js";
@@ -10,7 +10,7 @@ import { RoutingService } from "../routes/routing.service.js";
 
 @Component({
 	selector: "app-home",
-	imports: [ReactiveFormsModule, FormsModule, MatButton, MatCardModule, MatInputModule],
+	imports: [FormsModule, MatButton, MatCardModule, MatInputModule],
 	templateUrl: "./home.component.html",
 	styleUrl: "./home.component.css",
 	changeDetection: ChangeDetectionStrategy.OnPush

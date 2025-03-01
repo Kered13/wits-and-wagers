@@ -1,12 +1,13 @@
-import { ChangeDetectionStrategy, Component, computed, effect, Inject, OnDestroy, Signal } from "@angular/core";
+import { ChangeDetectionStrategy, Component, computed, Directive, effect, Inject, Input, OnDestroy, Signal, viewChild } from "@angular/core";
 import { toSignal } from "@angular/core/rxjs-interop";
-import { FormsModule } from "@angular/forms";
+import { AbstractControl, FormsModule, NG_VALIDATORS, NgModel, ValidationErrors, Validator } from "@angular/forms";
 import { MatButton } from "@angular/material/button";
 import { MatCardModule } from "@angular/material/card";
 import { MatDialog } from "@angular/material/dialog";
-import { MatInputModule } from "@angular/material/input";
+import { MatError, MatInputModule } from "@angular/material/input";
 import { Title } from "@angular/platform-browser";
 import { ActivatedRoute } from "@angular/router";
+import { parseIntSafe } from "complete-common";
 import { combineLatest, map, pairwise, startWith, Subscription, switchMap, take } from "rxjs";
 
 import { GameInstanceService, GameService } from "./game.service.js";
@@ -17,12 +18,79 @@ import { GameRoute, TypedRouteFor } from "../routes/routes.js";
 import { RoutingService } from "../routes/routing.service.js";
 import { RefCounted } from "../utils/refcounted.js";
 import { PrivatePlayer } from "../../shared/player.js";
-import { GameState } from "../../shared/game/game.js";
+import { BettingPhaseState, GameOverPhaseState, GameState, QuestionPhaseState } from "../../shared/game/game.js";
+
+
+@Directive({
+	selector: "[targetValidator]",
+	providers: [{ provide: NG_VALIDATORS, useExisting: TargetValidator, multi: true }]
+})
+export class TargetValidator implements Validator {
+	@Input({ alias: "targetValidator" }) numGuesses = 0;
+	
+	public validate(control: AbstractControl): ValidationErrors | null {
+		if (control.value === "AllTooHigh" || control.value === "Red" || control.value === "Black") {
+			return null;
+		}
+		const value = parseIntSafe(control.value);
+		if (value === undefined || value < 0 || value >= this.numGuesses) {
+			return { "invalidTarget": true };
+		}
+		return null;
+	}
+}
+
+
+@Directive({
+	selector: "[guessValidator]",
+	providers: [{ provide: NG_VALIDATORS, useExisting: GuessValidator, multi: true }]
+})
+export class GuessValidator implements Validator {
+	public validate(control: AbstractControl): ValidationErrors | null {
+		const value = parseIntSafe(control.value);
+		if (value === undefined) {
+			return { "notAnInteger": true };
+		} else if (value <= 0) {
+			return { "mustBePositive": true };
+		}
+		return null;
+	}
+}
+
+
+@Directive({
+	selector: "[chipValidator]",
+	providers: [{ provide: NG_VALIDATORS, useExisting: ChipValidator, multi: true }]
+})
+export class ChipValidator {
+	@Input({ alias: "chipValidator" }) availableChips = 0;
+	
+	public validate(control: AbstractControl): ValidationErrors | null {
+		const value = parseIntSafe(control.value);
+		if (!value) {
+			return { "notAnInteger": true };
+		} else if (value < 0) {
+			return { "mustBePositive": true };
+		} else if (value > this.availableChips) {
+			return { "insufficientChips": true };
+		}
+		return null;
+	}
+}
 
 
 @Component({
 	selector: "app-game",
-	imports: [FormsModule, MatButton, MatCardModule, MatInputModule],
+	imports: [
+		ChipValidator,
+		FormsModule,
+		GuessValidator,
+		MatButton,
+		MatCardModule,
+		MatError,
+		MatInputModule,
+		TargetValidator
+	],
 	templateUrl: "./game.component.html",
 	styleUrl: "./game.component.css",
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -35,6 +103,10 @@ export class GameComponent implements OnDestroy {
 	readonly game: Signal<GameState>;
 	readonly tempGameString: Signal<string>;
 	readonly thisPlayer: Signal<PrivatePlayer>;
+	readonly availableChips: Signal<number>;
+	readonly guessField: Signal<NgModel | undefined> = viewChild("guessField");
+	readonly targetField: Signal<NgModel | undefined> = viewChild("targetField");
+	readonly wagerField: Signal<NgModel | undefined> = viewChild("wagerField");
 	
 	guess: string = ""
 	target: string = ""
@@ -70,9 +142,25 @@ export class GameComponent implements OnDestroy {
 					}
 				}
 			});
+		this.availableChips = computed(() => {
+			const player = this.game().players.find(player => player.publicId === this.thisPlayer().publicId);
+			return player?.chips ?? 0;
+		});
 		this.tempGameString = computed(() => JSON.stringify(this.game(), null, 2));
 		
 		effect(() => titleService.setTitle(route.routeConfig!.title! + " - " + this.game().title));
+	}
+	
+	public isQuestionPhase(phase: QuestionPhaseState | BettingPhaseState | GameOverPhaseState): phase is QuestionPhaseState {
+		return phase.phase === "question";
+	}
+	
+	public isBettingPhase(phase: QuestionPhaseState | BettingPhaseState | GameOverPhaseState): phase is BettingPhaseState {
+		return phase.phase === "betting";
+	}
+	
+	public isGameOverPhase(phase: QuestionPhaseState | BettingPhaseState | GameOverPhaseState): phase is GameOverPhaseState {
+		return phase.phase === "game-over";
 	}
 	
 	private onNewGame(newService: RefCounted<GameInstanceService>, oldService?: RefCounted<GameInstanceService>): void {
@@ -116,7 +204,7 @@ export class GameComponent implements OnDestroy {
 	}
 	
 	public onSubmitGuess(): void {
-		const guess = parseInt(this.guess);
+		const guess = parseIntSafe(this.guess)!;
 		this.gameService().get().submitGuess(guess).subscribe();
 	}
 	
@@ -124,9 +212,9 @@ export class GameComponent implements OnDestroy {
 		const target =
 			this.target === "AllTooHigh" || this.target === "Red" || this.target === "Black"
 				? this.target
-				: parseInt(this.target);
+				: parseInt(this.target)!;
 		
-		const wager = parseInt(this.wager);
+		const wager = parseInt(this.wager)!;
 		this.gameService().get().submitBet(target, wager).subscribe();
 	}
 	
@@ -134,7 +222,7 @@ export class GameComponent implements OnDestroy {
 		const target =
 			this.target === "AllTooHigh" || this.target === "Red" || this.target === "Black"
 				? this.target
-				: parseInt(this.target);
+				: parseInt(this.target)!;
 		this.gameService().get().withdrawBet(target).subscribe();
 	}
 	

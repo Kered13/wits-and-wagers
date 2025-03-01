@@ -1,17 +1,16 @@
-* Stronger integer parsing. https://github.com/complete-ts/complete/blob/main/packages/complete-common/src/functions/utils.ts#L151
 * Implement game.
   * Add option for host to not be a player.
-  * Players can finish betting to end phase?
   * Allow withdrawing guesses? (Currently, new guesses override old.)
   * Load real questions when starting a game.
   * Add color picking.
-* Implement desktop UI.
-  * Clear selections when a new round begins.
-* Implement mobile UI.
 * Implement game options.
   * Choose question set.
   * Round timers.
   * Number of rounds.
+* Implement desktop UI.
+  * Clear selections when a new round begins.
+  * Improve error handling in game to ensure only valid actions are taken.
+* Implement mobile UI.
 * Implement game/lobby expiration.
 * Deploy app.
 * Implement audience.
