@@ -12,9 +12,12 @@ import { type EndRoundNotification, type GameUpdate } from "../../shared/game/no
 import type { QuestionGenerator } from "./questions/question-generator.js";
 
 
-export type GameOptions = QuestionPhaseOptions & BettingPhaseOptions;
+export type GameOptions = QuestionPhaseOptions & BettingPhaseOptions & {
+	numberOfRounds: number
+};
 
 const defaultOptions: GameOptions = {
+	numberOfRounds: 7,
 	endQuestionPhaseWhenAllGuessesSubmitted: true
 };
 
@@ -25,7 +28,6 @@ export class Game {
 	private readonly updates = new Subject<void>();
 	private readonly roundEnd = new Subject<EndRoundNotification>();
 	
-	// round = 8 if the game is over.
 	private round: number = 1;
 	private question: string;
 	private answer: number;
@@ -37,14 +39,14 @@ export class Game {
 			private readonly host: SpectatorParams | Spectator,
 			players: PlayerParams[] | Player[],
 			private readonly questionGenerator: QuestionGenerator,
-			options?: GameOptions) {
+			options?: Partial<GameOptions>) {
 		this.players = new PlayerManager(players);
 		
 		const {question, answer} = this.questionGenerator.nextQuestion();
 		this.question = question;
 		this.answer = answer;
 		
-		this.options = Object.assign(defaultOptions, options);
+		this.options = Object.assign({}, defaultOptions, options);
 		
 		this.phase = new QuestionPhase(question, this.players, this.options);
 		this.startPhase(this.phase);
@@ -55,7 +57,7 @@ export class Game {
 	}
 	
 	public submitGuess(playerId: PrivateId, guess: number): void {
-		if (this.round > 7) {
+		if (this.round > this.options.numberOfRounds) {
 			throw new HttpError(400, "Game is over, cannot submit guesses.");
 		}
 		if (!(this.phase instanceof QuestionPhase)) {
@@ -67,7 +69,7 @@ export class Game {
 	}
 	
 	public submitBet(playerId: PrivateId, target: BetTarget, wager: number): void {
-		if (this.round > 7) {
+		if (this.round > this.options.numberOfRounds) {
 			throw new HttpError(400, "Game is over, cannot submit bets.");
 		}
 		if (!(this.phase instanceof BettingPhase)) {
@@ -79,7 +81,7 @@ export class Game {
 	}
 	
 	public withdrawBet(playerId: PrivateId, target: BetTarget): void {
-		if (this.round > 7) {
+		if (this.isGameOver()) {
 			throw new HttpError(400, "Game is over, cannot withdraw bets.");
 		}
 		if (!(this.phase instanceof BettingPhase)) {
@@ -91,7 +93,7 @@ export class Game {
 	}
 	
 	public endPhase(requester: PrivateId): void {
-		if (this.round > 7) {
+		if (this.isGameOver()) {
 			throw new HttpError(400, "Game is over, cannot end phase.");
 		}
 		if (requester !== this.host.privateId) {
@@ -118,7 +120,7 @@ export class Game {
 		this.roundEnd.next(this.makeEndRound(outcome));
 		this.round++;
 		
-		if (this.round > 7) {
+		if (this.isGameOver()) {
 			this.endGame();
 			return;
 		}
@@ -145,10 +147,13 @@ export class Game {
 	
 	private endGame(): void {
 		this.phase = new GameOverPhase();
-		this.round = 8;
 		this.updates.next();
 		this.updates.complete();
 		this.roundEnd.complete();
+	}
+	
+	private isGameOver(): boolean {
+		return this.round > this.options.numberOfRounds;
 	}
 	
 	public toJson(forPlayer: PrivateId): GameState {

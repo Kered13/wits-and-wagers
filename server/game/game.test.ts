@@ -1,6 +1,6 @@
 import { describe, expect, test, vi } from "vitest";
 
-import { Game } from "./game";
+import { Game, GameOptions } from "./game";
 import { Player } from "./player";
 import { HttpError } from "../utils/httperror";
 import { QuestionGenerator } from "./questions/question-generator";
@@ -25,7 +25,7 @@ function makeQuestionGenerator() {
 }
 
 
-function makeGame(id: string, title: string, players: Player[]): Game {
+function makeGame(id: string, title: string, players: Player[], options?: Partial<GameOptions>): Game {
 	// Do not automatically end the question phase. This makes testing easier.
 	return new Game(
 		id,
@@ -33,7 +33,7 @@ function makeGame(id: string, title: string, players: Player[]): Game {
 		players[0],
 		players,
 		makeQuestionGenerator(),
-		{ endQuestionPhaseWhenAllGuessesSubmitted: false });
+		Object.assign({}, { endQuestionPhaseWhenAllGuessesSubmitted: false }, options));
 }
 
 
@@ -98,7 +98,7 @@ describe("Game", () => {
 			});
 		});
 		
-		test("game end", () => {
+		test("game over", () => {
 			const alice = makePlayer("Alice");
 			const bob = makePlayer("Bob");
 			const charlie = makePlayer("Charlie");
@@ -318,12 +318,42 @@ describe("Game", () => {
 		});
 	});
 	
-	test("endPhase completes updates and roundEnd after final round", () => {
+	test("endPhase notifies and completes updates and roundEnd after final round", () => {
 		const alice = makePlayer("Alice");
 		const game = makeGame("id", "Game", [alice]);
 		
 		// End the first six rounds.
 		for (let i = 0; i < 6; i++) {
+			game.endPhase(alice.privateId);
+		}
+		
+		const updateCallback = vi.fn();
+		const gameEndCallback = vi.fn();
+		const roundEndCallback = vi.fn();
+		const roundEndGameEndCallback = vi.fn();
+		game.onUpdates().subscribe({
+			next: updateCallback,
+			complete: gameEndCallback
+		});
+		game.onRoundEnd().subscribe({
+			next: roundEndCallback,
+			complete: roundEndGameEndCallback
+		});
+		
+		game.endPhase(alice.privateId);
+		
+		expect(updateCallback).toHaveBeenCalled();
+		expect(gameEndCallback).toHaveBeenCalled();
+		expect(roundEndCallback).toHaveBeenCalled();
+		expect(roundEndGameEndCallback).toHaveBeenCalled();
+	});
+	
+	test("game ends after specified number of rounds", () => {
+		const alice = makePlayer("Alice");
+		const game = makeGame("id", "Game", [alice], { numberOfRounds: 3 });
+		
+		// End the first two rounds.
+		for (let i = 0; i < 2; i++) {
 			game.endPhase(alice.privateId);
 		}
 		
@@ -400,7 +430,7 @@ describe("Game", () => {
 			.to.throw(HttpError, "Cannot withdraw bets during the question phase.");
 	});
 	
-	test("cannot submit guess after game end", () => {
+	test("cannot submit guess after game over", () => {
 		const alice = makePlayer("Alice");
 		const game = makeGame("id", "Game", [alice]);
 		
@@ -413,7 +443,7 @@ describe("Game", () => {
 			.to.throw(HttpError, "Game is over, cannot submit guesses.");
 	});
 	
-	test("cannot submit bets after game end", () => {
+	test("cannot submit bets after game over", () => {
 		const alice = makePlayer("Alice");
 		const game = makeGame("id", "Game", [alice]);
 		
@@ -426,7 +456,7 @@ describe("Game", () => {
 			.to.throw(HttpError, "Game is over, cannot submit bets.");
 	});
 	
-	test("cannot withdraw bets after game end", () => {
+	test("cannot withdraw bets after game over", () => {
 		const alice = makePlayer("Alice");
 		const game = makeGame("id", "Game", [alice]);
 		
@@ -439,7 +469,7 @@ describe("Game", () => {
 			.to.throw(HttpError, "Game is over, cannot withdraw bets.");
 	});
 	
-	test("cannot endPhase after game end", () => {
+	test("cannot endPhase after game over", () => {
 		const alice = makePlayer("Alice");
 		const game = makeGame("id", "Game", [alice]);
 		

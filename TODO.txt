@@ -6,10 +6,8 @@
 * Implement game options.
   * Choose question set.
   * Round timers.
-  * Number of rounds.
 * Implement desktop UI.
   * Clear selections when a new round begins.
-  * Improve error handling in game to ensure only valid actions are taken.
 * Implement mobile UI.
 * Implement game/lobby expiration.
 * Deploy app.
