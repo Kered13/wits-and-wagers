@@ -7,7 +7,13 @@ import { Subject, type Observable } from "rxjs";
 
 export type QuestionPhaseOptions = {
 	endQuestionPhaseWhenAllGuessesSubmitted: boolean;
+	questionPhaseTime?: number;
 }
+
+export const questionPhaseDefaultOptions: QuestionPhaseOptions = {
+	endQuestionPhaseWhenAllGuessesSubmitted: true,
+	questionPhaseTime: undefined
+};
 
 
 export class QuestionPhase implements Phase {

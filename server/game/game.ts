@@ -1,10 +1,10 @@
 import { Observable, Subject } from "rxjs"
 
-import { BettingPhase, type BettingPhaseOptions } from "./betting-phase.js";
+import { BettingPhase, bettingPhaseDefaultOptions, type BettingPhaseOptions } from "./betting-phase.js";
 import { GameOverPhase } from "./game-over-phase.js";
 import { type Phase } from "./phase.js";
 import { Player, PlayerManager, Spectator, type PlayerParams, type SpectatorParams } from "./player.js";
-import { QuestionPhase, type QuestionPhaseOptions } from "./question-phase.js";
+import { QuestionPhase, questionPhaseDefaultOptions, type QuestionPhaseOptions } from "./question-phase.js";
 import { HttpError } from "../utils/httperror.js";
 import { type BetTarget, type BettingConclusion, type GameId, type GameState, type SkippedBettingPhase } from "../../shared/game/game.js";
 import { type PrivateId } from "../../shared/player.js";
@@ -16,10 +16,12 @@ export type GameOptions = QuestionPhaseOptions & BettingPhaseOptions & {
 	numberOfRounds: number
 };
 
-const defaultOptions: GameOptions = {
-	numberOfRounds: 7,
-	endQuestionPhaseWhenAllGuessesSubmitted: true
-};
+const defaultOptions: GameOptions = Object.assign(
+	{
+		numberOfRounds: 7,
+	},
+	questionPhaseDefaultOptions,
+	bettingPhaseDefaultOptions);
 
 
 export class Game {

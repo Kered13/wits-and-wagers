@@ -20,7 +20,13 @@ type Guess = GuessJson & {
 };
 
 
-export type BettingPhaseOptions = {};
+export type BettingPhaseOptions = {
+	bettingPhaseTime?: number;
+};
+
+export const bettingPhaseDefaultOptions: BettingPhaseOptions = {
+	bettingPhaseTime: undefined
+};
 
 
 export class BettingPhase implements Phase {
