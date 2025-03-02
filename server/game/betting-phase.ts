@@ -33,6 +33,7 @@ export class BettingPhase implements Phase {
 	private readonly bets: Bet[] = [];
 	private readonly guesses: Guess[];
 	private readonly endPhaseSubj = new Subject<void>();
+	private readonly timeout: NodeJS.Timeout | undefined;
 	
 	constructor(
 			private readonly question: string,
@@ -73,6 +74,10 @@ export class BettingPhase implements Phase {
 				payout: payoutMultipliers[i]!,
 				color: targetColors[i]!
 			}));
+		
+		if (options.bettingPhaseTime) {
+			this.timeout = setTimeout(() => this.endPhase(), options.bettingPhaseTime * 1000);
+		}
 	}
 	
 	public submitBet(playerId: PrivateId, target: BetTarget, wager: number): void {
@@ -168,8 +173,10 @@ export class BettingPhase implements Phase {
 		return this.endPhaseSubj.asObservable();
 	}
 	
-	// TODO: We probably don't want this long term.
 	public endPhase(): void {
+		if (this.timeout) {
+			clearTimeout(this.timeout);
+		}
 		this.endPhaseSubj.next();
 		this.endPhaseSubj.complete();
 	}

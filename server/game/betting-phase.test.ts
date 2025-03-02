@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
-import { BettingPhase } from "./betting-phase";
+import { BettingPhase, bettingPhaseDefaultOptions, BettingPhaseOptions } from "./betting-phase";
 import { Player, PlayerManager } from "./player";
-import { type BettingPhaseJson } from "../../shared/game/game.js";
+import { type BettingPhaseState } from "../../shared/game/game.js";
 
 
 function makePlayer(name: string): Player {
@@ -16,22 +16,30 @@ function makePlayer(name: string): Player {
 	return player;
 };
 
-function makeBettingPhase(obj: {question?: string, answer?: number, round?: number, guesses: [Player, number][]}): BettingPhase {
+function makeBettingPhase(
+		obj: {
+			guesses: [Player, number][],
+			question?: string,
+			answer?: number,
+			round?: number,
+			options?: Partial<BettingPhaseOptions>
+		}): BettingPhase {
+	const guesses = obj.guesses;
 	const question = obj.question ?? "What is the answer?";
 	const answer = obj.answer ?? 42;
 	const round = obj.round ?? 1;
-	const guesses = obj.guesses;
+	const options = Object.assign({}, bettingPhaseDefaultOptions, obj.options);
 	return new BettingPhase(
 		question,
 		answer,
 		new PlayerManager(guesses.map(([player, guess]) => player)),
 		round,
 		new Map(guesses),
-		{});
+		options);
 }
 
 
-function expectBettingPhaseJsonEqual(actual: BettingPhaseJson, expected: BettingPhaseJson): void {
+function expectBettingPhaseStateEqual(actual: BettingPhaseState, expected: BettingPhaseState): void {
 	expect(expected.phase).to.equal(actual.phase);
 	expect(expected.question).to.equal(actual.question);
 	expect(expected.guesses).to.have.deep.members(actual.guesses);
@@ -170,7 +178,7 @@ describe("BettingPhase", () => {
 		phase.submitBet(charlie.privateId, "Black", 50);
 		phase.submitBet(derek.privateId, 3, 60);
 		
-		const expected: BettingPhaseJson = {
+		const expected: BettingPhaseState = {
 			phase: "betting",
 			question: "What is the question?",
 			guesses: [
@@ -187,10 +195,10 @@ describe("BettingPhase", () => {
 			]
 		};
 		
-		expectBettingPhaseJsonEqual(phase.toJson(alice.privateId), expected);
-		expectBettingPhaseJsonEqual(phase.toJson(bob.privateId), expected);
-		expectBettingPhaseJsonEqual(phase.toJson(charlie.privateId), expected);
-		expectBettingPhaseJsonEqual(phase.toJson(derek.privateId), expected);
+		expectBettingPhaseStateEqual(phase.toJson(alice.privateId), expected);
+		expectBettingPhaseStateEqual(phase.toJson(bob.privateId), expected);
+		expectBettingPhaseStateEqual(phase.toJson(charlie.privateId), expected);
+		expectBettingPhaseStateEqual(phase.toJson(derek.privateId), expected);
 	});
 	
 	test("endPhase notifies subscribers", () => {
@@ -201,6 +209,35 @@ describe("BettingPhase", () => {
 		phase.onEndPhase().subscribe(callback);
 		phase.endPhase();
 		
+		expect(callback).toHaveBeenCalled();
+	});
+	
+	test("endPhase is idempotent", () => {
+		const alice = makePlayer("Alice");
+		const phase = makeBettingPhase({ guesses: [[alice, 42]] });
+
+		phase.endPhase();
+		
+		const callback = vi.fn();
+		phase.onEndPhase().subscribe(callback);
+		phase.endPhase();
+		
+		expect(callback).not.toHaveBeenCalled();
+	});
+	
+	test("endPhase called after timeout", () => {
+		vi.useFakeTimers();
+		
+		const alice = makePlayer("Alice");
+		const phase = makeBettingPhase({
+			guesses: [[alice, 42]],
+			options: { bettingPhaseTime: 60 }
+		});
+		
+		const callback = vi.fn();
+		phase.onEndPhase().subscribe(callback);
+		
+		vi.advanceTimersByTime(60 * 1000);
 		expect(callback).toHaveBeenCalled();
 	});
 	

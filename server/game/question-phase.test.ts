@@ -1,7 +1,7 @@
 import { describe, expect, test, vi } from "vitest";
 
 import { PlayerManager, Player } from "./player.js";
-import { QuestionPhase, QuestionPhaseOptions } from "./question-phase.js";
+import { QuestionPhase, questionPhaseDefaultOptions, QuestionPhaseOptions } from "./question-phase.js";
 
 
 function makePlayer(name: string): Player {
@@ -14,11 +14,19 @@ function makePlayer(name: string): Player {
 };
 
 
-function makeQuestionPhase(obj: { question?: string, players: Player[], options?: QuestionPhaseOptions }): QuestionPhase {
-	return new QuestionPhase(
-		obj.question ?? "What is the answer?",
-		new PlayerManager(obj.players),
-		Object.assign({ endQuestionPhaseWhenAllGuessesSubmitted: false }, obj.options));
+function makeQuestionPhase(
+		obj: {
+		players: Player[],
+			question?: string,
+			options?: Partial<QuestionPhaseOptions>
+		}): QuestionPhase {
+	const players = new PlayerManager(obj.players);
+	const question = obj.question ?? "What is the answer?";
+	const options = Object.assign({},
+		questionPhaseDefaultOptions,
+		{ endQuestionPhaseWhenAllGuessesSubmitted: false },
+		obj.options);
+	return new QuestionPhase(question, players, options);
 }
 
 
@@ -186,6 +194,35 @@ describe("QuestionPhase", () => {
 		phase.onEndPhase().subscribe(callback);
 		phase.endPhase();
 		
+		expect(callback).toHaveBeenCalled();
+	});
+	
+	test("endPhase is idempotent", () => {
+		const alice = makePlayer("Alice");
+		const phase = makeQuestionPhase({ players: [alice] });
+		
+		phase.endPhase();
+		
+		const callback = vi.fn();
+		phase.onEndPhase().subscribe(callback);
+		phase.endPhase();
+		
+		expect(callback).not.toHaveBeenCalled();
+	});
+	
+	test("endPhase called after timeout", () => {
+		vi.useFakeTimers();
+		
+		const alice = makePlayer("Alice");
+		const phase = makeQuestionPhase({
+			players: [alice],
+			options: { questionPhaseTime: 60 }
+		});
+		
+		const callback = vi.fn();
+		phase.onEndPhase().subscribe(callback);
+		
+		vi.advanceTimersByTime(60 * 1000);
 		expect(callback).toHaveBeenCalled();
 	});
 });
