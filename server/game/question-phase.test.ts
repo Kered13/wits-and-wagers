@@ -130,6 +130,29 @@ describe("QuestionPhase", () => {
 		});
 	});
 	
+	test("toJson reports round time and end time if option specified", () => {
+		vi.useFakeTimers();
+		vi.setSystemTime(0);
+		
+		const alice = makePlayer("Alice");
+		
+		const phase = makeQuestionPhase({
+			question: "What is the answer?",
+			players: [alice],
+			options: { questionPhaseTime: 60 },
+		});
+		
+		expect(phase.toJson(alice.privateId)).to.deep.equal({
+			phase: "question",
+			question: "What is the answer?",
+			guesses: {
+				"public-Alice": false,
+			},
+			roundDuration: 60,
+			roundEnd: 60*1000
+		});
+	});
+	
 	test("getGuesses returns all guesses", () => {
 		const alice = makePlayer("Alice");
 		const bob = makePlayer("Bob");

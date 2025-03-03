@@ -35,6 +35,8 @@ export class BettingPhase implements Phase {
 	private readonly guesses: Guess[];
 	private readonly endPhaseSubj = new Subject<void>();
 	private readonly timeout: NodeJS.Timeout | undefined;
+	// Phase end time as millisecond timestamp.
+	private readonly endTime: number | undefined;
 	
 	constructor(
 			private readonly question: string,
@@ -78,6 +80,7 @@ export class BettingPhase implements Phase {
 		
 		if (options.bettingPhaseTime) {
 			this.timeout = setTimeout(() => this.endPhase(), options.bettingPhaseTime * 1000);
+			this.endTime = new Date().getTime() + options.bettingPhaseTime * 1000;
 		}
 	}
 	
@@ -166,7 +169,9 @@ export class BettingPhase implements Phase {
 				player: guess.player,
 				guess: guess.guess
 			})),
-			bets: this.bets
+			bets: this.bets,
+			...this.options.bettingPhaseTime && { roundDuration: this.options.bettingPhaseTime },
+			...this.endTime && { roundEnd: this.endTime }
 		};
 	}
 	

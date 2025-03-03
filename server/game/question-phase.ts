@@ -20,6 +20,8 @@ export class QuestionPhase implements Phase {
 	private readonly guesses = new Map<Player, number>();
 	private readonly endPhaseSubj: Subject<void> = new Subject<void>();
 	private readonly timeout: NodeJS.Timeout | undefined;
+	// Phase end time as millisecond timestamp.
+	private readonly endTime: number | undefined;
 	
 	constructor(
 			private readonly question: string,
@@ -27,6 +29,7 @@ export class QuestionPhase implements Phase {
 			private readonly options: QuestionPhaseOptions) {
 		if (options.questionPhaseTime) {
 			this.timeout = setTimeout(() => this.endPhase(), options.questionPhaseTime * 1000);
+			this.endTime = new Date().getTime() + options.questionPhaseTime * 1000;
 		}
 	}
 	
@@ -60,7 +63,9 @@ export class QuestionPhase implements Phase {
 					const report = !guess ? false :
 						player.privateId !== forPlayer ? true : guess;
 					return [player.publicId, report];
-				}))
+				})),
+			...this.options.questionPhaseTime && { roundDuration: this.options.questionPhaseTime },
+			...this.endTime && { roundEnd: this.endTime }
 		};
 	}
 	

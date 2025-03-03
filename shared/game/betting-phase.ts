@@ -1,4 +1,4 @@
-import { array, integer, literal, nonEmpty, number, pipe, strictObject, string, union, type InferOutput } from "valibot";
+import { array, integer, literal, nonEmpty, number, optional, pipe, strictObject, string, union, type InferOutput } from "valibot";
 
 import { PublicIdSchema } from "../player.js";
 
@@ -36,6 +36,9 @@ export const BettingPhaseStateSchema = strictObject({
 	phase: literal("betting"),
 	question: pipe(string(), nonEmpty()),
 	guesses: array(GuessSchema),
-	bets: array(BetSchema)
+	bets: array(BetSchema),
+	roundDuration: optional(number()),
+	// The time when the round will end, as millisecond timestamp.
+	roundEnd: optional(number())
 });
 export type BettingPhaseState = InferOutput<typeof BettingPhaseStateSchema>;

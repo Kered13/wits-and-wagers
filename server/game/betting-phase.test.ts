@@ -201,6 +201,32 @@ describe("BettingPhase", () => {
 		expectBettingPhaseStateEqual(phase.toJson(derek.privateId), expected);
 	});
 	
+	test("toJson reports round time and end time if option specified", () => {
+		vi.useFakeTimers();
+		vi.setSystemTime(0);
+		
+		const alice = makePlayer("Alice");
+		
+		const phase = new BettingPhase(
+			"What is the question?",
+			42,
+			new PlayerManager([alice]),
+			1,
+			new Map([[alice, 42]]),
+			{ bettingPhaseTime: 60 });
+		
+		expect(phase.toJson(alice.privateId)).to.deep.equal({
+			phase: "betting",
+			question: "What is the question?",
+			guesses: [
+				{ player: "public-Alice", guess: 42 },
+			],
+			bets: [],
+			roundDuration: 60,
+			roundEnd: 60*1000
+		});
+	});
+	
 	test("endPhase notifies subscribers", () => {
 		const alice = makePlayer("Alice");
 		const phase = makeBettingPhase({ guesses: [[alice, 42]] });
