@@ -1,6 +1,7 @@
 import { strictObject, type InferOutput } from "valibot";
 
-import { BetTargetSchema, GameIdSchema } from "./game.js";
+import { BetTargetSchema } from "./betting-phase.js";
+import { GameIdSchema } from "./game.js";
 import { PrivateIdSchema } from "../player.js";
 
 

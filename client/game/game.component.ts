@@ -18,7 +18,9 @@ import { GameRoute, TypedRouteFor } from "../routes/routes.js";
 import { RoutingService } from "../routes/routing.service.js";
 import { RefCounted } from "../utils/refcounted.js";
 import { PrivatePlayer } from "../../shared/player.js";
-import { BettingPhaseState, GameOverPhaseState, GameState, QuestionPhaseState } from "../../shared/game/game.js";
+import { BettingPhaseState } from "../../shared/game/betting-phase.js";
+import { GameOverPhaseState, GameState } from "../../shared/game/game.js";
+import { QuestionPhaseState } from "../../shared/game/question-phase.js";
 
 
 @Directive({

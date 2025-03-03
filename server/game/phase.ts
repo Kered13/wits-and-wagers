@@ -1,7 +1,9 @@
 import type { Observable } from "rxjs";
 
 import type { PrivateId } from "../../shared/player.js";
-import type { BettingPhaseState, GameOverPhaseState, QuestionPhaseState } from "../../shared/game/game.js";
+import type { BettingPhaseState } from "../../shared/game/betting-phase.js";
+import type { GameOverPhaseState } from "../../shared/game/game.js";
+import type { QuestionPhaseState } from "../../shared/game/question-phase.js";
 
 
 export interface Phase {

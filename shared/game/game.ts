@@ -1,5 +1,7 @@
-import { array, boolean, integer, intersect, literal, nonEmpty, number, pipe, record, strictObject, string, union, variant, type InferOutput } from "valibot";
+import { array, integer, literal, nonEmpty, number, pipe, record, strictObject, string, variant, type InferOutput } from "valibot";
 
+import { BettingPhaseStateSchema } from "./betting-phase.js";
+import { QuestionPhaseStateSchema } from "./question-phase.js";
 import { PublicIdSchema } from "../player.js";
 import { RgbSchema } from "../rgb.js";
 
@@ -29,54 +31,6 @@ export const GamePlayerSchema = strictObject({
 	color: RgbSchema
 });
 export type GamePlayer = InferOutput<typeof GamePlayerSchema>;
-
-
-// The phase of the game during which a question is presented to the players,
-// and each player submits a guess.
-export const QuestionPhaseStateSchema = strictObject({
-	phase: literal("question"),
-	question: pipe(string(), nonEmpty()),
-	guesses: record(PublicIdSchema, union([boolean(), pipe(number(), integer())]))
-});
-export type QuestionPhaseState = InferOutput<typeof QuestionPhaseStateSchema>;
-
-
-// Guesses that were submitted during the QuestionPhase.
-export const GuessSchema = strictObject({
-	player: PublicIdSchema,
-	guess: pipe(number(), integer()),
-});
-export type Guess = InferOutput<typeof GuessSchema>;
-
-
-// Possible bets that can be placed.
-export const BetTargetSchema = union([
-	literal("AllTooHigh"),
-	literal("Red"),
-	literal("Black"),
-	pipe(number(), integer())
-]);
-export type BetTarget = InferOutput<typeof BetTargetSchema>;
-
-
-// A single bet placed during the BettingPhase.
-export const BetSchema = strictObject({
-	player: PublicIdSchema,
-	target: BetTargetSchema,
-	wager: pipe(number(), integer())
-});
-export type Bet = InferOutput<typeof BetSchema>;
-
-
-// The phase of the game during which players place bets on the guesses that
-// were submitted during the QuestionPhase.
-export const BettingPhaseStateSchema = strictObject({
-	phase: literal("betting"),
-	question: pipe(string(), nonEmpty()),
-	guesses: array(GuessSchema),
-	bets: array(BetSchema)
-});
-export type BettingPhaseState = InferOutput<typeof BettingPhaseStateSchema>;
 
 
 export const GameOverPhaseStateSchema = strictObject({
