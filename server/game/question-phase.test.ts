@@ -149,7 +149,7 @@ describe("QuestionPhase", () => {
 				"public-Alice": false,
 			},
 			roundDuration: 60_000,
-			roundEnd: 1_060_000
+			roundEnd: 1_060_300
 		});
 	});
 	
