@@ -9,6 +9,7 @@ export const QuestionPhaseStateSchema = strictObject({
 	phase: literal("question"),
 	question: pipe(string(), nonEmpty()),
 	guesses: record(PublicIdSchema, union([boolean(), pipe(number(), integer())])),
+	// Round duration, in milliseconds.
 	roundDuration: optional(number()),
 	// The time when the round will end, as millisecond timestamp.
 	roundEnd: optional(number())

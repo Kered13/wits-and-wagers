@@ -22,11 +22,12 @@ type Guess = GuessJson & {
 
 
 export type BettingPhaseOptions = {
-	bettingPhaseTime?: number;
+	// In milliseconds.
+	bettingPhaseDuration?: number;
 };
 
 export const bettingPhaseDefaultOptions: BettingPhaseOptions = {
-	bettingPhaseTime: undefined
+	bettingPhaseDuration: undefined
 };
 
 
@@ -78,9 +79,9 @@ export class BettingPhase implements Phase {
 				color: targetColors[i]!
 			}));
 		
-		if (options.bettingPhaseTime) {
-			this.timeout = setTimeout(() => this.endPhase(), options.bettingPhaseTime * 1000);
-			this.endTime = new Date().getTime() + options.bettingPhaseTime * 1000;
+		if (options.bettingPhaseDuration) {
+			this.timeout = setTimeout(() => this.endPhase(), options.bettingPhaseDuration);
+			this.endTime = new Date().getTime() + options.bettingPhaseDuration;
 		}
 	}
 	
@@ -170,7 +171,7 @@ export class BettingPhase implements Phase {
 				guess: guess.guess
 			})),
 			bets: this.bets,
-			...this.options.bettingPhaseTime && { roundDuration: this.options.bettingPhaseTime },
+			...this.options.bettingPhaseDuration && { roundDuration: this.options.bettingPhaseDuration },
 			...this.endTime && { roundEnd: this.endTime }
 		};
 	}

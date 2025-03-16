@@ -7,12 +7,14 @@ import { Subject, type Observable } from "rxjs";
 
 export type QuestionPhaseOptions = {
 	endQuestionPhaseWhenAllGuessesSubmitted: boolean;
-	questionPhaseTime?: number;
+	// In milliseconds.
+	questionPhaseDuration?: number;
 }
 
 export const questionPhaseDefaultOptions: QuestionPhaseOptions = {
 	endQuestionPhaseWhenAllGuessesSubmitted: true,
-	questionPhaseTime: undefined
+	// In milliseconds.
+	questionPhaseDuration: undefined
 };
 
 
@@ -27,9 +29,9 @@ export class QuestionPhase implements Phase {
 			private readonly question: string,
 			private readonly players: PlayerManager,
 			private readonly options: QuestionPhaseOptions) {
-		if (options.questionPhaseTime) {
-			this.timeout = setTimeout(() => this.endPhase(), options.questionPhaseTime * 1000);
-			this.endTime = new Date().getTime() + options.questionPhaseTime * 1000;
+		if (options.questionPhaseDuration) {
+			this.timeout = setTimeout(() => this.endPhase(), options.questionPhaseDuration);
+			this.endTime = new Date().getTime() + options.questionPhaseDuration;
 		}
 	}
 	
@@ -64,7 +66,7 @@ export class QuestionPhase implements Phase {
 						player.privateId !== forPlayer ? true : guess;
 					return [player.publicId, report];
 				})),
-			...this.options.questionPhaseTime && { roundDuration: this.options.questionPhaseTime },
+			...this.options.questionPhaseDuration && { roundDuration: this.options.questionPhaseDuration },
 			...this.endTime && { roundEnd: this.endTime }
 		};
 	}

@@ -132,14 +132,14 @@ describe("QuestionPhase", () => {
 	
 	test("toJson reports round time and end time if option specified", () => {
 		vi.useFakeTimers();
-		vi.setSystemTime(0);
+		vi.setSystemTime(1_000_000);
 		
 		const alice = makePlayer("Alice");
 		
 		const phase = makeQuestionPhase({
 			question: "What is the answer?",
 			players: [alice],
-			options: { questionPhaseTime: 60 },
+			options: { questionPhaseDuration: 60_000 },
 		});
 		
 		expect(phase.toJson(alice.privateId)).to.deep.equal({
@@ -148,8 +148,8 @@ describe("QuestionPhase", () => {
 			guesses: {
 				"public-Alice": false,
 			},
-			roundDuration: 60,
-			roundEnd: 60*1000
+			roundDuration: 60_000,
+			roundEnd: 1_060_000
 		});
 	});
 	
@@ -239,13 +239,13 @@ describe("QuestionPhase", () => {
 		const alice = makePlayer("Alice");
 		const phase = makeQuestionPhase({
 			players: [alice],
-			options: { questionPhaseTime: 60 }
+			options: { questionPhaseDuration: 60_000 }
 		});
 		
 		const callback = vi.fn();
 		phase.onEndPhase().subscribe(callback);
 		
-		vi.advanceTimersByTime(60 * 1000);
+		vi.advanceTimersByTime(60_000);
 		expect(callback).toHaveBeenCalled();
 	});
 });

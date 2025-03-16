@@ -37,6 +37,7 @@ export const BettingPhaseStateSchema = strictObject({
 	question: pipe(string(), nonEmpty()),
 	guesses: array(GuessSchema),
 	bets: array(BetSchema),
+	// Round duration, in milliseconds.
 	roundDuration: optional(number()),
 	// The time when the round will end, as millisecond timestamp.
 	roundEnd: optional(number())

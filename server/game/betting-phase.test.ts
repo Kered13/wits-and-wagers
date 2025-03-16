@@ -203,7 +203,7 @@ describe("BettingPhase", () => {
 	
 	test("toJson reports round time and end time if option specified", () => {
 		vi.useFakeTimers();
-		vi.setSystemTime(0);
+		vi.setSystemTime(1_000_000);
 		
 		const alice = makePlayer("Alice");
 		
@@ -213,7 +213,7 @@ describe("BettingPhase", () => {
 			new PlayerManager([alice]),
 			1,
 			new Map([[alice, 42]]),
-			{ bettingPhaseTime: 60 });
+			{ bettingPhaseDuration: 60_000 });
 		
 		expect(phase.toJson(alice.privateId)).to.deep.equal({
 			phase: "betting",
@@ -222,8 +222,8 @@ describe("BettingPhase", () => {
 				{ player: "public-Alice", guess: 42 },
 			],
 			bets: [],
-			roundDuration: 60,
-			roundEnd: 60*1000
+			roundDuration: 60_000,
+			roundEnd: 1_060_000
 		});
 	});
 	
@@ -257,13 +257,13 @@ describe("BettingPhase", () => {
 		const alice = makePlayer("Alice");
 		const phase = makeBettingPhase({
 			guesses: [[alice, 42]],
-			options: { bettingPhaseTime: 60 }
+			options: { bettingPhaseDuration: 60_000 }
 		});
 		
 		const callback = vi.fn();
 		phase.onEndPhase().subscribe(callback);
 		
-		vi.advanceTimersByTime(60 * 1000);
+		vi.advanceTimersByTime(60_000);
 		expect(callback).toHaveBeenCalled();
 	});
 	
