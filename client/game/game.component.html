@@ -7,6 +7,9 @@
 				<h1>{{ player.name }}</h1>
 			</mat-card-header>
 			<mat-card-content>
+				@if (roundTimer() !== undefined) {
+					<p>Round time: {{ roundTimer() }}</p>
+				}
 				<p class="game-state">Game state: {{ tempGameString() }}</p>
 				@if (isQuestionPhase(phase)) {
 					<mat-form-field hidden="!isQuestionPhase(phase)">

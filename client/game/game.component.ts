@@ -8,7 +8,7 @@ import { MatError, MatInputModule } from "@angular/material/input";
 import { Title } from "@angular/platform-browser";
 import { ActivatedRoute } from "@angular/router";
 import { parseIntSafe } from "complete-common";
-import { combineLatest, map, pairwise, startWith, Subscription, switchMap, take } from "rxjs";
+import { combineLatest, concat, delay, map, type Observable, of, pairwise, startWith, Subscription, switchMap, take } from "rxjs";
 
 import { GameInstanceService, GameService } from "./game.service.js";
 import { GameEndDialogComponent } from "../game-end-dialog/game-end-dialog.component.js";
@@ -81,6 +81,9 @@ export class ChipValidator {
 }
 
 
+type PhaseState = QuestionPhaseState | BettingPhaseState | GameOverPhaseState;
+
+
 @Component({
 	selector: "app-game",
 	imports: [
@@ -106,6 +109,7 @@ export class GameComponent implements OnDestroy {
 	readonly tempGameString: Signal<string>;
 	readonly thisPlayer: Signal<PrivatePlayer>;
 	readonly availableChips: Signal<number>;
+	readonly roundTimer: Signal<number | undefined>;
 	readonly guessField: Signal<NgModel | undefined> = viewChild("guessField");
 	readonly targetField: Signal<NgModel | undefined> = viewChild("targetField");
 	readonly wagerField: Signal<NgModel | undefined> = viewChild("wagerField");
@@ -128,40 +132,45 @@ export class GameComponent implements OnDestroy {
 		this.instanceSub = instanceService.pipe(startWith(undefined), pairwise())
 			.subscribe(([oldService, newService]) => this.onNewGame(newService!, oldService));
 		
+		const gameObs = instanceService.pipe(switchMap(service => service.get().onGameUpdate()));
+		
 		this.gameService = toSignal(instanceService, { requireSync: true });
-		this.game = toSignal(
-			instanceService.pipe(switchMap(service => service.get().onGameUpdate())),
-			{
-				initialValue: {
-					title: "",
-					host: "",
-					players: [],
-					round: 0,
-					phase: {
-						phase: "question",
-						question: "",
-						guesses: {}
-					}
+		this.game = toSignal(gameObs, {
+			initialValue: {
+				title: "",
+				host: "",
+				players: [],
+				round: 0,
+				phase: {
+					phase: "question",
+					question: "",
+					guesses: {}
 				}
-			});
+			}
+		});
 		this.availableChips = computed(() => {
 			const player = this.game().players.find(player => player.publicId === this.thisPlayer().publicId);
 			return player?.chips ?? 0;
 		});
+		
+		this.roundTimer = toSignal(
+			gameObs.pipe(switchMap(game => this.startRoundTimer(game.phase))),
+			{ initialValue: undefined });
+		
 		this.tempGameString = computed(() => JSON.stringify(this.game(), null, 2));
 		
 		effect(() => titleService.setTitle(route.routeConfig!.title! + " - " + this.game().title));
 	}
 	
-	public isQuestionPhase(phase: QuestionPhaseState | BettingPhaseState | GameOverPhaseState): phase is QuestionPhaseState {
+	public isQuestionPhase(phase: PhaseState): phase is QuestionPhaseState {
 		return phase.phase === "question";
 	}
 	
-	public isBettingPhase(phase: QuestionPhaseState | BettingPhaseState | GameOverPhaseState): phase is BettingPhaseState {
+	public isBettingPhase(phase: PhaseState): phase is BettingPhaseState {
 		return phase.phase === "betting";
 	}
 	
-	public isGameOverPhase(phase: QuestionPhaseState | BettingPhaseState | GameOverPhaseState): phase is GameOverPhaseState {
+	public isGameOverPhase(phase: PhaseState): phase is GameOverPhaseState {
 		return phase.phase === "game-over";
 	}
 	
@@ -192,6 +201,23 @@ export class GameComponent implements OnDestroy {
 				this.errorHandler.handleError(err)
 					.subscribe(_ => this.routing.toHome());
 			}));
+	}
+	
+	// Returns an observable that emits the remaining time in seconds until the
+	// round ends, or undefined if there is no time limit on the round.
+	private startRoundTimer(phase: PhaseState): Observable<number | undefined> {
+		if (this.isGameOverPhase(phase) || !phase.roundEnd || !phase.roundDuration) {
+			return of(undefined);
+		}
+		const duration = phase.roundDuration;
+		const end = phase.roundEnd;
+		const now = Date.now();
+		const timers: Observable<number>[] = [];
+		for (let t = 0; t <= duration && end - t > now; t += 1000) {
+			timers.push(of(Math.round(t / 1000)).pipe(delay(new Date(end - t))));
+		}
+		timers.reverse();
+		return concat(of(Math.round(duration / 1000)), ...timers);
 	}
 	
 	private closeGameService(service: RefCounted<GameInstanceService>): void {
