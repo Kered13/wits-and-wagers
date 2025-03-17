@@ -1,10 +1,41 @@
 import { parseIntSafe } from "complete-common";
 import { CsvError, parse, type CastingContext } from "csv-parse/sync";
-import { readFile } from "fs/promises";
+import { opendir, readFile } from "fs/promises";
+import path from "path";
 import * as valibot from "valibot";
 
 import { QuestionSchema, type Question } from "./question.js";
 import { QuestionError, QuestionLoadingError } from "./question-loading-error.js";
+
+
+export async function findQuestionSetsOnFilesystem(dir: string): Promise<Map<string, Question[]>> {
+	const questionSets = new Map<string, Question[]>();
+	for await (const file of await opendir(dir, { recursive: true })) {
+		if (!file.isFile()) {
+			continue;
+		}
+		const fullFilename = path.join(file.parentPath, file.name)
+		const ext = path.extname(fullFilename);
+		try {
+			const questions =
+				ext === ".json" ? await loadQuestionsFromJson(fullFilename) :
+				ext === ".csv" ? await loadQuestionsFromCsv(fullFilename) :
+				ext === ".tsv" ? await loadQuestionsFromTsv(fullFilename) : undefined
+			if (questions !== undefined) {
+				questionSets.set(file.name, questions);
+			} else {
+				console.log(`Ignoring file ${fullFilename}, unrecognized extension.`);
+			}
+		} catch (err) {
+			if (err instanceof QuestionLoadingError) {
+				console.warn(`Error loading questions from ${fullFilename}: ${err}`);
+			} else {
+				throw err;
+			}
+		}
+	}
+	return questionSets;
+}
 
 
 // Throws QuestionLoadingError if the input file is invalid.
