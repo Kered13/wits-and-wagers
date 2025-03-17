@@ -5,3 +5,4 @@ client/.angular/
 client/.vscode
 .vscode
 dist.spec
+server/data/questions/public
