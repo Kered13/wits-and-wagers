@@ -1,7 +1,7 @@
 import { ValiError } from "valibot";
 import { describe, expect, test } from "vitest";
 
-import { loadQuestionsFromCsv, loadQuestionsFromJson, loadQuestionsFromTsv, parseCsv, parseJson } from "./questions-loader.js"
+import { loadQuestionsFromCsv, loadQuestionsFromJson, loadQuestionsFromTsv, parseCsv, parseJson } from "./question-loading.js"
 import { QuestionError, QuestionLoadingError } from "./question-loading-error.js";
 
 
