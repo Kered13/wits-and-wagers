@@ -5,12 +5,12 @@ import { GameOverPhase } from "./game-over-phase.js";
 import { type Phase } from "./phase.js";
 import { Player, PlayerManager, Spectator, type PlayerParams, type SpectatorParams } from "./player.js";
 import { QuestionPhase, questionPhaseDefaultOptions, type QuestionPhaseOptions } from "./question-phase.js";
+import { type QuestionGenerator } from "../questions/question-generator.js";
 import { HttpError } from "../utils/httperror.js";
 import { type BetTarget } from "../../shared/game/betting-phase.js";
 import { type BettingConclusion, type GameId, type GameState, type SkippedBettingPhase } from "../../shared/game/game.js";
 import { type PrivateId } from "../../shared/player.js";
 import { type EndRoundNotification, type GameUpdate } from "../../shared/game/notifications.js";
-import type { QuestionGenerator } from "./questions/question-generator.js";
 
 
 export type GameOptions = QuestionPhaseOptions & BettingPhaseOptions & {

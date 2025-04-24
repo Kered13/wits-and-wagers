@@ -40,7 +40,7 @@ describe("parse JSON", () => {
 
 
 test("load JSON", async () => {
-	expect(await loadQuestionsFromJson("server/game/questions/testdata/questions.json"))
+	expect(await loadQuestionsFromJson("server/questions/testdata/questions.json"))
 		.to.have.deep.members([
 			{
 				question: "The first question.",
@@ -119,7 +119,7 @@ The first question.	42
 
 describe("load CSV", () => {
 	test("succeeds", async () => {
-		expect(await loadQuestionsFromCsv("server/game/questions/testdata/questions.csv"))
+		expect(await loadQuestionsFromCsv("server/questions/testdata/questions.csv"))
 			.to.have.deep.members([
 				{
 					question: "The first question.",
@@ -137,7 +137,7 @@ describe("load CSV", () => {
 	});
 	
 	test("throws QuestionLoadingError on invalid input", async () => {
-		await expect(async () => await loadQuestionsFromCsv("server/game/questions/testdata/invalid-questions.csv"))
+		await expect(async () => await loadQuestionsFromCsv("server/questions/testdata/invalid-questions.csv"))
 			.rejects.toThrow(QuestionLoadingError);
 	});
 });
@@ -145,7 +145,7 @@ describe("load CSV", () => {
 
 describe("load TSV", () => {
 	test("succeeds", async () => {
-		expect(await loadQuestionsFromTsv("server/game/questions/testdata/questions.tsv"))
+		expect(await loadQuestionsFromTsv("server/questions/testdata/questions.tsv"))
 			.to.have.deep.members([
 				{
 					question: "The first question.",
@@ -163,7 +163,7 @@ describe("load TSV", () => {
 	});
 	
 	test("throws QuestionLoadingError on invalid input", async () => {
-		await expect(async () => await loadQuestionsFromCsv("server/game/questions/testdata/invalid-questions.tsv"))
+		await expect(async () => await loadQuestionsFromCsv("server/questions/testdata/invalid-questions.tsv"))
 			.rejects.toThrow(QuestionLoadingError);
 	});
 });

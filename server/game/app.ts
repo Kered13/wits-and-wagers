@@ -1,4 +1,5 @@
 import express, { Router, type Request, type Response } from "express";
+import { merge } from "rxjs";
 import { type WebSocket } from "ws";
 
 import { Game } from "./game.js";
@@ -13,7 +14,6 @@ import { SUBMIT_GUESS_PATH, SubmitGuessRequestSchema } from "../../shared/game/s
 import { SUBMIT_BET_PATH, SubmitBetRequestSchema } from "../../shared/game/submit-bet.js";
 import { WITHDRAW_BET_PATH, WithdrawBetRequestSchema } from "../../shared/game/withdraw-bet.js";
 import { END_PHASE_PATH, EndPhaseRequestSchema } from "../../shared/game/end-phase.js";
-import { merge } from "rxjs";
 
 
 class GameNotifier extends Notifier<GameNotification> {}
@@ -27,6 +27,9 @@ type GameData = {
 
 export class GameApp {
 	private readonly games: Map<GameId, GameData> = new Map();
+	
+	constructor() {
+	}
 	
 	public tryGetGame(id: GameId): GameData | undefined {
 		return this.games.get(id);

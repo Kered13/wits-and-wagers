@@ -6,7 +6,7 @@ import { type GameId } from "../../shared/game/game.js";
 import { type LobbyPlayer, type LobbyState, type LobbyId } from "../../shared/lobby/lobby.js";
 import { type LobbyBeginGame, type LobbyCanceled, type LobbyUpdate } from "../../shared/lobby/notifications.js";
 import { type PrivateId, type PrivatePlayer, type PublicId } from "../../shared/player.js";
-import { QuestionGenerator } from "../game/questions/question-generator.js";
+import { QuestionGenerator } from "../questions/question-generator.js";
 
 
 export class Player implements PlayerParams {

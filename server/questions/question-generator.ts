@@ -1,6 +1,6 @@
 import random from "random";
 
-import { HttpError } from "../../utils/httperror.js";
+import { HttpError } from "../utils/httperror.js";
 import type { Question } from "./question.js";
 
 

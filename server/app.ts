@@ -5,29 +5,39 @@ import expressWs from "express-ws";
 
 import { GameApp } from "./game/app.js";
 import { LobbyApp } from "./lobby/app.js"
+import { findQuestionSetsOnFilesystem } from "./questions/question-loading.js";
 import { LOBBY_API_ROOT } from "../shared/lobby/lobby.js";
 import { GAME_API_ROOT } from "../shared/game/game.js";
+import { QuestionSetManager } from "./questions/question-set-manager.js";
 
 
 const PORT = 3000;
 
-const gameApp = new GameApp();
-const lobbyApp = new LobbyApp(gameApp);
-
 
 function logRequest(req: Request, res: Response, next: NextFunction): void {
-	console.log(`${req.method} ${ req.originalUrl } ${ JSON.stringify(req.body) }`);
+	console.log(`${req.method} ${req.originalUrl} ${JSON.stringify(req.body)}`);
 	next();
 }
 
 
-expressWs(express()).app
-	.use(cors())
-	.use(express.json({ strict: false }))
-	.use(express.static("public"))
-	.use(logRequest)
-	.use(LOBBY_API_ROOT, lobbyApp.getRouter())
-	.use(GAME_API_ROOT, gameApp.getRouter())
-	.listen(PORT, () => {
-		console.log("Server is running on port " + PORT);
-	});
+async function main(port: number) {
+	const questionSets = await findQuestionSetsOnFilesystem("C:\\Users\\Derek\\Projects\\wits-and-wagers\\server\\data\\questions");
+	
+	const questionSetManager = new QuestionSetManager(questionSets);
+	const gameApp = new GameApp();
+	const lobbyApp = new LobbyApp(questionSetManager, gameApp);
+	
+	expressWs(express()).app
+		.use(cors())
+		.use(express.json({ strict: false }))
+		.use(express.static("public"))
+		.use(logRequest)
+		.use(LOBBY_API_ROOT, lobbyApp.getRouter())
+		.use(GAME_API_ROOT, gameApp.getRouter())
+		.listen(port, () => {
+			console.log("Server is running on port " + port);
+		});
+}
+
+
+main(PORT);

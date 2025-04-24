@@ -16,6 +16,7 @@ import { CREATE_PATH, CreateLobbyRequestSchema, CreateLobbyResponseSchema, type 
 import { type LobbyNotification } from "../../shared/lobby/notifications.js";
 import { SUBSCRIBE_PATH, SubscribeRequestSchema } from "../../shared/lobby/subscribe.js";
 import { type PrivateId } from "../../shared/player.js";
+import type { QuestionSetManager } from "../questions/question-set-manager.js";
 
 
 class LobbyNotifier extends Notifier<LobbyNotification> {}
@@ -31,7 +32,7 @@ export class LobbyApp {
 	private readonly lobbies: Map<LobbyId, LobbyData> = new Map();
 	private lobbyCounter: number = 0;
 	
-	constructor(private readonly gameApp: GameApp) {}
+	constructor(private readonly questionSetManager: QuestionSetManager, private readonly gameApp: GameApp) {}
 	
 	private verifyHost(lobby: Lobby, requester: PrivateId): void {
 		if (!lobby.isHost(requester)) {

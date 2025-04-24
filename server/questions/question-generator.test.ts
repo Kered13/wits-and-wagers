@@ -1,7 +1,8 @@
 import { describe, expect, test } from "vitest";
 
-import { type Question, QuestionGenerator } from "./question-generator";
-import { HttpError } from "../../utils/httperror";
+import { type Question } from "./question.js";
+import { QuestionGenerator } from "./question-generator.js";
+import { HttpError } from "../utils/httperror";
 
 
 function makeQuestion(): Question {
