@@ -7,6 +7,7 @@ import { type LobbyPlayer, type LobbyState, type LobbyId } from "../../shared/lo
 import { type LobbyBeginGame, type LobbyCanceled, type LobbyUpdate } from "../../shared/lobby/notifications.js";
 import { type PrivateId, type PrivatePlayer, type PublicId } from "../../shared/player.js";
 import { QuestionGenerator } from "../questions/question-generator.js";
+import { type QuestionSetManager } from "../questions/question-set-manager.js";
 
 
 export class Player implements PlayerParams {
@@ -55,7 +56,8 @@ export class Lobby {
 	constructor(
 			private readonly id: LobbyId,
 			private readonly title: string,
-			hostName: string) {
+			hostName: string,
+			private readonly questionSetManager: QuestionSetManager) {
 		this.host = this.generatePlayer(hostName);
 	}
 	
@@ -88,10 +90,7 @@ export class Lobby {
 			this.host,
 			this.players,
 			// TODO: Replace with real questions.
-			new QuestionGenerator(new Array(7).fill({
-				question: "Guess a number?",
-				answer: 7
-			})));
+			new QuestionGenerator(this.questionSetManager.getQuestionSet("Dummy Questions.csv")!));
 		return [game, this.makeBeginGame(game.getId())];
 	}
 	

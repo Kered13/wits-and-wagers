@@ -65,7 +65,7 @@ export class LobbyApp {
 		const request = verifyRequest(
 			req.body, CreateLobbyRequestSchema, `Invalid CreateLobbyRequest: ${JSON.stringify(req.body)}`);
 		
-		const lobby = new Lobby(this.createLobbyId(), request.title, request.host);
+		const lobby = new Lobby(this.createLobbyId(), request.title, request.host, this.questionSetManager);
 		this.lobbies.set(lobby.getId(), { lobby: lobby, notifier: new LobbyNotifier });
 		
 		const response: CreateLobbyResponse = {
