@@ -3,6 +3,7 @@
   * Allow withdrawing guesses? (Currently, new guesses override old.)
   * Load real questions when starting a game.
   * Add color picking.
+  * Garbage collect inactive games.
 * Implement game options.
   * Choose question set.
   * Round timers.

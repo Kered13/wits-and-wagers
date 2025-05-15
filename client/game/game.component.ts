@@ -3,12 +3,12 @@ import { toSignal } from "@angular/core/rxjs-interop";
 import { AbstractControl, FormsModule, NG_VALIDATORS, NgModel, ValidationErrors, Validator } from "@angular/forms";
 import { MatButton } from "@angular/material/button";
 import { MatCardModule } from "@angular/material/card";
-import { MatDialog } from "@angular/material/dialog";
+import { MatDialog, MatDialogRef } from "@angular/material/dialog";
 import { MatError, MatInputModule } from "@angular/material/input";
 import { Title } from "@angular/platform-browser";
 import { ActivatedRoute } from "@angular/router";
 import { parseIntSafe } from "complete-common";
-import { combineLatest, concat, delay, map, type Observable, of, pairwise, startWith, Subscription, switchMap, take } from "rxjs";
+import { combineLatest, concat, delay, filter, map, type Observable, of, pairwise, startWith, Subscription, switchMap, take } from "rxjs";
 
 import { GameInstanceService, GameService } from "./game.service.js";
 import { GameEndDialogComponent } from "../game-end-dialog/game-end-dialog.component.js";
@@ -21,6 +21,7 @@ import { PrivatePlayer } from "../../shared/player.js";
 import { BettingPhaseState } from "../../shared/game/betting-phase.js";
 import { GameOverPhaseState, GameState } from "../../shared/game/game.js";
 import { QuestionPhaseState } from "../../shared/game/question-phase.js";
+import { IntermissionPhaseState } from "../../shared/game/intermission-phase.js";
 
 
 @Directive({
@@ -81,7 +82,10 @@ export class ChipValidator {
 }
 
 
-type PhaseState = QuestionPhaseState | BettingPhaseState | GameOverPhaseState;
+type PhaseState = QuestionPhaseState
+	| BettingPhaseState
+	| IntermissionPhaseState
+	| GameOverPhaseState;
 
 
 @Component({
@@ -104,6 +108,7 @@ export class GameComponent implements OnDestroy {
 	private readonly gameService: Signal<RefCounted<GameInstanceService>>;
 	private readonly subs: Subscription[] = [];
 	private readonly instanceSub: Subscription;
+	private intermissionDialog: MatDialogRef<RoundEndDialogComponent> | undefined = undefined;
 	
 	readonly game: Signal<GameState>;
 	readonly tempGameString: Signal<string>;
@@ -170,6 +175,10 @@ export class GameComponent implements OnDestroy {
 		return phase.phase === "betting";
 	}
 	
+	public isIntermissionPhase(phase: PhaseState): phase is IntermissionPhaseState {
+		return phase.phase === "intermission";
+	}
+	
 	public isGameOverPhase(phase: PhaseState): phase is GameOverPhaseState {
 		return phase.phase === "game-over";
 	}
@@ -181,21 +190,16 @@ export class GameComponent implements OnDestroy {
 		
 		newService.acquire();
 		
-		// Set up the handlers for game end and errors.
+		// Set up the handlers for game update, game end, and errors.
 		this.subs.push(
 			newService.get().onGameUpdate().subscribe({
+				next: state => {
+					this.onGameUpdate(state);
+				},
 				complete: () => {
 					this.dialog.afterAllClosed.pipe(take(1)).subscribe(() => 
 						this.dialog.open(GameEndDialogComponent, { data: this.game() }));
 				}
-			}),
-			newService.get().onEndRound().subscribe(endRound => {
-				this.dialog.open(RoundEndDialogComponent, {
-					data: {
-						endRound,
-						players: this.game().players
-					}
-				});
 			}),
 			newService.get().onError().subscribe(err => {
 				this.errorHandler.handleError(err)
@@ -203,10 +207,27 @@ export class GameComponent implements OnDestroy {
 			}));
 	}
 	
+	private onGameUpdate(state: GameState): void {
+		if (this.isIntermissionPhase(state.phase)) {
+			this.intermissionDialog = this.dialog.open(RoundEndDialogComponent, {
+				data: {
+					intermission: state.phase,
+					players: this.game().players
+				},
+				disableClose: true,
+			});
+		} else {
+			if (this.intermissionDialog) {
+				this.intermissionDialog.close();
+				this.intermissionDialog = undefined;
+			}
+		}
+	}
+	
 	// Returns an observable that emits the remaining time in seconds until the
 	// round ends, or undefined if there is no time limit on the round.
 	private startRoundTimer(phase: PhaseState): Observable<number | undefined> {
-		if (this.isGameOverPhase(phase) || !phase.roundEnd || !phase.roundDuration) {
+		if (this.isIntermissionPhase(phase) || this.isGameOverPhase(phase) || !phase.roundEnd || !phase.roundDuration) {
 			return of(undefined);
 		}
 		const duration = phase.roundDuration;

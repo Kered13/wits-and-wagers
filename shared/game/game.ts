@@ -1,6 +1,7 @@
 import { array, integer, literal, nonEmpty, number, pipe, record, strictObject, string, variant, type InferOutput } from "valibot";
 
 import { BettingPhaseStateSchema } from "./betting-phase.js";
+import { IntermissionPhaseStateSchema } from "./intermission-phase.js";
 import { QuestionPhaseStateSchema } from "./question-phase.js";
 import { PublicIdSchema } from "../player.js";
 import { RgbSchema } from "../rgb.js";
@@ -50,28 +51,6 @@ export const GameStateSchema = strictObject({
 	// The current round number.
 	round: pipe(number(), integer()),
 	// The current phase of the round.
-	phase: variant("phase", [QuestionPhaseStateSchema, BettingPhaseStateSchema, GameOverPhaseStateSchema])
+	phase: variant("phase", [QuestionPhaseStateSchema, BettingPhaseStateSchema, IntermissionPhaseStateSchema, GameOverPhaseStateSchema])
 });
 export type GameState = InferOutput<typeof GameStateSchema>;
-
-
-export const SkippedBettingPhaseSchema = strictObject({
-	type: literal("skipped")
-});
-export type SkippedBettingPhase = InferOutput<typeof SkippedBettingPhaseSchema>;
-
-
-export const BettingConclusionSchema = strictObject({
-	type: literal("conclusion"),
-	winners: array(PublicIdSchema),
-	earnings: record(PublicIdSchema, pipe(number(), integer()))
-});
-export type BettingConclusion = InferOutput<typeof BettingConclusionSchema>;
-
-
-export const EndRoundSchema = strictObject({
-	question: pipe(string(), nonEmpty()),
-	answer: pipe(number(), integer()),
-	outcome: variant("type", [SkippedBettingPhaseSchema, BettingConclusionSchema])
-});
-export type EndRound = InferOutput<typeof EndRoundSchema>;

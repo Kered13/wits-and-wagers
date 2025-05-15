@@ -1,11 +1,11 @@
 import { Subject, type Observable } from "rxjs";
 
-import type { Phase } from "./phase.js";
-import type { Player, PlayerManager } from "./player.js";
+import { type Phase } from "./phase.js";
+import { type Player, type PlayerManager } from "./player.js";
 import { HttpError } from "../utils/httperror.js";
 import { type Bet, type BetTarget, type BettingPhaseState, type Guess as GuessJson } from "../../shared/game/betting-phase.js";
-import { type BettingConclusion } from "../../shared/game/game.js";
 import { type PrivateId } from "../../shared/player.js";
+import { type BettingConclusion } from "../../shared/game/intermission-phase.js";
 
 
 // Indicates whether each guess is Red or Black, by number of players in

@@ -1,5 +1,5 @@
-import type { Phase } from "./phase.js";
-import type { Player, PlayerManager } from "./player.js";
+import { type Phase } from "./phase.js";
+import { type Player, type PlayerManager } from "./player.js";
 import { type QuestionPhaseState } from "../../shared/game/question-phase.js";
 import { type PrivateId } from "../../shared/player.js";
 import { Subject, type Observable } from "rxjs";

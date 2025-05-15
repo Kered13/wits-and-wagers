@@ -1,9 +1,9 @@
 import { describe, expect, test, vi } from "vitest";
 
-import { Game, GameOptions } from "./game";
-import { Player } from "./player";
-import { HttpError } from "../utils/httperror";
-import { QuestionGenerator } from "./questions/question-generator";
+import { Game, GameOptions } from "./game.js";
+import { Player } from "./player.js";
+import { HttpError } from "../utils/httperror.js";
+import { QuestionGenerator } from "../questions/question-generator.js";
 
 
 function makePlayer(name: string): Player {

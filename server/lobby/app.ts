@@ -16,7 +16,7 @@ import { CREATE_PATH, CreateLobbyRequestSchema, CreateLobbyResponseSchema, type 
 import { type LobbyNotification } from "../../shared/lobby/notifications.js";
 import { SUBSCRIBE_PATH, SubscribeRequestSchema } from "../../shared/lobby/subscribe.js";
 import { type PrivateId } from "../../shared/player.js";
-import type { QuestionSetManager } from "../questions/question-set-manager.js";
+import { type QuestionSetManager } from "../questions/question-set-manager.js";
 
 
 class LobbyNotifier extends Notifier<LobbyNotification> {}

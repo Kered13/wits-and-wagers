@@ -2,18 +2,20 @@ import { Observable, Subject } from "rxjs"
 
 import { BettingPhase, bettingPhaseDefaultOptions, type BettingPhaseOptions } from "./betting-phase.js";
 import { GameOverPhase } from "./game-over-phase.js";
+import { IntermissionPhase, intermissionPhaseDefaultOptions, type IntermissionPhaseOptions } from "./intermission-phase.js";
 import { type Phase } from "./phase.js";
 import { Player, PlayerManager, Spectator, type PlayerParams, type SpectatorParams } from "./player.js";
 import { QuestionPhase, questionPhaseDefaultOptions, type QuestionPhaseOptions } from "./question-phase.js";
 import { type QuestionGenerator } from "../questions/question-generator.js";
 import { HttpError } from "../utils/httperror.js";
 import { type BetTarget } from "../../shared/game/betting-phase.js";
-import { type BettingConclusion, type GameId, type GameState, type SkippedBettingPhase } from "../../shared/game/game.js";
+import { type GameId, type GameState } from "../../shared/game/game.js";
 import { type PrivateId } from "../../shared/player.js";
-import { type EndRoundNotification, type GameUpdate } from "../../shared/game/notifications.js";
+import { type GameUpdate } from "../../shared/game/notifications.js";
+import { type BettingConclusion, type SkippedBettingPhase } from "../../shared/game/intermission-phase.js";
 
 
-export type GameOptions = QuestionPhaseOptions & BettingPhaseOptions & {
+export type GameOptions = QuestionPhaseOptions & BettingPhaseOptions & IntermissionPhaseOptions &{
 	numberOfRounds: number
 };
 
@@ -22,14 +24,14 @@ const defaultOptions: GameOptions = Object.assign(
 		numberOfRounds: 7,
 	},
 	questionPhaseDefaultOptions,
-	bettingPhaseDefaultOptions);
+	bettingPhaseDefaultOptions,
+	intermissionPhaseDefaultOptions);
 
 
 export class Game {
 	private readonly players: PlayerManager;
 	private readonly options: GameOptions;
 	private readonly updates = new Subject<void>();
-	private readonly roundEnd = new Subject<EndRoundNotification>();
 	
 	private round: number = 1;
 	private question: string;
@@ -110,17 +112,18 @@ export class Game {
 			const guesses = this.phase.getGuesses();
 			if (guesses.size == 0) {
 				// Skip the betting phase if no one submitted guesses.
-				this.startNewRound({ type: "skipped" });
+				this.startIntermissionPhase({ type: "skipped" });
 			} else {
 				this.startBettingPhase(guesses);
 			}
 		} else if (this.phase instanceof BettingPhase) {
-			this.startNewRound(this.phase.resolve());
+			this.startIntermissionPhase(this.phase.resolve());
+		} else if (this.phase instanceof IntermissionPhase) {
+			this.startNewRound();
 		}
 	}
 	
-	private startNewRound(outcome: SkippedBettingPhase | BettingConclusion): void {
-		this.roundEnd.next(this.makeEndRound(outcome));
+	private startNewRound(): void {
 		this.round++;
 		
 		if (this.isGameOver()) {
@@ -141,6 +144,10 @@ export class Game {
 	private startBettingPhase(guesses: Map<Player, number>): void {
 		this.startPhase(new BettingPhase(this.question, this.answer, this.players, this.round, guesses, this.options))
 	}
+
+	private startIntermissionPhase(outcome: SkippedBettingPhase | BettingConclusion): void {
+		this.startPhase(new IntermissionPhase(this.question, this.answer, outcome, this.options));
+	}
 	
 	private startPhase(phase: Phase): void {
 		this.phase = phase;
@@ -152,7 +159,6 @@ export class Game {
 		this.phase = new GameOverPhase();
 		this.updates.next();
 		this.updates.complete();
-		this.roundEnd.complete();
 	}
 	
 	private isGameOver(): boolean {
@@ -178,18 +184,6 @@ export class Game {
 		};
 	}
 	
-	private makeEndRound(outcome: SkippedBettingPhase | BettingConclusion): EndRoundNotification {
-		return {
-			type: "end-round",
-			id: this.id,
-			endRound: {
-				question: this.question,
-				answer: this.answer,
-				outcome: outcome
-			}
-		};
-	}
-	
 	public getPlayers(): PlayerManager {
 		return this.players;
 	}
@@ -203,12 +197,5 @@ export class Game {
 	// is over.
 	public onUpdates(): Observable<void> {
 		return this.updates.asObservable();
-	}
-	
-	// Notifies when a round ends. Subscribers should call makeRoundEnd() to get
-	// information on how the round ended. This observable completes when the
-	// game is over.
-	public onRoundEnd(): Observable<EndRoundNotification> {
-		return this.roundEnd.asObservable();
 	}
 }

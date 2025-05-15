@@ -1,11 +1,13 @@
 <h1 mat-dialog-title>Round Over!</h1>
 <div mat-dialog-content>
-	<p>Question: {{ endRound.question }}</p>
-	<p>Answer: {{ endRound.answer }}</p>
-	@if (endRound.outcome.type === "skipped") {
+	<p>Question: {{ intermission.question }}</p>
+	<p>Answer: {{ intermission.answer }}</p>
+	@if (intermission.outcome.type === "skipped") {
 		<p>No one had any guesses? This round was skipped!</p>
 	} @else {
-		@for (tuple of earnings(endRound.outcome); track tuple.id) {
+		<p>{{ formatWinners(intermission.outcome.winners) }}</p>
+		<br/>
+		@for (tuple of earnings(intermission.outcome); track tuple.id) {
 			<p>{{ tuple.name }}: +{{ tuple.earnings }}</p>
 		}
 	}

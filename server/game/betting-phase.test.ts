@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
-import { BettingPhase, bettingPhaseDefaultOptions, BettingPhaseOptions } from "./betting-phase";
-import { Player, PlayerManager } from "./player";
+import { BettingPhase, bettingPhaseDefaultOptions, BettingPhaseOptions } from "./betting-phase.js";
+import { Player, PlayerManager } from "./player.js";
 import { type BettingPhaseState } from "../../shared/game/betting-phase.js";
 
 

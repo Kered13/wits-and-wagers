@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 
-import { Player, PlayerManager, Spectator } from "./player";
+import { Player, PlayerManager, Spectator } from "./player.js";
 
 
 function makeSpectator(name: string): Spectator {

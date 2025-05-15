@@ -47,15 +47,11 @@ export class GameApp {
 		const notifier = new GameNotifier();
 		this.games.set(game.getId(), { game, notifier });
 		
-		game.onUpdates().subscribe(() =>
-			game.getPlayers().getAll().forEach(
-				player => notifier.notifyPlayer(player.privateId, game.makeUpdate(player.privateId))))
-		game.onRoundEnd().subscribe(endRound => notifier.notifyClients(endRound));
-		
-		// Both onUpdates and onRoundEnd should complete at the same time, but
-		// to be safe we wait for both to complete. Then we close all
-		// connections and delete the game, we are done with it.
-		merge(game.onUpdates(), game.onRoundEnd()).subscribe({
+		game.onUpdates().subscribe({
+			next: () => {
+				game.getPlayers().getAll().forEach(
+					player => notifier.notifyPlayer(player.privateId, game.makeUpdate(player.privateId)));
+			},
 			complete: () => {
 				notifier.close();
 				this.games.delete(game.getId());

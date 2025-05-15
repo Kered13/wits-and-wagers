@@ -1,8 +1,8 @@
 import { EMPTY, type Observable } from "rxjs";
 
-import type { Phase } from "./phase.js";
-import type { GameOverPhaseState } from "../../shared/game/game.js";
-import type { PrivateId } from "../../shared/player.js";
+import { type Phase } from "./phase.js";
+import { type GameOverPhaseState } from "../../shared/game/game.js";
+import { type PrivateId } from "../../shared/player.js";
 
 
 export class GameOverPhase implements Phase {
