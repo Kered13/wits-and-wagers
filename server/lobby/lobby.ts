@@ -57,6 +57,12 @@ export class Lobby {
 			private readonly id: LobbyId,
 			private readonly title: string,
 			hostName: string,
+			private readonly options: {
+				questionSet: string,
+				numRounds?: number,
+				guessingPhaseDuration?: number,
+				bettingPhaseDuration?: number
+			},
 			private readonly questionSetManager: QuestionSetManager) {
 		this.host = this.generatePlayer(hostName);
 	}
@@ -89,8 +95,7 @@ export class Lobby {
 			this.title,
 			this.host,
 			this.players,
-			// TODO: Replace with real questions.
-			new QuestionGenerator(this.questionSetManager.getQuestionSet("Dummy Questions.csv")!));
+			new QuestionGenerator(this.questionSetManager.getQuestionSet(this.options.questionSet)!));
 		return [game, this.makeBeginGame(game.getId())];
 	}
 	

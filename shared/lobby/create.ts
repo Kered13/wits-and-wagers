@@ -1,4 +1,4 @@
-import { nonEmpty, pipe, strictObject, string, type InferOutput } from "valibot";
+import { nonEmpty, number, optional, pipe, strictObject, string, type InferOutput } from "valibot";
 
 import { LobbyIdSchema } from "./lobby.js";
 import { PrivatePlayerSchema } from "../player.js";
@@ -7,12 +7,23 @@ import { PrivatePlayerSchema } from "../player.js";
 export const CREATE_PATH = "/create";
 
 
+export const LobbyOptionsSchema = strictObject({
+	questionSet: pipe(string(), nonEmpty()),
+	numRounds: optional(number()),
+	guessingPhaseDuration: optional(number()),
+	bettingPhaseDuration: optional(number()),
+});
+export type LobbyOptions = InferOutput<typeof LobbyOptionsSchema>;
+
+
 // Creates a new lobby and adds the host to it.
 export const CreateLobbyRequestSchema = strictObject({
 	// Name of the lobby and subsequent game.
 	title: pipe(string(), nonEmpty()),
 	// Name of the host player.
-	host: pipe(string(), nonEmpty())
+	host: pipe(string(), nonEmpty()),
+	// Options for the lobby.
+	options: LobbyOptionsSchema,
 });
 export type CreateLobbyRequest = InferOutput<typeof CreateLobbyRequestSchema>;
 

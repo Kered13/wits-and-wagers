@@ -11,5 +11,5 @@ export const BEGIN_PATH = "/begin";
 export const BeginGameRequestSchema = strictObject({
 	lobbyId: LobbyIdSchema,
 	requester: PrivateIdSchema
-});;
+});
 export type BeginGameRequest = InferOutput<typeof BeginGameRequestSchema>;

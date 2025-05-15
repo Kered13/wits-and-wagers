@@ -8,7 +8,7 @@ import { MatError, MatInputModule } from "@angular/material/input";
 import { Title } from "@angular/platform-browser";
 import { ActivatedRoute } from "@angular/router";
 import { parseIntSafe } from "complete-common";
-import { combineLatest, concat, delay, filter, map, type Observable, of, pairwise, startWith, Subscription, switchMap, take } from "rxjs";
+import { combineLatest, concat, delay, map, type Observable, of, pairwise, startWith, Subscription, switchMap, take } from "rxjs";
 
 import { GameInstanceService, GameService } from "./game.service.js";
 import { GameEndDialogComponent } from "../game-end-dialog/game-end-dialog.component.js";

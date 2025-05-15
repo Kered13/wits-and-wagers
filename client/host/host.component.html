@@ -5,8 +5,42 @@
 		</mat-card-header>
 		<mat-card-content>
 			<mat-form-field>
-				<mat-label>Title:</mat-label>
-				<input matInput placeholder="Game Name" type="text" formControlName="title" />
+				<mat-label>Title</mat-label>
+				<input matInput
+					placeholder="Game Name"
+					formControlName="title" />
+			</mat-form-field>
+			<mat-form-field>
+				<mat-label>Question Set</mat-label>
+				<mat-select formControlName="questionSet">
+					@for (questionSet of questionSets(); track $index) {
+						<mat-option [value]="questionSet.name">{{ questionSet.name }} ({{ questionSet.size }} questions)</mat-option>
+					}
+				</mat-select>
+			</mat-form-field>
+			<mat-form-field>
+				<mat-label>Number of Rounds</mat-label>
+				<input matInput
+					placeholder="Number of Rounds"
+					inputmode="numeric"
+					pattern="[1-9][0-9]*"
+					formControlName="numRounds" />
+			</mat-form-field>
+			<mat-form-field>
+				<mat-label>Time for Guessing</mat-label>
+				<input matInput
+					placeholder="Guessing Time"
+					inputmode="numeric"
+					pattern="[1-9][0-9]*"
+					formControlName="guessingTime" />
+			</mat-form-field>
+			<mat-form-field>
+				<mat-label>Time for Betting</mat-label>
+				<input matInput
+					placeholder="Betting Time"
+					inputmode="numeric"
+					pattern="[1-9][0-9]*"
+					formControlName="bettingTime" />
 			</mat-form-field>
 		</mat-card-content>
 		<mat-card-actions>

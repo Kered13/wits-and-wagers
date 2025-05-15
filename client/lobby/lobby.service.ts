@@ -9,6 +9,7 @@ import { WebsocketError } from "../utils/websocket-error.js";
 import { GameId } from "../../shared/game/game.js";
 import { BEGIN_PATH, type BeginGameRequest } from "../../shared/lobby/begin.js";
 import { CANCEL_PATH, type CancelLobbyRequest } from "../../shared/lobby/cancel.js";
+import { GET_QUESTION_SETS_PATH, GetQuestionSetsRequest, GetQuestionSetsResponse } from "../../shared/lobby/get-question-sets.js";
 import { CREATE_PATH, CreateLobbyRequestSchema, type CreateLobbyRequest, type CreateLobbyResponse } from "../../shared/lobby/create.js";
 import { JOIN_LOBBY_PATH, type JoinLobbyRequest, type JoinLobbyResponse } from "../../shared/lobby/joinlobby.js";
 import { LOBBY_API_ROOT, type LobbyId, type LobbyState } from "../../shared/lobby/lobby.js";
@@ -54,6 +55,10 @@ export class LobbyService {
 	
 	public removeLobby(id: LobbyId): void {
 		this.lobbyInstances.delete(id);
+	}
+	
+	public getQuestionSets(): Observable<GetQuestionSetsResponse> {
+		return this.backend.get<GetQuestionSetsResponse>(LOBBY_API_ROOT + GET_QUESTION_SETS_PATH);
 	}
 }
 
