@@ -48,7 +48,7 @@ export class Notifier<N> {
 	
 	// Notify all clients for the given player.
 	public notifyPlayer(id: PrivateId, notification: N): this {
-		for (const ws of this.idToClients.get(id)) {
+		for (const ws of this.idToClients.get(id) ?? []) {
 			this.notifyClient(ws, notification);
 		}
 		return this;
