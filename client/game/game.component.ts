@@ -238,7 +238,9 @@ export class GameComponent implements OnDestroy {
 			timers.push(of(Math.round(t / 1000)).pipe(delay(new Date(end - t))));
 		}
 		timers.reverse();
-		return concat(of(Math.round(duration / 1000)), ...timers);
+		
+		const initialTimer = Math.min(duration, end - now);
+		return concat(of(Math.ceil(initialTimer / 1000)), ...timers);
 	}
 	
 	private closeGameService(service: RefCounted<GameInstanceService>): void {
