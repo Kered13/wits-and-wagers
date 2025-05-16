@@ -3,6 +3,7 @@ import { toSignal } from "@angular/core/rxjs-interop";
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
 import { MatButton } from "@angular/material/button";
 import { MatCardModule } from "@angular/material/card";
+import { MatCheckboxModule } from "@angular/material/checkbox";
 import { MatInputModule } from '@angular/material/input';
 import { MatOption, MatSelect } from "@angular/material/select";
 import { ActivatedRoute } from "@angular/router";
@@ -20,6 +21,7 @@ import { GetQuestionSetsResponse } from "../../shared/lobby/get-question-sets.js
 	imports: [
 		MatButton,
 		MatCardModule,
+		MatCheckboxModule,
 		MatInputModule,
 		MatOption,
 		MatSelect,
@@ -33,8 +35,9 @@ export class HostComponent {
 	readonly options = new FormGroup({
 		title: new FormControl("", Validators.required),
 		questionSet: new FormControl<number | undefined>(undefined, Validators.required),
-		numRounds: new FormControl(""),
-		guessingTime: new FormControl(""),
+		numberOfRounds: new FormControl(""),
+		endQuestionPhaseWhenAllGuessesSubmitted: new FormControl(true),
+		questionTime: new FormControl(""),
 		bettingTime: new FormControl(""),
 	});
 	
@@ -52,15 +55,18 @@ export class HostComponent {
 	
 	createLobby(): void {
 		if (this.options.valid) {
-			console.log(`questionSet: ${typeof(this.options.value.questionSet)}`);
+			let questionTime = this.options.value.questionTime ? parseInt(this.options.value.questionTime) * 1000 : undefined;
+			let bettingTime = this.options.value.bettingTime ? parseInt(this.options.value.bettingTime) * 1000 : undefined;
+			
 			this.lobbyService.createLobby({
 					title: this.options.value.title!,
 					host: this.username(),
 					questionSet: this.options.value.questionSet!,
 					options: {
-						numRounds: parseIntSafe(this.options.value.numRounds ?? ""),
-						guessingPhaseDuration: parseIntSafe(this.options.value.guessingTime ?? ""),
-						bettingPhaseDuration: parseIntSafe(this.options.value.bettingTime ?? ""),
+						numberOfRounds: parseIntSafe(this.options.value.numberOfRounds ?? ""),
+						endQuestionPhaseWhenAllGuessesSubmitted: this.options.value.endQuestionPhaseWhenAllGuessesSubmitted!,
+						questionPhaseDuration: questionTime,
+						bettingPhaseDuration: bettingTime,
 					}
 				}).subscribe(response => {
 					localStorage.setItem(PUBLIC_ID, response.host.publicId);

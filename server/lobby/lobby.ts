@@ -2,12 +2,13 @@ import * as uuid from "uuid";
 
 import { Game } from "../game/game.js";
 import { type PlayerParams } from "../game/player.js";
+import { QuestionGenerator } from "../questions/question-generator.js";
+import { type QuestionSetManager } from "../questions/question-set-manager.js";
 import { type GameId } from "../../shared/game/game.js";
+import { type LobbyOptions } from "../../shared/lobby/create.js";
 import { type LobbyPlayer, type LobbyState, type LobbyId } from "../../shared/lobby/lobby.js";
 import { type LobbyBeginGame, type LobbyCanceled, type LobbyUpdate } from "../../shared/lobby/notifications.js";
 import { type PrivateId, type PrivatePlayer, type PublicId } from "../../shared/player.js";
-import { QuestionGenerator } from "../questions/question-generator.js";
-import { type QuestionSetManager } from "../questions/question-set-manager.js";
 
 
 export class Player implements PlayerParams {
@@ -58,11 +59,7 @@ export class Lobby {
 			private readonly title: string,
 			hostName: string,
 			private readonly questionSet: number,
-			private readonly options: {
-				numRounds?: number,
-				guessingPhaseDuration?: number,
-				bettingPhaseDuration?: number
-			},
+			private readonly options: LobbyOptions,
 			private readonly questionSetManager: QuestionSetManager) {
 		this.host = this.generatePlayer(hostName);
 	}
@@ -95,7 +92,8 @@ export class Lobby {
 			this.title,
 			this.host,
 			this.players,
-			new QuestionGenerator(this.questionSetManager.getQuestionSet(this.questionSet)!.questions));
+			new QuestionGenerator(this.questionSetManager.getQuestionSet(this.questionSet)!.questions),
+			this.options);
 		return [game, this.makeBeginGame(game.getId())];
 	}
 	

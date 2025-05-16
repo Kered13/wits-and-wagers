@@ -24,18 +24,21 @@
 					placeholder="Number of Rounds"
 					inputmode="numeric"
 					pattern="[1-9][0-9]*"
-					formControlName="numRounds" />
+					formControlName="numberOfRounds" />
 			</mat-form-field>
+			<mat-checkbox formControlName="endQuestionPhaseWhenAllGuessesSubmitted">
+				Automatically end question round when all players have submitted questions.
+			</mat-checkbox>
 			<mat-form-field>
-				<mat-label>Time for Guessing</mat-label>
+				<mat-label>Time for Question (seconds)</mat-label>
 				<input matInput
-					placeholder="Guessing Time"
+					placeholder="Question Time"
 					inputmode="numeric"
 					pattern="[1-9][0-9]*"
-					formControlName="guessingTime" />
+					formControlName="questionTime" />
 			</mat-form-field>
 			<mat-form-field>
-				<mat-label>Time for Betting</mat-label>
+				<mat-label>Time for Betting (seconds)</mat-label>
 				<input matInput
 					placeholder="Betting Time"
 					inputmode="numeric"
