@@ -80,10 +80,11 @@ export class BettingPhase implements Phase {
 			}));
 		
 		if (options.bettingPhaseDuration) {
-			this.timeout = setTimeout(() => this.endPhase(), options.bettingPhaseDuration);
 			// Add a small fudge factor to the round duration. This is just to
 			// give players some leniency and account for latency.
-			this.endTime = new Date().getTime() + options.bettingPhaseDuration + 300;
+			const phaseDuration = options.bettingPhaseDuration + 300;
+			this.timeout = setTimeout(() => this.endPhase(), phaseDuration);
+			this.endTime = new Date().getTime() + phaseDuration;
 		}
 	}
 	

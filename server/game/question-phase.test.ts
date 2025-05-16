@@ -16,7 +16,7 @@ function makePlayer(name: string): Player {
 
 function makeQuestionPhase(
 		obj: {
-		players: Player[],
+			players: Player[],
 			question?: string,
 			options?: Partial<QuestionPhaseOptions>
 		}): QuestionPhase {
@@ -245,7 +245,7 @@ describe("QuestionPhase", () => {
 		const callback = vi.fn();
 		phase.onEndPhase().subscribe(callback);
 		
-		vi.advanceTimersByTime(60_000);
+		vi.advanceTimersByTime(60_300);
 		expect(callback).toHaveBeenCalled();
 	});
 });

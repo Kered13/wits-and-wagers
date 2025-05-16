@@ -110,6 +110,7 @@ describe("Game", () => {
 			
 			for (let i = 0; i < 7; i++) {
 				game.endPhase(alice.privateId);
+				game.endPhase(alice.privateId);
 			}
 			
 			const expectedPlayers = [{
@@ -171,10 +172,10 @@ describe("Game", () => {
 		const game = makeGame("id", "Game", [alice]);
 		game.endPhase(alice.privateId);
 		
-		expect(game.toJson(alice.privateId).phase.phase).to.equal("question");
+		expect(game.toJson(alice.privateId).phase.phase).to.equal("intermission");
 	});
 	
-	test("betting phase followed by question phase", () => {
+	test("betting phase followed by intermission phase", () => {
 		const alice = makePlayer("Alice");
 		const game = makeGame("id", "Game", [alice]);
 		game.submitGuess(alice.privateId, 42);
@@ -182,10 +183,22 @@ describe("Game", () => {
 		game.submitBet(alice.privateId, "Red", 2);
 		game.endPhase(alice.privateId);
 		
+		expect(game.toJson(alice.privateId).phase.phase).to.equal("intermission");
+	});
+
+	test("intermission phase followed by question phase", () => {
+		const alice = makePlayer("Alice");
+		const game = makeGame("id", "Game", [alice]);
+		game.submitGuess(alice.privateId, 42);
+		game.endPhase(alice.privateId);
+		game.submitBet(alice.privateId, "Red", 2);
+		game.endPhase(alice.privateId);
+		game.endPhase(alice.privateId);
+
 		expect(game.toJson(alice.privateId).phase.phase).to.equal("question");
 	});
 	
-	test("round counter increments after betting phase", () => {
+	test("round counter increments after intermission phase", () => {
 		const alice = makePlayer("Alice");
 		const game = makeGame("id", "Game", [alice]);
 		
@@ -193,22 +206,12 @@ describe("Game", () => {
 		
 		game.submitGuess(alice.privateId, 42);
 		game.endPhase(alice.privateId);
-		
 		expect(game.getRound()).to.equal(1);
 		
 		game.endPhase(alice.privateId);
-		
-		expect(game.getRound()).to.equal(2);
-	});
-	
-	test("round counter increments after question phase if no guesses submitted", () => {
-		const alice = makePlayer("Alice");
-		const game = makeGame("id", "Game", [alice]);
-		
 		expect(game.getRound()).to.equal(1);
 		
 		game.endPhase(alice.privateId);
-		
 		expect(game.getRound()).to.equal(2);
 	});
 	
@@ -266,86 +269,28 @@ describe("Game", () => {
 		expect(callback).toHaveBeenCalled();
 	});
 	
-	test("end betting phase notifies roundEnd with EndRoundNotification", () => {
-		const alice = makePlayer("Alice");
-		const game = makeGame("id", "Game", [alice]);
-		
-		const callback = vi.fn();
-		game.onRoundEnd().subscribe(callback);
-		
-		game.submitGuess(alice.privateId, 42);
-		game.endPhase(alice.privateId);
-		
-		game.submitBet(alice.privateId, "AllTooHigh", 2);
-		game.endPhase(alice.privateId);
-		
-		expect(callback).toHaveBeenCalledWith({
-			type: "end-round",
-			id: "id",
-			endRound: {
-				question: "Guess a number?",
-				answer: 7,
-				outcome: {
-					type: "conclusion",
-					winners: [],
-					earnings: {
-						[alice.publicId]: 14
-					}
-				}
-			}
-		});
-	});
-	
-	test("end question phase with no guesses notifies roundEnd with EndRoundNotification", () => {
-		const alice = makePlayer("Alice");
-		const game = makeGame("id", "Game", [alice]);
-		
-		const callback = vi.fn();
-		game.onRoundEnd().subscribe(callback);
-		
-		game.endPhase(alice.privateId);
-		
-		expect(callback).toHaveBeenCalledWith({
-			type: "end-round",
-			id: "id",
-			endRound: {
-				question: "Guess a number?",
-				answer: 7,
-				outcome: {
-					type: "skipped",
-				}
-			}
-		});
-	});
-	
-	test("endPhase notifies and completes updates and roundEnd after final round", () => {
+	test("endPhase notifies and completes updates after final round", () => {
 		const alice = makePlayer("Alice");
 		const game = makeGame("id", "Game", [alice]);
 		
 		// End the first six rounds.
 		for (let i = 0; i < 6; i++) {
 			game.endPhase(alice.privateId);
+			game.endPhase(alice.privateId);
 		}
 		
 		const updateCallback = vi.fn();
 		const gameEndCallback = vi.fn();
-		const roundEndCallback = vi.fn();
-		const roundEndGameEndCallback = vi.fn();
 		game.onUpdates().subscribe({
 			next: updateCallback,
 			complete: gameEndCallback
 		});
-		game.onRoundEnd().subscribe({
-			next: roundEndCallback,
-			complete: roundEndGameEndCallback
-		});
 		
+		game.endPhase(alice.privateId);
 		game.endPhase(alice.privateId);
 		
 		expect(updateCallback).toHaveBeenCalled();
 		expect(gameEndCallback).toHaveBeenCalled();
-		expect(roundEndCallback).toHaveBeenCalled();
-		expect(roundEndGameEndCallback).toHaveBeenCalled();
 	});
 	
 	test("game ends after specified number of rounds", () => {
@@ -355,6 +300,7 @@ describe("Game", () => {
 		// End the first two rounds.
 		for (let i = 0; i < 2; i++) {
 			game.endPhase(alice.privateId);
+			game.endPhase(alice.privateId);
 		}
 		
 		const updateCallback = vi.fn();
@@ -365,17 +311,12 @@ describe("Game", () => {
 			next: updateCallback,
 			complete: gameEndCallback
 		});
-		game.onRoundEnd().subscribe({
-			next: roundEndCallback,
-			complete: roundEndGameEndCallback
-		});
 		
+		game.endPhase(alice.privateId);
 		game.endPhase(alice.privateId);
 		
 		expect(updateCallback).toHaveBeenCalled();
 		expect(gameEndCallback).toHaveBeenCalled();
-		expect(roundEndCallback).toHaveBeenCalled();
-		expect(roundEndGameEndCallback).toHaveBeenCalled();
 	});
 	
 	test("can submit guess during question phase", () => {
@@ -437,6 +378,7 @@ describe("Game", () => {
 		// End all seven rounds.
 		for (let i = 0; i < 7; i++) {
 			game.endPhase(alice.privateId);
+			game.endPhase(alice.privateId);
 		}
 		
 		expect(() => game.submitGuess(alice.privateId, 42))
@@ -449,6 +391,7 @@ describe("Game", () => {
 		
 		// End all seven rounds.
 		for (let i = 0; i < 7; i++) {
+			game.endPhase(alice.privateId);
 			game.endPhase(alice.privateId);
 		}
 		
@@ -463,6 +406,7 @@ describe("Game", () => {
 		// End all seven rounds.
 		for (let i = 0; i < 7; i++) {
 			game.endPhase(alice.privateId);
+			game.endPhase(alice.privateId);
 		}
 		
 		expect(() => game.withdrawBet(alice.privateId, "Red"))
@@ -475,6 +419,7 @@ describe("Game", () => {
 		
 		// End all seven rounds.
 		for (let i = 0; i < 7; i++) {
+			game.endPhase(alice.privateId);
 			game.endPhase(alice.privateId);
 		}
 		

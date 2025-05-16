@@ -30,10 +30,11 @@ export class QuestionPhase implements Phase {
 			private readonly players: PlayerManager,
 			private readonly options: QuestionPhaseOptions) {
 		if (options.questionPhaseDuration) {
-			this.timeout = setTimeout(() => this.endPhase(), options.questionPhaseDuration);
 			// Add a small fudge factor to the round duration. This is just to
 			// give players some leniency and account for latency.
-			this.endTime = new Date().getTime() + options.questionPhaseDuration + 300;
+			const phaseDuration = options.questionPhaseDuration + 300;
+			this.timeout = setTimeout(() => this.endPhase(), phaseDuration);
+			this.endTime = new Date().getTime() + phaseDuration;
 		}
 	}
 	

@@ -28,8 +28,7 @@ type GameData = {
 export class GameApp {
 	private readonly games: Map<GameId, GameData> = new Map();
 	
-	constructor() {
-	}
+	constructor() {}
 	
 	public tryGetGame(id: GameId): GameData | undefined {
 		return this.games.get(id);
