@@ -32,7 +32,7 @@ import { GetQuestionSetsResponse } from "../../shared/lobby/get-question-sets.js
 export class HostComponent {
 	readonly options = new FormGroup({
 		title: new FormControl("", Validators.required),
-		questionSet: new FormControl("", Validators.required),
+		questionSet: new FormControl<number | undefined>(undefined, Validators.required),
 		numRounds: new FormControl(""),
 		guessingTime: new FormControl(""),
 		bettingTime: new FormControl(""),
@@ -52,11 +52,12 @@ export class HostComponent {
 	
 	createLobby(): void {
 		if (this.options.valid) {
+			console.log(`questionSet: ${typeof(this.options.value.questionSet)}`);
 			this.lobbyService.createLobby({
 					title: this.options.value.title!,
 					host: this.username(),
+					questionSet: this.options.value.questionSet!,
 					options: {
-						questionSet: this.options.value.questionSet!,
 						numRounds: parseIntSafe(this.options.value.numRounds ?? ""),
 						guessingPhaseDuration: parseIntSafe(this.options.value.guessingTime ?? ""),
 						bettingPhaseDuration: parseIntSafe(this.options.value.bettingTime ?? ""),

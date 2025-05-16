@@ -10,7 +10,9 @@ export type GetQuestionSetsRequest = InferOutput<typeof GetQuestionSetsRequestSc
 
 export const GetQuestionSetsResponseSchema = array(
 	strictObject({
-		// Name of the question set.
+		// Unique ID of the question set.
+		id: number(),
+		// File name of the question set.
 		name: pipe(string(), nonEmpty()),
 		// Number of questions in the set.
 		size: number(),

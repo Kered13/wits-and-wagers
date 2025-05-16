@@ -8,7 +8,6 @@ export const CREATE_PATH = "/create";
 
 
 export const LobbyOptionsSchema = strictObject({
-	questionSet: pipe(string(), nonEmpty()),
 	numRounds: optional(number()),
 	guessingPhaseDuration: optional(number()),
 	bettingPhaseDuration: optional(number()),
@@ -22,6 +21,8 @@ export const CreateLobbyRequestSchema = strictObject({
 	title: pipe(string(), nonEmpty()),
 	// Name of the host player.
 	host: pipe(string(), nonEmpty()),
+	// ID of the question set to use for the game.
+	questionSet: number(),
 	// Options for the lobby.
 	options: LobbyOptionsSchema,
 });

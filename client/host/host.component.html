@@ -14,7 +14,7 @@
 				<mat-label>Question Set</mat-label>
 				<mat-select formControlName="questionSet">
 					@for (questionSet of questionSets(); track $index) {
-						<mat-option [value]="questionSet.name">{{ questionSet.name }} ({{ questionSet.size }} questions)</mat-option>
+						<mat-option [value]="questionSet.id">{{ questionSet.name }} ({{ questionSet.size }} questions)</mat-option>
 					}
 				</mat-select>
 			</mat-form-field>

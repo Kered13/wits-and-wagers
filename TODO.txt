@@ -1,5 +1,4 @@
 * Implement game.
-  * Add ID to question sets for unique identification.
   * Add option for host to not be a player.
   * Allow withdrawing guesses? (Currently, new guesses override old.)
   * Load real questions when starting a game.
@@ -7,7 +6,7 @@
   * Garbage collect inactive games.
   * Support mixing question sets?
 * Implement game options.
-  * Choose question set.
+  * Number of players.
   * Round timers.
 * Implement desktop UI.
   * Clear selections when a new round begins.

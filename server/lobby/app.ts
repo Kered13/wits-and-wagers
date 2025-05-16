@@ -66,7 +66,13 @@ export class LobbyApp {
 		const request = verifyRequest(
 			req.body, CreateLobbyRequestSchema, `Invalid CreateLobbyRequest: ${JSON.stringify(req.body)}`);
 		
-		const lobby = new Lobby(this.createLobbyId(), request.title, request.host, request.options, this.questionSetManager);
+		const lobby = new Lobby(
+			this.createLobbyId(),
+			request.title,
+			request.host,
+			request.questionSet,
+			request.options,
+			this.questionSetManager);
 		this.lobbies.set(lobby.getId(), { lobby: lobby, notifier: new LobbyNotifier });
 		
 		const response: CreateLobbyResponse = {
@@ -144,9 +150,10 @@ export class LobbyApp {
 		const questionSets = this.questionSetManager.getQuestionSets();
 		
 		const response: GetQuestionSetsResponse = Array.from(questionSets)
-			.map(([name, questions]) => ({
-				name: name,
-				size: questions.length
+			.map(([id, questionSet]) => ({
+				id,
+				name: questionSet.fileName,
+				size: questionSet.questions.length
 			}));
 		assert(GetQuestionSetsResponseSchema, response);
 		res.send(response);

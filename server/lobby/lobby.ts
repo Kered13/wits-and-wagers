@@ -57,8 +57,8 @@ export class Lobby {
 			private readonly id: LobbyId,
 			private readonly title: string,
 			hostName: string,
+			private readonly questionSet: number,
 			private readonly options: {
-				questionSet: string,
 				numRounds?: number,
 				guessingPhaseDuration?: number,
 				bettingPhaseDuration?: number
@@ -95,7 +95,7 @@ export class Lobby {
 			this.title,
 			this.host,
 			this.players,
-			new QuestionGenerator(this.questionSetManager.getQuestionSet(this.options.questionSet)!));
+			new QuestionGenerator(this.questionSetManager.getQuestionSet(this.questionSet)!.questions));
 		return [game, this.makeBeginGame(game.getId())];
 	}
 	
