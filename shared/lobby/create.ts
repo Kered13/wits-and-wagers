@@ -8,9 +8,15 @@ export const CREATE_PATH = "/create";
 
 
 export const LobbyOptionsSchema = strictObject({
+	// Maximum number of players. Default 7.
+	numberOfPlayers: optional(number()),
+	// Maximum number of rounds. Default 7.
 	numberOfRounds: optional(number()),
+	// Automatically end the question phase when all players have submitted their guesses. Default true.
 	endQuestionPhaseWhenAllGuessesSubmitted: optional(boolean()),
+	// Time limit for question phase. Default unlimited.
 	questionPhaseDuration: optional(number()),
+	// Time limit for question phase. Default unlimited.
 	bettingPhaseDuration: optional(number()),
 });
 export type LobbyOptions = InferOutput<typeof LobbyOptionsSchema>;

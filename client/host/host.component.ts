@@ -35,6 +35,7 @@ export class HostComponent {
 	readonly options = new FormGroup({
 		title: new FormControl("", Validators.required),
 		questionSet: new FormControl<number | undefined>(undefined, Validators.required),
+		numberOfPlayers: new FormControl<number>(7),
 		numberOfRounds: new FormControl(""),
 		endQuestionPhaseWhenAllGuessesSubmitted: new FormControl(true),
 		questionTime: new FormControl(""),
@@ -64,6 +65,7 @@ export class HostComponent {
 					questionSet: this.options.value.questionSet!,
 					options: {
 						numberOfRounds: parseIntSafe(this.options.value.numberOfRounds ?? ""),
+						numberOfPlayers: this.options.value.numberOfPlayers ?? 7,
 						endQuestionPhaseWhenAllGuessesSubmitted: this.options.value.endQuestionPhaseWhenAllGuessesSubmitted!,
 						questionPhaseDuration: questionTime,
 						bettingPhaseDuration: bettingTime,

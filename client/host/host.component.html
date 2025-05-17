@@ -19,6 +19,14 @@
 				</mat-select>
 			</mat-form-field>
 			<mat-form-field>
+				<mat-label>Maximum Number of Players</mat-label>
+				<mat-select formControlName="numberOfPlayers">
+					@for (number of [1, 2, 3, 4, 5, 6, 7]; track $index) {
+						<mat-option [value]="number">{{ number }}</mat-option>
+					}
+				</mat-select>
+			</mat-form-field>
+			<mat-form-field>
 				<mat-label>Number of Rounds</mat-label>
 				<input matInput
 					placeholder="Number of Rounds"

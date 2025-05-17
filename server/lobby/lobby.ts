@@ -9,6 +9,7 @@ import { type LobbyOptions } from "../../shared/lobby/create.js";
 import { type LobbyPlayer, type LobbyState, type LobbyId } from "../../shared/lobby/lobby.js";
 import { type LobbyBeginGame, type LobbyCanceled, type LobbyUpdate } from "../../shared/lobby/notifications.js";
 import { type PrivateId, type PrivatePlayer, type PublicId } from "../../shared/player.js";
+import { HttpError } from "../utils/httperror.js";
 
 
 export class Player implements PlayerParams {
@@ -62,6 +63,24 @@ export class Lobby {
 			private readonly options: LobbyOptions,
 			private readonly questionSetManager: QuestionSetManager) {
 		this.host = this.generatePlayer(hostName);
+		this.options.numberOfPlayers = this.options.numberOfPlayers ?? 7;
+		
+		Lobby.validateOptions(this.options);
+	}
+	
+	static validateOptions(options: LobbyOptions): void {
+		if (options.numberOfPlayers && (options.numberOfPlayers < 1 || options.numberOfPlayers > 7)) {
+			throw new HttpError(400, "Number of players must be between 1 and 7.");
+		}
+		if (options.numberOfRounds && (options.numberOfRounds < 1)) {
+			throw new HttpError(400, "Number of rounds must be greater than 0.");
+		}
+		if (options.questionPhaseDuration && (options.questionPhaseDuration <= 0)) {
+			throw new HttpError(400, "Question phase duration must be greater than 0.");
+		}
+		if (options.bettingPhaseDuration && (options.bettingPhaseDuration <= 0)) {
+			throw new HttpError(400, "Question phase duration must be greater than 0.");
+		}
 	}
 	
 	public getId(): LobbyId {
@@ -77,8 +96,14 @@ export class Lobby {
 	}
 	
 	public addPlayer(name: string, existingId?: PrivateId): Player {
-		return this.players.find(player => player.privateId === existingId)
-			|| this.generatePlayer(name);
+		const existingPlayer = this.players.find(player => player.name === name);
+		if (existingPlayer) {
+			return existingPlayer
+		} else if (this.players.length >= this.options.numberOfPlayers!) {
+			throw new HttpError(403, "Lobby is full.");
+		} else {
+			return this.generatePlayer(name);
+		}
 	}
 	
 	public removePlayer(privateId: string): void {
