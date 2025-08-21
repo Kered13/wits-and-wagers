@@ -4,7 +4,7 @@ import { BettingPhase, bettingPhaseDefaultOptions, type BettingPhaseOptions } fr
 import { GameOverPhase } from "./game-over-phase.js";
 import { IntermissionPhase, intermissionPhaseDefaultOptions, type IntermissionPhaseOptions } from "./intermission-phase.js";
 import { type Phase } from "./phase.js";
-import { Player, Spectator, type PlayerParams, type SpectatorParams } from "./player.js";
+import { Player, Spectator, type ParticipantParams, type PlayerParams, type SpectatorParams } from "./player.js";
 import { QuestionPhase, questionPhaseDefaultOptions, type QuestionPhaseOptions } from "./question-phase.js";
 import { type QuestionGenerator } from "../questions/question-generator.js";
 import { HttpError } from "../utils/httperror.js";
@@ -43,7 +43,7 @@ export class Game {
 	constructor(
 			private readonly id: GameId,
 			private readonly title: string,
-			private readonly host: SpectatorParams,
+			private readonly host: ParticipantParams,
 			players: PlayerParams[],
 			spectators: SpectatorParams[],
 			private readonly questionGenerator: QuestionGenerator,

@@ -1,38 +1,45 @@
-import { HttpError } from "../utils/httperror.js";
 import { type GamePlayer, type GameSpectator } from "../../shared/game/game.js";
 import { type PrivateId, type PublicId } from "../../shared/player.js";
 import { type Rgb } from "../../shared/rgb.js";
 
 
-export type SpectatorParams = {
+export type ParticipantParams = {
 	name: string,
 	publicId: string,
 	privateId: string,
-	chips?: number
+	// Initial chips, mostly for testing. Initial chips are 2 if not specified.
+	chips?: number;
 };
 
 
+export type SpectatorParams = ParticipantParams;
+
+
 // Constructor parameters for Player.
-export type PlayerParams = SpectatorParams & {
+export type PlayerParams = ParticipantParams & {
 	color: string
 };
 
 
 // Spectators can place bets, but cannot submit guesses.
-export class Spectator {
+export abstract class Participant {
 	public readonly name: string;
 	public readonly publicId: PublicId;
 	public readonly privateId: PrivateId;
 	
-	public chips: number = 2;
+	public chips: number;
 	
-	constructor(player: SpectatorParams) {
+	constructor(player: ParticipantParams) {
 		this.name = player.name;
 		this.publicId = player.publicId;
 		this.privateId = player.privateId;
-		if (player.chips !== undefined) {
-			this.chips = player.chips;
-		}
+		this.chips = player.chips ?? 2;
+	}
+}
+
+export class Spectator extends Participant {
+	constructor(player: SpectatorParams) {
+		super(player);
 	}
 	
 	public toJson(): GameSpectator {
@@ -47,7 +54,7 @@ export class Spectator {
 
 // Players are like Spectators but can submit guesses. They also have a color
 // assigned to them for UI purposes.
-export class Player extends Spectator {
+export class Player extends Participant {
 	public readonly color: Rgb;
 	
 	constructor(player: PlayerParams) {
@@ -55,7 +62,7 @@ export class Player extends Spectator {
 		this.color = player.color;
 	}
 	
-	public override toJson(): GamePlayer {
+	public toJson(): GamePlayer {
 		return {
 			name: this.name,
 			publicId: this.publicId,

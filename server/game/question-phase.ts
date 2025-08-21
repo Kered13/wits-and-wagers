@@ -1,8 +1,9 @@
 import { type Phase } from "./phase.js";
-import { type Player, type PlayerManager } from "./player.js";
+import { type Player } from "./player.js";
 import { type QuestionPhaseState } from "../../shared/game/question-phase.js";
 import { type PrivateId } from "../../shared/player.js";
 import { Subject, type Observable } from "rxjs";
+import { type PlayerManager } from "./player-manager.js";
 
 
 export type QuestionPhaseOptions = {
@@ -27,7 +28,7 @@ export class QuestionPhase implements Phase {
 	
 	constructor(
 			private readonly question: string,
-			private readonly players: PlayerManager,
+			private readonly players: PlayerManager<Player>,
 			private readonly options: QuestionPhaseOptions) {
 		if (options.questionPhaseDuration) {
 			// Add a small fudge factor to the round duration. This is just to

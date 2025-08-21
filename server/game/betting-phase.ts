@@ -1,7 +1,8 @@
 import { Subject, type Observable } from "rxjs";
 
 import { type Phase } from "./phase.js";
-import { type Player, type PlayerManager } from "./player.js";
+import { type Player } from "./player.js";
+import { type PlayerManager } from "./player-manager.js";
 import { HttpError } from "../utils/httperror.js";
 import { type Bet, type BetTarget, type BettingPhaseState, type Guess as GuessJson } from "../../shared/game/betting-phase.js";
 import { type PrivateId } from "../../shared/player.js";
@@ -42,7 +43,7 @@ export class BettingPhase implements Phase {
 	constructor(
 			private readonly question: string,
 			private readonly answer: number,
-			private readonly players: PlayerManager,
+			private readonly players: PlayerManager<Player>,
 			private readonly round: number,
 			guesses: Map<Player, number>,
 			private readonly options: BettingPhaseOptions) {

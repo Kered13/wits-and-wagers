@@ -1,10 +1,9 @@
-import { type GamePlayer } from "../../shared/game/game.js";
-import { type PrivateId, type PublicId } from "../../shared/player.js";
+import { type Participant } from "./player.js";
 import { HttpError } from "../utils/httperror.js";
-import { type Spectator } from "./player.js";
+import { type PrivateId, type PublicId } from "../../shared/player.js";
 
 
-export class PlayerManager<P extends Spectator> {
+export class PlayerManager<P extends Participant> {
 	constructor(private readonly players: P[]) { }
 	
 	public hasPrivatePlayer(id: PrivateId): boolean {
