@@ -48,6 +48,8 @@ export const GameStateSchema = strictObject({
 	host: PublicIdSchema,
 	// Players in the game, ranked by number of chips.
 	players: array(GamePlayerSchema),
+	// Spectators in the game, ranked by number of chips.
+	spectators: array(GameSpectatorSchema),
 	// The current round number.
 	round: pipe(number(), integer()),
 	// The current phase of the round.

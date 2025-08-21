@@ -1,7 +1,7 @@
 import { describe, expect, test, vi } from "vitest";
 
 import { Game, GameOptions } from "./game.js";
-import { Player } from "./player.js";
+import { Player, Spectator } from "./player.js";
 import { HttpError } from "../utils/httperror.js";
 import { QuestionGenerator } from "../questions/question-generator.js";
 
@@ -16,6 +16,15 @@ function makePlayer(name: string): Player {
 }
 
 
+function makeSpectator(name: string): Spectator {
+	return new Spectator({
+		name: name,
+		publicId: `public-${name}`,
+		privateId: `private-${name}`,
+	});
+}
+
+
 function makeQuestionGenerator() {
 	const question = {
 		question: "Guess a number?",
@@ -25,14 +34,14 @@ function makeQuestionGenerator() {
 }
 
 
-function makeGame(id: string, title: string, players: Player[], options?: Partial<GameOptions>): Game {
+function makeGame(id: string, title: string, players: Player[], spectators?: Spectator[], options?: Partial<GameOptions>): Game {
 	// Do not automatically end the question phase. This makes testing easier.
 	return new Game(
 		id,
 		title,
 		players[0],
 		players,
-		[], // Spectators.
+		spectators ?? [],
 		makeQuestionGenerator(),
 		Object.assign({}, { endQuestionPhaseWhenAllGuessesSubmitted: false }, options));
 }
@@ -42,7 +51,8 @@ describe("Game", () => {
 	describe("toJson", () => {
 		test("initial state", () => {
 			const alice = makePlayer("Alice");
-			const game = makeGame("id", "Game", [alice]);
+			const bob = makeSpectator("Bob");
+			const game = makeGame("id", "Game", [alice], [bob]);
 			
 			expect(game.toJson(alice.privateId)).to.deep.equal({
 				title: "Game",
@@ -51,6 +61,11 @@ describe("Game", () => {
 					name: alice.name,
 					publicId: alice.publicId,
 					color: alice.color,
+					chips: 2
+				}],
+				spectators: [{
+					name: bob.name,
+					publicId: bob.publicId,
 					chips: 2
 				}],
 				round: 1,
@@ -64,7 +79,7 @@ describe("Game", () => {
 			});
 		});
 		
-		test("toJson only shows own player", () => {
+		test("toJson only shows own player guess", () => {
 			const alice = makePlayer("Alice");
 			const bob = makePlayer("Bob");
 			const game = makeGame("id", "Game", [alice, bob]);
@@ -75,18 +90,21 @@ describe("Game", () => {
 			expect(game.toJson(alice.privateId)).to.deep.equal({
 				title: "Game",
 				host: alice.publicId,
-				players: [{
-					name: alice.name,
-					publicId: alice.publicId,
-					color: alice.color,
-					chips: 2
-				},
-				{
-					name: bob.name,
-					publicId: bob.publicId,
-					color: bob.color,
-					chips: 2
-				}],
+				players: [
+					{
+						name: alice.name,
+						publicId: alice.publicId,
+						color: alice.color,
+						chips: 2
+					},
+					{
+						name: bob.name,
+						publicId: bob.publicId,
+						color: bob.color,
+						chips: 2
+					}
+				],
+				spectators: [],
 				round: 1,
 				phase: {
 					phase: "question",
@@ -103,12 +121,14 @@ describe("Game", () => {
 			const alice = makePlayer("Alice");
 			const bob = makePlayer("Bob");
 			const charlie = makePlayer("Charlie");
-			
+			const derek = makeSpectator("Derek");
+
 			alice.chips = 30;
 			bob.chips = 10;
 			charlie.chips = 60;
+			derek.chips = 50;
 			
-			const game = makeGame("id", "Game", [alice, bob, charlie]);
+			const game = makeGame("id", "Game", [alice, bob, charlie], [derek]);
 			
 			for (let i = 0; i < 7; i++) {
 				game.endPhase(alice.privateId);
@@ -116,23 +136,24 @@ describe("Game", () => {
 			}
 			
 			const expectedPlayers = [{
-				name: charlie.name,
-				publicId: charlie.publicId,
-				color: charlie.color,
-				chips: 60
-			},
-			{
-				name: alice.name,
-				publicId: alice.publicId,
-				color: alice.color,
-				chips: 30
-			},
-			{
-				name: bob.name,
-				publicId: bob.publicId,
-				color: bob.color,
-				chips: 10
-			}];
+					name: charlie.name,
+					publicId: charlie.publicId,
+					color: charlie.color,
+					chips: 60
+				},
+				{
+					name: alice.name,
+					publicId: alice.publicId,
+					color: alice.color,
+					chips: 30
+				},
+				{
+					name: bob.name,
+					publicId: bob.publicId,
+					color: bob.color,
+					chips: 10
+				}
+			];
 			
 			const actualJson = game.toJson(alice.privateId);
 			
@@ -140,6 +161,11 @@ describe("Game", () => {
 				title: "Game",
 				host: alice.publicId,
 				players: expectedPlayers,
+				spectators: [{
+					name: derek.name,
+					publicId: derek.publicId,
+					chips: 50
+				}],
 				round: 8,
 				phase: {
 					phase: "game-over"
@@ -297,7 +323,7 @@ describe("Game", () => {
 	
 	test("game ends after specified number of rounds", () => {
 		const alice = makePlayer("Alice");
-		const game = makeGame("id", "Game", [alice], { numberOfRounds: 3 });
+		const game = makeGame("id", "Game", [alice], [], { numberOfRounds: 3 });
 		
 		// End the first two rounds.
 		for (let i = 0; i < 2; i++) {

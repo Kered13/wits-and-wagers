@@ -187,6 +187,7 @@ export class Game {
 			title: this.title,
 			host: this.host.publicId,
 			players: this.players.sortedByChips().map(player => player.toJson()),
+			spectators: this.spectators.sortedByChips().map(spectator => spectator.toJson()),
 			round: this.round,
 			phase: this.phase.toJson(forPlayer)
 		};
