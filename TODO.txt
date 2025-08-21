@@ -1,5 +1,4 @@
 * Implement game.
-  * Spectator parent type should be Participant with sub-type Spectator.
   * Add option for host to not be a player.
   * Allow withdrawing guesses? (Currently, new guesses override old.)
   * Add color picking.

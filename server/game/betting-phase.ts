@@ -1,11 +1,11 @@
 import { Subject, type Observable } from "rxjs";
 
 import { type Phase } from "./phase.js";
-import { type Player } from "./player.js";
+import { Participant, Spectator, type Player } from "./player.js";
 import { type PlayerManager } from "./player-manager.js";
 import { HttpError } from "../utils/httperror.js";
 import { type Bet, type BetTarget, type BettingPhaseState, type Guess as GuessJson } from "../../shared/game/betting-phase.js";
-import { type PrivateId } from "../../shared/player.js";
+import { type PrivateId, type PublicId } from "../../shared/player.js";
 import { type BettingConclusion } from "../../shared/game/intermission-phase.js";
 
 
@@ -44,6 +44,7 @@ export class BettingPhase implements Phase {
 			private readonly question: string,
 			private readonly answer: number,
 			private readonly players: PlayerManager<Player>,
+			private readonly spectators: PlayerManager<Spectator>,
 			private readonly round: number,
 			guesses: Map<Player, number>,
 			private readonly options: BettingPhaseOptions) {
@@ -90,7 +91,7 @@ export class BettingPhase implements Phase {
 	}
 	
 	public submitBet(playerId: PrivateId, target: BetTarget, wager: number): void {
-		const player = this.players.getPrivatePlayer(playerId);
+		const player = this.getPrivatePlayerOrSpectator(playerId);
 		this.validateBet(player, target, wager);
 		
 		// Normalize bet by moving it to the highest valued target with the same
@@ -103,7 +104,7 @@ export class BettingPhase implements Phase {
 	}
 	
 	public withdrawBet(playerId: PrivateId, target: BetTarget): void {
-		const player = this.players.getPrivatePlayer(playerId);
+		const player = this.getPrivatePlayerOrSpectator(playerId);
 		const i = this.bets.findIndex(bet => bet.player === player.publicId && bet.target === target);
 		if (i > -1) {
 			// Return the player's chips.
@@ -144,7 +145,7 @@ export class BettingPhase implements Phase {
 			
 			// Players always get their reserved chip(s) back, at minimum.
 			const payout = Math.max(this.reservedChipsFor(bet), (multiplier + 1) * bet.wager);
-			const player = this.players.getPublicPlayer(bet.player);
+			const player = this.getPublicPlayerOrSpectator(bet.player);
 			player.chips += payout;
 			
 			conclusion.earnings[player.publicId]! += payout;
@@ -204,7 +205,7 @@ export class BettingPhase implements Phase {
 	}
 	
 	// Validate the given bet.
-	private validateBet(player: Player, target: BetTarget, wager: number): void {
+	private validateBet(player: Participant, target: BetTarget, wager: number): void {
 		if (typeof target === "number") {
 			if (target < 0 || target >= this.guesses.length) {
 				throw new HttpError(400, `Invalid bet target. ${target} is not between 0 and ${this.bets.length - 1}.`);
@@ -252,5 +253,21 @@ export class BettingPhase implements Phase {
 		// gets one chip back for each bet. But a player can never get back more
 		// than they wagered.
 		return Math.min(bet.wager, [0, 2, 1][numBets]!);
+	}
+	
+	private getPrivatePlayerOrSpectator(playerId: PrivateId): Participant {
+		const player = this.players.tryGetPrivatePlayer(playerId) ?? this.spectators.tryGetPrivatePlayer(playerId);
+		if (!player) {
+			throw new HttpError(404, `Player or spectator private ID ${playerId} not found.`);
+		}
+		return player;
+	}
+	
+	private getPublicPlayerOrSpectator(playerId: PublicId): Participant {
+		const player = this.players.tryGetPublicPlayer(playerId) ?? this.spectators.tryGetPublicPlayer(playerId);
+		if (!player) {
+			throw new HttpError(404, `Player or spectator private ID ${playerId} not found.`);
+		}
+		return player;
 	}
 }

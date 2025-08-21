@@ -146,11 +146,24 @@ export class Game {
 	}
 	
 	private startBettingPhase(guesses: Map<Player, number>): void {
-		this.startPhase(new BettingPhase(this.question, this.answer, this.players, this.round, guesses, this.options))
+		this.startPhase(
+			new BettingPhase(
+				this.question,
+				this.answer,
+				this.players,
+				this.spectators,
+				this.round,
+				guesses,
+				this.options))
 	}
 
 	private startIntermissionPhase(outcome: SkippedBettingPhase | BettingConclusion): void {
-		this.startPhase(new IntermissionPhase(this.question, this.answer, outcome, this.options));
+		this.startPhase(
+			new IntermissionPhase(
+				this.question,
+				this.answer,
+				outcome,
+				this.options));
 	}
 	
 	private startPhase(phase: Phase): void {

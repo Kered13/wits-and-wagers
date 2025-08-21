@@ -63,6 +63,34 @@ describe("PlayerManager", () => {
 		expect(() => manager.getPublicPlayer("nonexistent")).to.throw();
 	});
 	
+	test("tryGetPrivatePlayer finds player", () => {
+		const player = makePlayer("Alice");
+		const manager = new PlayerManager([player]);
+		
+		expect(manager.tryGetPrivatePlayer(player.privateId)).to.equal(player);
+	});
+	
+	test("tryGetPrivatePlayer returned undefined on missing player", () => {
+		const player = makePlayer("Alice");
+		const manager = new PlayerManager([player]);
+		
+		expect(manager.tryGetPrivatePlayer("nonexistent")).to.be.undefined;
+	});
+	
+	test("tryGetPrivatePlayer finds player", () => {
+		const player = makePlayer("Alice");
+		const manager = new PlayerManager([player]);
+		
+		expect(manager.tryGetPublicPlayer(player.publicId)).to.equal(player);
+	});
+	
+	test("tryGetPrivatePlayer returned undefined on missing player", () => {
+		const player = makePlayer("Alice");
+		const manager = new PlayerManager([player]);
+		
+		expect(manager.tryGetPublicPlayer("nonexistent")).to.be.undefined;
+	});
+	
 	test("getAll returns all players", () => {
 		const alice = makePlayer("Alice");
 		const bob = makePlayer("Bob");

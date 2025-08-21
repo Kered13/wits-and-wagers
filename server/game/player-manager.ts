@@ -30,11 +30,11 @@ export class PlayerManager<P extends Participant> {
 		return player;
 	}
 	
-	private tryGetPrivatePlayer(id: PrivateId): P | undefined {
+	public tryGetPrivatePlayer(id: PrivateId): P | undefined {
 		return this.players.find(player => player.privateId === id);
 	}
 	
-	private tryGetPublicPlayer(id: PublicId): P | undefined {
+	public tryGetPublicPlayer(id: PublicId): P | undefined {
 		return this.players.find(player => player.publicId === id);
 	}
 	

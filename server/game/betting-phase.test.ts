@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { BettingPhase, bettingPhaseDefaultOptions, BettingPhaseOptions } from "./betting-phase.js";
-import { Player } from "./player.js";
+import { Player, Spectator } from "./player.js";
 import { type BettingPhaseState } from "../../shared/game/betting-phase.js";
 import { PlayerManager } from "./player-manager.js";
 
@@ -17,15 +17,29 @@ function makePlayer(name: string): Player {
 	return player;
 };
 
+
+function makeSpectator(name: string): Spectator {
+	const player = new Spectator({
+		name: name,
+		publicId: `public-${name}`,
+		privateId: `private-${name}`,
+	});
+	player.chips = 100;
+	return player;
+};
+
+
 function makeBettingPhase(
 		obj: {
 			guesses: [Player, number][],
+			spectators?: Spectator[],
 			question?: string,
 			answer?: number,
 			round?: number,
 			options?: Partial<BettingPhaseOptions>
 		}): BettingPhase {
 	const guesses = obj.guesses;
+	const spectators = obj.spectators ?? [];
 	const question = obj.question ?? "What is the answer?";
 	const answer = obj.answer ?? 42;
 	const round = obj.round ?? 1;
@@ -34,6 +48,7 @@ function makeBettingPhase(
 		question,
 		answer,
 		new PlayerManager(guesses.map(([player, guess]) => player)),
+		new PlayerManager(spectators), // No spectators in this test.
 		round,
 		new Map(guesses),
 		options);
@@ -60,6 +75,18 @@ describe("BettingPhase", () => {
 		expect(alice.chips).to.equal(70);
 	});
 	
+	test("submitBet deducts chips for spectators", () => {
+		const alice = makePlayer("Alice");
+		const bob = makeSpectator("Bob");
+		
+		const phase = makeBettingPhase({ guesses: [[alice, 42]], spectators: [bob] });
+		
+		phase.submitBet(bob.privateId, "AllTooHigh", 10);
+		phase.submitBet(bob.privateId, 0, 20);
+		
+		expect(bob.chips).to.equal(70);
+	});
+	
 	test("withdrawBet returns chips", () => {
 		const alice = makePlayer("Alice");
 		
@@ -72,6 +99,21 @@ describe("BettingPhase", () => {
 		phase.withdrawBet(alice.privateId, 0);
 		
 		expect(alice.chips).to.equal(90);
+	});
+	
+	test("withdrawBet returns chips for spectators", () => {
+		const alice = makePlayer("Alice");
+		const bob = makeSpectator("Bob");
+		
+		const phase = makeBettingPhase({ guesses: [[alice, 42]], spectators: [bob] });
+		phase.submitBet(bob.privateId, "AllTooHigh", 10);
+		phase.submitBet(bob.privateId, 0, 20);
+		
+		expect(bob.chips).to.equal(70);
+		
+		phase.withdrawBet(bob.privateId, 0);
+		
+		expect(bob.chips).to.equal(90);
 	});
 	
 	test("player not in game cannot bet", () => {
@@ -170,6 +212,7 @@ describe("BettingPhase", () => {
 			"What is the question?",
 			42,
 			new PlayerManager([alice, bob, charlie, derek]),
+			new PlayerManager([]), // No spectators in this test.
 			1,
 			new Map([[alice, 42], [bob, 13], [charlie, 7], [derek, 60]]),
 			{});
@@ -212,6 +255,7 @@ describe("BettingPhase", () => {
 			"What is the question?",
 			42,
 			new PlayerManager([alice]),
+			new PlayerManager([]), // No spectators in this test.
 			1,
 			new Map([[alice, 42]]),
 			{ bettingPhaseDuration: 60_000 });
@@ -1971,6 +2015,24 @@ describe("BettingPhase", () => {
 				// the round bonus chips.
 				expect(george.chips).to.equal(100 + 1*15 + 5*15 + 3);
 			});
+		});
+		
+		test("pays out spectators", () => {
+			const alice = makePlayer("Alice");
+			const bob = makeSpectator("Bob");
+			const phase = makeBettingPhase({
+				answer: 42,
+				round: 3,
+				guesses: [[alice, 50]],
+				spectators: [bob]
+			});
+			
+			phase.submitBet(bob.privateId, "AllTooHigh", 10);
+			
+			phase.resolve();
+			
+			// Bob wins 6x his bet.
+			expect(bob.chips).to.equal(100 + 6 * 10);
 		});
 	});
 });
