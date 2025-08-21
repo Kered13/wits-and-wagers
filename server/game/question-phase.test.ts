@@ -1,7 +1,8 @@
 import { describe, expect, test, vi } from "vitest";
 
-import { PlayerManager, Player } from "./player.js";
+import { Player } from "./player.js";
 import { QuestionPhase, questionPhaseDefaultOptions, QuestionPhaseOptions } from "./question-phase.js";
+import { PlayerManager } from "./player-manager.js";
 
 
 function makePlayer(name: string): Player {

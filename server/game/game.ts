@@ -4,7 +4,7 @@ import { BettingPhase, bettingPhaseDefaultOptions, type BettingPhaseOptions } fr
 import { GameOverPhase } from "./game-over-phase.js";
 import { IntermissionPhase, intermissionPhaseDefaultOptions, type IntermissionPhaseOptions } from "./intermission-phase.js";
 import { type Phase } from "./phase.js";
-import { Player, PlayerManager, Spectator, type PlayerParams, type SpectatorParams } from "./player.js";
+import { Player, Spectator, type PlayerParams, type SpectatorParams } from "./player.js";
 import { QuestionPhase, questionPhaseDefaultOptions, type QuestionPhaseOptions } from "./question-phase.js";
 import { type QuestionGenerator } from "../questions/question-generator.js";
 import { HttpError } from "../utils/httperror.js";
@@ -13,6 +13,7 @@ import { type GameId, type GameState } from "../../shared/game/game.js";
 import { type PrivateId } from "../../shared/player.js";
 import { type GameUpdate } from "../../shared/game/notifications.js";
 import { type BettingConclusion, type SkippedBettingPhase } from "../../shared/game/intermission-phase.js";
+import { PlayerManager } from "./player-manager.js";
 
 
 export type GameOptions = QuestionPhaseOptions & BettingPhaseOptions & IntermissionPhaseOptions &{
@@ -29,7 +30,8 @@ const defaultOptions: GameOptions = Object.assign(
 
 
 export class Game {
-	private readonly players: PlayerManager;
+	private readonly players: PlayerManager<Player>;
+	private readonly spectators: PlayerManager<Spectator>;
 	private readonly options: GameOptions;
 	private readonly updates = new Subject<void>();
 	
@@ -41,11 +43,13 @@ export class Game {
 	constructor(
 			private readonly id: GameId,
 			private readonly title: string,
-			private readonly host: SpectatorParams | Spectator,
-			players: PlayerParams[] | Player[],
+			private readonly host: SpectatorParams,
+			players: PlayerParams[],
+			spectators: SpectatorParams[],
 			private readonly questionGenerator: QuestionGenerator,
 			options?: Partial<GameOptions>) {
-		this.players = new PlayerManager(players);
+		this.players = new PlayerManager(players.map(player => new Player(player)));
+		this.spectators = new PlayerManager(spectators.map(player => new Spectator(player)));
 		
 		const {question, answer} = this.questionGenerator.nextQuestion();
 		this.question = question;
@@ -169,7 +173,7 @@ export class Game {
 		return {
 			title: this.title,
 			host: this.host.publicId,
-			players: this.players.toJson(),
+			players: this.players.sortedByChips().map(player => player.toJson()),
 			round: this.round,
 			phase: this.phase.toJson(forPlayer)
 		};
@@ -184,7 +188,7 @@ export class Game {
 		};
 	}
 	
-	public getPlayers(): PlayerManager {
+	public getPlayers(): PlayerManager<Player> {
 		return this.players;
 	}
 	

@@ -8,6 +8,7 @@ export type SpectatorParams = {
 	name: string,
 	publicId: string,
 	privateId: string,
+	chips?: number
 };
 
 
@@ -29,6 +30,9 @@ export class Spectator {
 		this.name = player.name;
 		this.publicId = player.publicId;
 		this.privateId = player.privateId;
+		if (player.chips !== undefined) {
+			this.chips = player.chips;
+		}
 	}
 	
 	public toJson(): GameSpectator {
@@ -58,57 +62,5 @@ export class Player extends Spectator {
 			color: this.color,
 			chips: this.chips
 		};
-	}
-}
-
-
-export class PlayerManager {
-	private readonly players: Player[];
-	
-	constructor(players: Player[] | PlayerParams[]) {
-		this.players = players.map(player => player instanceof Player ? player : new Player(player));
-	}
-	
-	public hasPrivatePlayer(id: PrivateId): boolean {
-		return !!this.tryGetPrivatePlayer(id);
-	}
-	
-	public hasPublicPlayer(id: PrivateId): boolean {
-		return !!this.tryGetPublicPlayer(id);
-	}
-	
-	public getPrivatePlayer(id: PrivateId): Player {
-		const player = this.tryGetPrivatePlayer(id);
-		if (!player) {
-			throw new HttpError(404, `Player private ID ${id} not found.`);
-		}
-		return player;
-	}
-	
-	public getPublicPlayer(id: PublicId): Player {
-		const player = this.tryGetPublicPlayer(id);
-		if (!player) {
-			throw new HttpError(404, `Player public ID ${id} not found.`);
-		}
-		return player;
-	}
-	
-	private tryGetPrivatePlayer(id: PrivateId): Player | undefined {
-		return this.players.find(player => player.privateId === id);
-	}
-	
-	private tryGetPublicPlayer(id: PublicId): Player | undefined {
-		return this.players.find(player => player.publicId === id);
-	}
-	
-	public getAll(): Player[] {
-		return this.players;
-	}
-	
-	// Returns players ranked by chips.
-	public toJson(): GamePlayer[] {
-		return this.players
-			.sort((first, second) => second.chips - first.chips)
-			.map(player => player.toJson());
 	}
 }

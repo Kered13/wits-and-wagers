@@ -32,6 +32,7 @@ function makeGame(id: string, title: string, players: Player[], options?: Partia
 		title,
 		players[0],
 		players,
+		[], // Spectators.
 		makeQuestionGenerator(),
 		Object.assign({}, { endQuestionPhaseWhenAllGuessesSubmitted: false }, options));
 }
@@ -102,11 +103,12 @@ describe("Game", () => {
 			const alice = makePlayer("Alice");
 			const bob = makePlayer("Bob");
 			const charlie = makePlayer("Charlie");
-			const game = makeGame("id", "Game", [alice, bob, charlie]);
 			
 			alice.chips = 30;
 			bob.chips = 10;
 			charlie.chips = 60;
+			
+			const game = makeGame("id", "Game", [alice, bob, charlie]);
 			
 			for (let i = 0; i < 7; i++) {
 				game.endPhase(alice.privateId);

@@ -1,42 +1,38 @@
 import * as uuid from "uuid";
 
 import { Game } from "../game/game.js";
-import { type PlayerParams } from "../game/player.js";
+import { type PlayerParams, type SpectatorParams } from "../game/player.js";
 import { QuestionGenerator } from "../questions/question-generator.js";
 import { type QuestionSetManager } from "../questions/question-set-manager.js";
 import { type GameId } from "../../shared/game/game.js";
 import { type LobbyOptions } from "../../shared/lobby/create.js";
-import { type LobbyPlayer, type LobbyState, type LobbyId } from "../../shared/lobby/lobby.js";
+import { type LobbyPlayer, type LobbyState, type LobbyId, type LobbySpectator } from "../../shared/lobby/lobby.js";
 import { type LobbyBeginGame, type LobbyCanceled, type LobbyUpdate } from "../../shared/lobby/notifications.js";
 import { type PrivateId, type PrivatePlayer, type PublicId } from "../../shared/player.js";
 import { HttpError } from "../utils/httperror.js";
 
 
-export class Player implements PlayerParams {
+export class Spectator implements SpectatorParams {
 	// Display name for the user. Not unique.
 	public readonly name: string;
 	// An ID used to uniquely identify the user.
 	public readonly publicId: PublicId;
 	// An ID used to authenticate the user in RPCs.
 	public readonly privateId: PrivateId;
-	// The color for the user. Unique within a lobby or game.
-	public readonly color: string;
-	
+
 	constructor(player: PlayerParams) {
 		this.name = player.name;
 		this.publicId = player.publicId;
 		this.privateId = player.privateId;
-		this.color = player.color;
 	}
-	
-	public toJson(): LobbyPlayer {
+
+	public toJson(): LobbySpectator {
 		return {
 			name: this.name,
 			publicId: this.publicId,
-			color: this.color
 		};
 	}
-	
+
 	public toPrivateJson(): PrivatePlayer {
 		return {
 			name: this.name,
@@ -47,9 +43,37 @@ export class Player implements PlayerParams {
 };
 
 
+export class Player extends Spectator implements PlayerParams {
+	// The color for the user. Unique within a lobby or game.
+	public readonly color: string;
+	
+	constructor(player: PlayerParams) {
+		super(player);
+		this.color = player.color;
+	}
+	
+	public override toJson(): LobbyPlayer {
+		return {
+			name: this.name,
+			publicId: this.publicId,
+			color: this.color,
+		};
+	}
+	
+	public override toPrivateJson(): PrivatePlayer {
+		return {
+			name: this.name,
+			publicId: this.publicId,
+			privateId: this.privateId,
+		};
+	}
+};
+
+
 export class Lobby {
 	private readonly players: Player[] = [];
-	private readonly host: Player;
+	private readonly spectators: Spectator[] = [];
+	private readonly host: Spectator;
 	
 	public static gameIdFromLobbyId(lobbyId: LobbyId): GameId {
 		return lobbyId;
@@ -91,7 +115,7 @@ export class Lobby {
 		return requester === this.host.privateId;
 	}
 	
-	public getHost(): Player {
+	public getHost(): Spectator {
 		return this.host;
 	}
 	
@@ -117,6 +141,7 @@ export class Lobby {
 			this.title,
 			this.host,
 			this.players,
+			this.spectators,
 			new QuestionGenerator(this.questionSetManager.getQuestionSet(this.questionSet)!.questions),
 			this.options);
 		return [game, this.makeBeginGame(game.getId())];

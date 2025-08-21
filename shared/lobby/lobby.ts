@@ -12,6 +12,15 @@ export const LobbyIdSchema = pipe(string(), nonEmpty());
 export type LobbyId = InferOutput<typeof LobbyIdSchema>;
 
 
+export const LobbySpectatorSchema = strictObject({
+	// An ID used to uniquely identify the user.
+	publicId: PublicIdSchema,
+	// Display name for the user. Not unique.
+	name: pipe(string(), nonEmpty()),
+});
+export type LobbySpectator = InferOutput<typeof LobbySpectatorSchema>;
+
+
 export const LobbyPlayerSchema = strictObject({
 	// An ID used to uniquely identify the user.
 	publicId: PublicIdSchema,
