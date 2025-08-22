@@ -121,7 +121,8 @@ export class BettingPhase implements Phase {
 		const conclusion: BettingConclusion = {
 			type: "conclusion",
 			winners: [],
-			earnings: Object.fromEntries(this.players.getAll().map(player => [player.publicId, 0]))
+			earnings: Object.fromEntries(this.players.getAll().map(player => [player.publicId, 0])),
+			spectatorEarnings: Object.fromEntries(this.spectators.getAll().map(player => [player.publicId, 0]))
 		};
 		
 		let winningGuessIdx = -1;
@@ -148,7 +149,11 @@ export class BettingPhase implements Phase {
 			const player = this.getPublicPlayerOrSpectator(bet.player);
 			player.chips += payout;
 			
-			conclusion.earnings[player.publicId]! += payout;
+			if (this.players.hasPublicPlayer(player.publicId)) {
+				conclusion.earnings[player.publicId]! += payout;
+			} else {
+				conclusion.spectatorEarnings[player.publicId]! += payout;
+			}
 		}
 		
 		// Award bonus chips to the player who got the correct guess. Handle

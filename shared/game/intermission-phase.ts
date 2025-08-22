@@ -13,7 +13,8 @@ export type SkippedBettingPhase = InferOutput<typeof SkippedBettingPhaseSchema>;
 export const BettingConclusionSchema = strictObject({
 	type: literal("conclusion"),
 	winners: array(PublicIdSchema),
-	earnings: record(PublicIdSchema, pipe(number(), integer()))
+	earnings: record(PublicIdSchema, pipe(number(), integer())),
+	spectatorEarnings: record(PublicIdSchema, pipe(number(), integer())),
 });
 export type BettingConclusion = InferOutput<typeof BettingConclusionSchema>;
 

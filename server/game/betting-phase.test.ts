@@ -388,7 +388,8 @@ describe("BettingPhase", () => {
 				winners: [alice.publicId],
 				earnings: {
 					[alice.publicId]: 3*15 + 1 + 3
-				}
+				},
+				spectatorEarnings: {}
 			});
 			
 			// Alice wins 2x her bet on 0 and loses her bet on AllTooHigh, but
@@ -413,7 +414,8 @@ describe("BettingPhase", () => {
 				winners: [],
 				earnings: {
 					[alice.publicId]: 7 * 10 + 1
-				}
+				},
+				spectatorEarnings: {}
 			});
 			
 			// Alice wins 6x her bet on AllTooHigh and loses her bet on 0, but
@@ -475,7 +477,8 @@ describe("BettingPhase", () => {
 					[charlie.publicId]: 3,
 					[derek.publicId]: 3,
 					[elizabeth.publicId]: 0
-				}
+				},
+				spectatorEarnings: {}
 			});
 			
 			// No one bets, but the four-way tie pays out the round bonus to all
@@ -514,7 +517,8 @@ describe("BettingPhase", () => {
 					[charlie.publicId]: 4*10 + 3,
 					[derek.publicId]: 3,
 					[elizabeth.publicId]: 0
-				}
+				},
+				spectatorEarnings: {}
 			});
 			
 			// Alice wins 3x her bet on 1.
@@ -2029,7 +2033,18 @@ describe("BettingPhase", () => {
 			
 			phase.submitBet(bob.privateId, "AllTooHigh", 10);
 			
-			phase.resolve();
+			const conclusion = phase.resolve();
+			
+			expect(conclusion).to.deep.equal({
+				type: "conclusion",
+				winners: [],
+				earnings: {
+					[alice.publicId]: 0,
+				},
+				spectatorEarnings: {
+					[bob.publicId]: 10 + 6*10,
+				}
+			});
 			
 			// Bob wins 6x his bet.
 			expect(bob.chips).to.equal(100 + 6 * 10);
