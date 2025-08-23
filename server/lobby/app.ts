@@ -1,5 +1,5 @@
 import express, { Router, type Request, type Response } from "express";
-import { assert, nan } from "valibot";
+import { assert } from "valibot";
 import { type WebSocket } from "ws";
 
 import { Lobby } from "./lobby.js";
@@ -77,7 +77,7 @@ export class LobbyApp {
 		
 		const response: CreateLobbyResponse = {
 			id: lobby.getId(),
-			host: lobby.getHost().toPrivateJson()
+			host: lobby.getHost(),
 		};
 		assert(CreateLobbyResponseSchema, response);
 		res.send(response);
@@ -175,7 +175,7 @@ export class LobbyApp {
 				ws.onClose(() => {
 					notifier.removeClient(privateId, ws);
 					if (!notifier.hasClients(privateId)) {
-						if (privateId === lobby.getHost().privateId) {
+						if (lobby.isHost(privateId)) {
 							this.removeLobby(lobby);
 							
 							notifier

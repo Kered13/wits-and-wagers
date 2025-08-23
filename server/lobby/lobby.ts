@@ -12,7 +12,7 @@ import { type PrivateId, type PrivatePlayer, type PublicId } from "../../shared/
 import { HttpError } from "../utils/httperror.js";
 
 
-export class Spectator implements SpectatorParams {
+class Spectator implements SpectatorParams {
 	// Display name for the user. Not unique.
 	public readonly name: string;
 	// An ID used to uniquely identify the user.
@@ -20,19 +20,19 @@ export class Spectator implements SpectatorParams {
 	// An ID used to authenticate the user in RPCs.
 	public readonly privateId: PrivateId;
 
-	constructor(player: PlayerParams) {
+	constructor(player: SpectatorParams) {
 		this.name = player.name;
 		this.publicId = player.publicId;
 		this.privateId = player.privateId;
 	}
-
+	
 	public toJson(): LobbySpectator {
 		return {
 			name: this.name,
 			publicId: this.publicId,
 		};
 	}
-
+	
 	public toPrivateJson(): PrivatePlayer {
 		return {
 			name: this.name,
@@ -43,7 +43,7 @@ export class Spectator implements SpectatorParams {
 };
 
 
-export class Player extends Spectator implements PlayerParams {
+class Player extends Spectator implements PlayerParams {
 	// The color for the user. Unique within a lobby or game.
 	public readonly color: string;
 	
@@ -73,7 +73,7 @@ export class Player extends Spectator implements PlayerParams {
 export class Lobby {
 	private readonly players: Player[] = [];
 	private readonly spectators: Spectator[] = [];
-	private readonly host: Spectator;
+	private readonly host: PrivatePlayer;
 	
 	public static gameIdFromLobbyId(lobbyId: LobbyId): GameId {
 		return lobbyId;
@@ -86,7 +86,9 @@ export class Lobby {
 			private readonly questionSet: number,
 			private readonly options: LobbyOptions,
 			private readonly questionSetManager: QuestionSetManager) {
-		this.host = this.generatePlayer(hostName);
+		const hostPlayer = this.generatePlayer(hostName);
+		this.players.push(hostPlayer);
+		this.host = hostPlayer;
 		this.options.numberOfPlayers = this.options.numberOfPlayers ?? 7;
 		
 		Lobby.validateOptions(this.options);
@@ -110,29 +112,64 @@ export class Lobby {
 	public getId(): LobbyId {
 		return this.id;
 	}
-
+	
 	public isHost(requester: PrivateId): boolean {
 		return requester === this.host.privateId;
 	}
 	
-	public getHost(): Spectator {
+	public getHost(): PrivatePlayer {
 		return this.host;
 	}
 	
 	public addPlayer(name: string, existingId?: PrivateId): Player {
-		const existingPlayer = this.players.find(player => player.name === name);
+		const existingPlayer = this.players.find(player => player.privateId === existingId);
+		const existingSpectator = this.spectators.find(player => player.privateId === existingId);
 		if (existingPlayer) {
-			return existingPlayer
+			return existingPlayer;
 		} else if (this.players.length >= this.options.numberOfPlayers!) {
 			throw new HttpError(403, "Lobby is full.");
+		} else if (existingSpectator) {
+			// Move spectator to player.
+			this.removeSpectator(existingSpectator.privateId);
+			const player = this.playerFromSpectator(existingSpectator);
+			this.players.push(player);
+			return player;
 		} else {
-			return this.generatePlayer(name);
+			const player = this.generatePlayer(name);
+			this.players.push(player);
+			return player;
 		}
 	}
 	
-	public removePlayer(privateId: string): void {
-		const i = this.players.findIndex(player => player.privateId === privateId);
-		this.players.splice(i, 1);
+	public addSpectator(name: string, existingId?: PrivateId): Spectator {
+		const existingSpectator = this.spectators.find(player => player.privateId === existingId);
+		const existingPlayer = this.players.find(player => player.privateId === existingId);
+		if (existingSpectator) {
+			return existingSpectator;
+		} else if (existingPlayer) {
+			// Move spectator to player.
+			this.removePlayer(existingPlayer.privateId);
+			const spectator = this.spectatorFromPlayer(existingPlayer);
+			this.spectators.push(spectator);
+			return spectator;
+		} else {
+			const spectator = this.generateSpectator(name);
+			this.spectators.push(spectator);
+			return spectator;
+		}
+	}
+	
+	public removePlayer(privateId: PrivateId): void {
+		this.removeParticipant(this.players, privateId);
+	}
+	
+	public removeSpectator(privateId: PrivateId): void {
+		this.removeParticipant(this.spectators, privateId);
+	}
+	
+	private removeParticipant(players: Player[] | Spectator[], privateId: string): void {
+		const i = players.findIndex(player => player.privateId === privateId);
+		players.splice(i, 1);
 	}
 	
 	public beginGame(): [Game, LobbyBeginGame] {
@@ -177,17 +214,41 @@ export class Lobby {
 			id: this.id,
 		};
 	}
-
+	
 	private generatePlayer(name: string): Player {
 		const { privateId, publicId } = this.generatePlayerIds();
-		this.players.push(new Player({
+		return new Player({
 			name: name,
 			publicId: publicId,
 			privateId: privateId,
 			color: this.generateColor()
-		}));
-		const player: Player = this.players[this.players.length - 1]!;
-		return player;
+		});
+	}
+	
+	private generateSpectator(name: string) {
+		const { privateId, publicId } = this.generatePlayerIds();
+		return new Spectator({
+			name: name,
+			publicId: publicId,
+			privateId: privateId
+		});
+	}
+	
+	private playerFromSpectator(spectator: Spectator): Player {
+		return new Player({
+			name: spectator.name,
+			publicId: spectator.publicId,
+			privateId: spectator.privateId,
+			color: this.generateColor()
+		});
+	}
+	
+	private spectatorFromPlayer(player: Player): Spectator {
+		return new Spectator({
+			name: player.name,
+			publicId: player.publicId,
+			privateId: player.privateId,
+		});
 	}
 	
 	private generatePlayerIds(): { privateId: PrivateId, publicId: PublicId } {
