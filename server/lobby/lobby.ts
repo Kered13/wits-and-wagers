@@ -81,6 +81,7 @@ export class Lobby {
 	
 	constructor(
 			private readonly id: LobbyId,
+			private readonly spectatorId: LobbyId,
 			private readonly title: string,
 			hostName: string,
 			private readonly questionSet: number,
@@ -111,6 +112,10 @@ export class Lobby {
 	
 	public getId(): LobbyId {
 		return this.id;
+	}
+	
+	public getSpectatorId(): LobbyId {
+		return this.spectatorId;
 	}
 	
 	public isHost(requester: PrivateId): boolean {

@@ -39,6 +39,8 @@ export type CreateLobbyRequest = InferOutput<typeof CreateLobbyRequestSchema>;
 export const CreateLobbyResponseSchema = strictObject({
 	// ID of the lobby and subsequent game.
 	id: LobbyIdSchema,
+	// ID for the lobby for spectators.
+	spectatorId: LobbyIdSchema,
 	// Private player information for the host.
 	host: PrivatePlayerSchema
 });
