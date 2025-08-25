@@ -202,8 +202,16 @@ export class Game {
 		};
 	}
 	
-	public getPlayers(): PlayerManager<Player> {
-		return this.players;
+	public getPlayers(): Player[] {
+		return this.players.getAll();
+	}
+	
+	public getSpectators(): Spectator[] {
+		return this.spectators.getAll();
+	}
+	
+	public getParticipants(): (Player | Spectator)[] {
+		return [...this.getPlayers(), ...this.getSpectators()];
 	}
 	
 	public getRound(): number {

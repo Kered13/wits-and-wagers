@@ -155,7 +155,8 @@ export class GameComponent implements OnDestroy {
 			}
 		});
 		this.availableChips = computed(() => {
-			const player = this.game().players.find(player => player.publicId === this.thisPlayer().publicId);
+			const player = this.game().players.find(player => player.publicId === this.thisPlayer().publicId) ||
+				this.game().spectators.find(spectator => spectator.publicId === this.thisPlayer().publicId);
 			return player?.chips ?? 0;
 		});
 		

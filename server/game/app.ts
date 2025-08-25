@@ -48,7 +48,7 @@ export class GameApp {
 		
 		game.onUpdates().subscribe({
 			next: () => {
-				game.getPlayers().getAll().forEach(
+				game.getParticipants().forEach(
 					player => notifier.notifyPlayer(player.privateId, game.makeUpdate(player.privateId)));
 			},
 			complete: () => {
