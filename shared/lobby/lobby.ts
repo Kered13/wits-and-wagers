@@ -39,6 +39,8 @@ export const LobbyStateSchema = strictObject({
 	// Public ID of the host.
 	host: pipe(string(), nonEmpty()),
 	// The public information of each player in the lobby.
-	players: array(LobbyPlayerSchema)
+	players: array(LobbyPlayerSchema),
+	// The public information of each spectator in the lobby.
+	spectators: array(LobbySpectatorSchema),
 });
 export type LobbyState = InferOutput<typeof LobbyStateSchema>;

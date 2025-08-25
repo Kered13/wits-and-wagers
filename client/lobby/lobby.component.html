@@ -3,11 +3,26 @@
 		<h1>{{ lobby().title }}</h1>
 	</mat-card-header>
 	<mat-card-content>
-		@for (player of lobby().players; track player.publicId) {
-			<p [style.font-weight]="(player.publicId === lobby().host) ? 'bold' : 'normal'">
-				{{ player.name }}
-			</p>
-		}
+		<div style="display: flex; flex-direction: row">
+			<div style="flex: 1">
+				<h3>Players</h3>
+				@for (player of lobby().players; track player.publicId) {
+					<p [style.font-weight]="(player.publicId === lobby().host) ? 'bold' : 'normal'">
+						{{ player.name }}
+					</p>
+				}
+			</div>
+			@if (lobby().spectators.length > 0) {
+				<div style="flex: 1">
+					<h3>Spectators</h3>
+					@for (spectator of lobby().spectators; track spectator.publicId) {
+					<p [style.font-weight]="(spectator.publicId === lobby().host) ? 'bold' : 'normal'">
+						{{ spectator.name }}
+					</p>
+					}
+				</div>
+			}
+		</div>
 	</mat-card-content>
 	<mat-card-actions>
 		@if (player().publicId == lobby().host) {

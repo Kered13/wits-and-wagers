@@ -65,7 +65,7 @@ export class LobbyApp {
 	
 	// TODO
 	private createLobbySpectatorId(): LobbyId {
-		return "game-spec" + this.lobbyCounter;
+		return "game-spec" + (this.lobbyCounter - 1);
 	}
 	
 	private create(req: Request, res: Response): void {
@@ -81,6 +81,7 @@ export class LobbyApp {
 			request.options,
 			this.questionSetManager);
 		this.lobbies.set(lobby.getId(), { lobby: lobby, notifier: new LobbyNotifier });
+		this.spectatorLobbies.set(lobby.getSpectatorId(), this.lobbies.get(lobby.getId())!);
 		
 		const response: CreateLobbyResponse = {
 			id: lobby.getId(),
@@ -213,7 +214,7 @@ export class LobbyApp {
 				const { privateId, lobbyId } = verifyRequest(
 					msg, SubscribeRequestSchema, `Invalid SubscribeRequest: ${JSON.stringify(msg)}`);
 				
-				const { lobby, notifier } = this.getLobby(this.lobbies, lobbyId);
+				const { lobby, notifier } = this.tryGetLobby(this.lobbies, lobbyId) || this.getLobby(this.spectatorLobbies, lobbyId);
 				notifier.addClient(privateId, ws);
 				notifier.notifyClient(ws, lobby.makeUpdate());
 				
@@ -221,11 +222,11 @@ export class LobbyApp {
 					notifier.removeClient(privateId, ws);
 					if (!notifier.hasClients(privateId)) {
 						if (lobby.isHost(privateId)) {
-							this.removeLobby(lobby);
+							// this.removeLobby(lobby);
 							
-							notifier
-								.notifyClients(lobby.makeCancel())
-								.close();
+							// notifier
+							// 	.notifyClients(lobby.makeCancel())
+							// 	.close();
 						} else {
 							lobby.removePlayer(privateId);
 							notifier.notifyClients(lobby.makeUpdate());

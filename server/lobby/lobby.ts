@@ -89,7 +89,11 @@ export class Lobby {
 			private readonly questionSetManager: QuestionSetManager) {
 		const hostPlayer = this.generatePlayer(hostName);
 		this.players.push(hostPlayer);
-		this.host = hostPlayer;
+		this.host = {
+			name: hostPlayer.name,
+			publicId: hostPlayer.publicId,
+			privateId: hostPlayer.privateId
+		};
 		this.options.numberOfPlayers = this.options.numberOfPlayers ?? 7;
 		
 		Lobby.validateOptions(this.options);
@@ -193,7 +197,8 @@ export class Lobby {
 		return {
 			title: this.title,
 			host: this.host.publicId,
-			players: this.players.map(player => player.toJson())
+			players: this.players.map(player => player.toJson()),
+			spectators: this.spectators.map(spectator => spectator.toJson()),
 		};
 	}
 	

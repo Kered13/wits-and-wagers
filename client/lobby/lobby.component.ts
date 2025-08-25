@@ -50,7 +50,7 @@ export class LobbyComponent implements OnDestroy {
 		this.lobbyService = toSignal(instanceService, { requireSync: true });
 		this.lobby = toSignal(
 			instanceService.pipe(switchMap(service => service.get().onLobbyUpdate())),
-			{ initialValue: { title: "", host: "", players: [] } });
+			{ initialValue: { title: "", host: "", players: [], spectators: [] } });
 		
 		effect(() => titleService.setTitle(route.routeConfig!.title! + " - " + this.lobby().title));
 	}

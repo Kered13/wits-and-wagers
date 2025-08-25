@@ -145,6 +145,7 @@ export class GameComponent implements OnDestroy {
 				title: "",
 				host: "",
 				players: [],
+				spectators: [],
 				round: 0,
 				phase: {
 					phase: "question",
