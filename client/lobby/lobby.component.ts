@@ -4,7 +4,7 @@ import { MatButton, MatMiniFabButton } from "@angular/material/button";
 import { MatCardModule } from "@angular/material/card";
 import { MatIconModule } from "@angular/material/icon";
 import { MatInputModule } from '@angular/material/input';
-import { MatTooltipModule } from "@angular/material/tooltip";
+import { MatTooltip } from "@angular/material/tooltip";
 import { Title } from "@angular/platform-browser";
 import { ActivatedRoute } from "@angular/router";
 import { toSignal } from "@angular/core/rxjs-interop";
@@ -23,7 +23,7 @@ import { RoutingService } from "../routes/routing.service.js";
 
 @Component({
 	selector: "app-lobby",
-	imports: [ReactiveFormsModule, MatButton, MatCardModule, MatIconModule, MatInputModule, MatMiniFabButton, MatTooltipModule],
+	imports: [ReactiveFormsModule, MatButton, MatCardModule, MatIconModule, MatInputModule, MatMiniFabButton, MatTooltip],
 	templateUrl: "./lobby.component.html",
 	styleUrl: "./lobby.component.css",
 	changeDetection: ChangeDetectionStrategy.OnPush

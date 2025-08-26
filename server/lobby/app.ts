@@ -11,7 +11,7 @@ import { WebSocketUtil } from "../utils/websocket.js";
 import { BEGIN_PATH, BeginGameRequestSchema } from "../../shared/lobby/begin.js";
 import { CANCEL_PATH, CancelLobbyRequestSchema } from "../../shared/lobby/cancel.js";
 import { GET_QUESTION_SETS_PATH, GetQuestionSetsRequestSchema, GetQuestionSetsResponseSchema, type GetQuestionSetsResponse } from "../../shared/lobby/get-question-sets.js";
-import { JOIN_LOBBY_PATH, JoinLobbyRequestSchema, type JoinLobbyRequest, type JoinLobbyResponse, } from "../../shared/lobby/joinlobby.js";
+import { JOIN_LOBBY_PATH, JoinLobbyRequestSchema, type JoinLobbyRequest, type JoinLobbyResponse, } from "../../shared/lobby/join-lobby.js";
 import { type LobbyId } from "../../shared/lobby/lobby.js";
 import { CREATE_PATH, CreateLobbyRequestSchema, CreateLobbyResponseSchema, type CreateLobbyResponse } from "../../shared/lobby/create.js";
 import { type LobbyNotification } from "../../shared/lobby/notifications.js";
