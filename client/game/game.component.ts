@@ -19,7 +19,7 @@ import { RoutingService } from "../routes/routing.service.js";
 import { RefCounted } from "../utils/refcounted.js";
 import { PrivatePlayer } from "../../shared/player.js";
 import { BettingPhaseState } from "../../shared/game/betting-phase.js";
-import { GameOverPhaseState, GameState } from "../../shared/game/game.js";
+import { GameOverPhaseState, GamePlayer, GameState } from "../../shared/game/game.js";
 import { QuestionPhaseState } from "../../shared/game/question-phase.js";
 import { IntermissionPhaseState } from "../../shared/game/intermission-phase.js";
 
@@ -112,7 +112,7 @@ export class GameComponent implements OnDestroy {
 	
 	readonly game: Signal<GameState>;
 	readonly tempGameString: Signal<string>;
-	readonly thisPlayer: Signal<PrivatePlayer>;
+	readonly thisParticipant: Signal<PrivatePlayer>;
 	readonly availableChips: Signal<number>;
 	readonly roundTimer: Signal<number | undefined>;
 	readonly guessField: Signal<NgModel | undefined> = viewChild("guessField");
@@ -130,7 +130,7 @@ export class GameComponent implements OnDestroy {
 			gameService: GameService,
 			titleService: Title,
 			@Inject(ActivatedRoute) route: TypedRouteFor<GameRoute>) {
-		this.thisPlayer = toSignal(route.data.pipe(map(data => data.player)), { requireSync: true });
+		this.thisParticipant = toSignal(route.data.pipe(map(data => data.player)), { requireSync: true });
 		
 		const instanceService = combineLatest([route.params, route.data]).pipe(
 			map(([params, data]) => gameService.getGameInstanceService(params.gameId, data.player.privateId)));
@@ -155,8 +155,8 @@ export class GameComponent implements OnDestroy {
 			}
 		});
 		this.availableChips = computed(() => {
-			const player = this.game().players.find(player => player.publicId === this.thisPlayer().publicId) ||
-				this.game().spectators.find(spectator => spectator.publicId === this.thisPlayer().publicId);
+			const player = this.game().players.find(player => player.publicId === this.thisParticipant().publicId) ||
+				this.game().spectators.find(spectator => spectator.publicId === this.thisParticipant().publicId);
 			return player?.chips ?? 0;
 		});
 		
@@ -183,6 +183,10 @@ export class GameComponent implements OnDestroy {
 	
 	public isGameOverPhase(phase: PhaseState): phase is GameOverPhaseState {
 		return phase.phase === "game-over";
+	}
+	
+	public isParticipantPlayer(players: GamePlayer[], participant: PrivatePlayer): boolean {
+		return players.some(player => player.publicId === participant.publicId);
 	}
 	
 	private onNewGame(newService: RefCounted<GameInstanceService>, oldService?: RefCounted<GameInstanceService>): void {

@@ -142,7 +142,7 @@ export class LobbyApp {
 		// Check if the lobby has become a game, and if this player is part
 		// of that game. Then redirect them to the game.
 		const gameData = this.gameApp.tryGetGame(Lobby.gameIdFromLobbyId(request.lobbyId));
-		if (!gameData || !request.privateId || !gameData.game.getPlayers().hasPrivatePlayer(request.privateId)) {
+		if (!gameData || !request.privateId || !gameData.game.getPlayers().some(player => player.privateId === request.privateId)) {
 			return false;
 		}
 		res.send({
@@ -222,6 +222,7 @@ export class LobbyApp {
 					notifier.removeClient(privateId, ws);
 					if (!notifier.hasClients(privateId)) {
 						if (lobby.isHost(privateId)) {
+							// TODO: Uncomment when development is done.
 							// this.removeLobby(lobby);
 							
 							// notifier

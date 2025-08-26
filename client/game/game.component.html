@@ -10,7 +10,7 @@
 				<p>Round time: {{ roundTimer() }}</p>
 			}
 			<p class="game-state">Game state: {{ tempGameString() }}</p>
-			@if (isQuestionPhase(phase)) {
+			@if (isQuestionPhase(phase) && isParticipantPlayer(game().players, thisParticipant())) {
 				<mat-form-field hidden="!isQuestionPhase(phase)">
 					<mat-label>Guess:</mat-label>
 					<input matInput
@@ -51,7 +51,7 @@
 			}
 		</mat-card-content>
 		<mat-card-actions>
-			@if (isQuestionPhase(phase)) {
+			@if (isQuestionPhase(phase) && isParticipantPlayer(game().players, thisParticipant())) {
 				<button mat-raised-button
 						(click)="onSubmitGuess()"
 						[disabled]="!guessField()?.valid"
@@ -73,7 +73,7 @@
 					Withdraw Bet
 				</button>
 			}
-			@if (!isGameOverPhase(phase) && game().host === thisPlayer().publicId) {
+			@if (!isGameOverPhase(phase) && game().host === thisParticipant().publicId) {
 				<button mat-raised-button
 						(click)="onEndPhase()"
 						style="margin-right: 8px">
