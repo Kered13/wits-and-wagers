@@ -229,7 +229,7 @@ export class LobbyApp {
 							// 	.notifyClients(lobby.makeCancel())
 							// 	.close();
 						} else {
-							lobby.removePlayer(privateId);
+							lobby.removeParticipant(privateId);
 							notifier.notifyClients(lobby.makeUpdate());
 						}
 					}

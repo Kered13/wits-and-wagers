@@ -169,15 +169,31 @@ export class Lobby {
 	}
 	
 	public removePlayer(privateId: PrivateId): void {
-		this.removeParticipant(this.players, privateId);
+		this.doRemoveParticipant(this.players, privateId);
 	}
 	
 	public removeSpectator(privateId: PrivateId): void {
-		this.removeParticipant(this.spectators, privateId);
+		this.doRemoveParticipant(this.spectators, privateId);
 	}
 	
-	private removeParticipant(players: Player[] | Spectator[], privateId: string): void {
+	// Remove either a player or a spectator.
+	public removeParticipant(privateId: PrivateId): void {
+		const playerIdx = this.players.findIndex(player => player.privateId === privateId);
+		const spectatorIdx = this.spectators.findIndex(player => player.privateId === privateId);
+		if (playerIdx >= 0) {
+			this.players.splice(playerIdx, 1);
+		} else if (spectatorIdx >= 0) {
+			this.spectators.splice(spectatorIdx, 1);
+		} else {
+			throw new HttpError(404, `Player with private ID ${privateId} not found.`);
+		}
+	}
+	
+	private doRemoveParticipant(players: Player[] | Spectator[], privateId: PrivateId): void {
 		const i = players.findIndex(player => player.privateId === privateId);
+		if (i < 0) {
+			throw new HttpError(404, `Player with private ID ${privateId} not found.`);
+		}
 		players.splice(i, 1);
 	}
 	
