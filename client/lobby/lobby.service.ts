@@ -12,10 +12,11 @@ import { CANCEL_PATH, type CancelLobbyRequest } from "../../shared/lobby/cancel.
 import { GET_QUESTION_SETS_PATH, GetQuestionSetsResponse } from "../../shared/lobby/get-question-sets.js";
 import { CREATE_PATH, CreateLobbyRequestSchema, type CreateLobbyRequest, type CreateLobbyResponse } from "../../shared/lobby/create.js";
 import { JOIN_LOBBY_PATH, type JoinLobbyRequest, type JoinLobbyResponse } from "../../shared/lobby/join-lobby.js";
+import { KICK_PLAYER_PATH, type KickPlayerRequest } from "../../shared/lobby/kick-player.js";
 import { LOBBY_API_ROOT, type LobbyId, type LobbyState } from "../../shared/lobby/lobby.js";
 import { LobbyNotificationSchema, type LobbyNotification } from "../../shared/lobby/notifications.js";
 import { SUBSCRIBE_PATH, type SubscribeRequest } from "../../shared/lobby/subscribe.js";
-import { PrivateId } from "../../shared/player.js";
+import { PrivateId, PublicId } from "../../shared/player.js";
 import { WebSocketRequest } from "../../shared/websocket.interface.js";
 
 
@@ -68,6 +69,7 @@ export class LobbyInstanceService extends Closeable {
 	private readonly lobbyUpdate: Observable<LobbyState>;
 	private readonly begin: Observable<GameId>;
 	private readonly canceled: Observable<void>;
+	private readonly kicked: Observable<void>;
 	private readonly error: Observable<WebsocketError>;
 	
 	constructor(
@@ -107,6 +109,15 @@ export class LobbyInstanceService extends Closeable {
 			// take(1) instead of first() so we don't error when the connection is closed.
 			take(1));
 		
+		this.kicked = notifications.pipe(
+			// Filter out errors. They can be caught by subscribing to the error
+			// observable.
+			catchError(err => NEVER),
+			filter(notification => notification.type === "kicked"),
+			map(_ => undefined),
+			// take(1) instead of first() so we don't error when the connection is closed.
+			take(1));
+		
 		this.error = notifications.pipe(
 			filter(notification => notification.type === "error"),
 			map(err => new WebsocketError(err.status, err.message)));
@@ -122,6 +133,14 @@ export class LobbyInstanceService extends Closeable {
 				privateId: this.privateId,
 			}
 		} satisfies WebSocketRequest<SubscribeRequest>);
+	}
+	
+	public kickPlayer(player: PublicId, requester: PrivateId): Observable<void> {
+		return this.backend.postJson<KickPlayerRequest, void>(LOBBY_API_ROOT + KICK_PLAYER_PATH, {
+			lobbyId: this.lobbyId,
+			player: player,
+			requester: requester
+		});
 	}
 	
 	public beginGame(): Observable<void> {
@@ -148,6 +167,10 @@ export class LobbyInstanceService extends Closeable {
 	
 	public onCanceled(): Observable<void> {
 		return this.canceled;
+	}
+	
+	public onKicked(): Observable<void> {
+		return this.kicked;
 	}
 	
 	public onError(): Observable<WebsocketError> {

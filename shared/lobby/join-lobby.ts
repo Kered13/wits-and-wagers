@@ -10,7 +10,9 @@ export const JOIN_LOBBY_PATH = "/joinlobby";
 
 // Adds a new player to the lobby. This should not be called for the host.
 export const JoinLobbyRequestSchema = strictObject({
-	// ID of lobby to add the player to.
+	// ID of lobby to add the player to. Either the ID for players or for
+	// spectators. The player will be added (or moved) as a player if this is
+	// the player ID, or added/moved as a spectator if this is the spectator ID.
 	lobbyId: LobbyIdSchema,
 	// Name of the player.
 	name: pipe(string(), nonEmpty()),
@@ -30,7 +32,7 @@ export const JoinLobbyResponseSchema = union([
 		player: PrivatePlayerSchema,
 	}),
 	strictObject({
-		// If this lobby has alredy begun, the GameId to redirect to.
+		// If this lobby has already begun, the GameId to redirect to.
 		gameId: GameIdSchema,
 	})
 ]);

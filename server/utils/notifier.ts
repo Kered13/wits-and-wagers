@@ -20,7 +20,16 @@ export class Notifier<N> {
 		return this;
 	}
 	
-	public removeClient(id: PrivateId, ws: WebSocketUtil): this {
+	public hasClient(ws: WebSocketUtil): boolean {
+		return this.clientToId.has(ws);
+	}
+	
+	public removeClient(ws: WebSocketUtil): this {
+		const id = this.clientToId.get(ws);
+		if (!id) {
+			return this;
+		}
+		
 		this.clientToId.delete(ws);
 		this.idToClients.delete(id, ws);
 		
@@ -29,6 +38,28 @@ export class Notifier<N> {
 		if (!this.idToClients.get(id).length) {
 			this.idToClients.delete(id);
 		}
+		return this;
+	}
+	
+	public closeAndRemoveClient(ws: WebSocketUtil): this {
+		ws.close();
+		this.removeClient(ws);
+		return this;
+	}
+	
+	public removePlayer(id: PrivateId): this {
+		for (const ws of this.idToClients.get(id) ?? []) {
+			this.clientToId.delete(ws);
+		}
+		this.idToClients.delete(id);
+		return this;
+	}
+	
+	public closeAndRemovePlayer(id: PrivateId): this {
+		for (const ws of this.idToClients.get(id) ?? []) {
+			ws.close();
+		}
+		this.removePlayer(id);
 		return this;
 	}
 	

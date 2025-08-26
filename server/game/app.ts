@@ -112,7 +112,7 @@ export class GameApp {
 				notifier.notifyClient(ws, game.makeUpdate(privateId));
 				
 				ws.onClose(() => {
-					notifier.removeClient(privateId, ws);
+					notifier.removeClient(ws);
 				});
 			} catch (err) {
 				if (err instanceof HttpError) {

@@ -8,7 +8,7 @@
 				<h3>Players</h3>
 				@for (player of lobby().players; track player.publicId) {
 					<div style="display: flex; align-items: center">
-						@if (thisParticipant().publicId == lobby().host) {
+						@if (isHost()) {
 							<button
 								class="host-action-button"
 								#tooltip="matTooltip"
@@ -26,9 +26,7 @@
 								<mat-icon>visibility</mat-icon>
 							</button>
 						}
-						<p [style.font-weight]="(player.publicId === lobby().host) ? 'bold' : 'normal'">
-							{{ player.name }}
-						</p>
+						<p>{{ player.name + (isHost() ? " (host)" : "") }}</p>
 					</div>
 				}
 			</div>
@@ -37,7 +35,7 @@
 					<h3>Spectators</h3>
 					@for (spectator of lobby().spectators; track spectator.publicId) {
 						<div style="display: flex; align-items: center">
-							@if (thisParticipant().publicId == lobby().host) {
+							@if (isHost()) {
 								<button
 									class="host-action-button"
 									#tooltip="matTooltip"
@@ -64,7 +62,7 @@
 		</div>
 	</mat-card-content>
 	<mat-card-actions>
-		@if (thisParticipant().publicId == lobby().host) {
+		@if (isHost()) {
 			<button mat-raised-button (click)="onBeginGame()">Begin Game</button>
 			<button mat-raised-button (click)="onCancelLobby()">Cancel</button>
 		}

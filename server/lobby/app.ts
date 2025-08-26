@@ -4,6 +4,7 @@ import { type WebSocket } from "ws";
 
 import { Lobby } from "./lobby.js";
 import { type GameApp } from "../game/app.js";
+import { type QuestionSetManager } from "../questions/question-set-manager.js";
 import { HttpError } from "../utils/httperror.js";
 import { Notifier } from "../utils/notifier.js";
 import { verifyRequest } from "../utils/verifyrequest.js";
@@ -12,12 +13,12 @@ import { BEGIN_PATH, BeginGameRequestSchema } from "../../shared/lobby/begin.js"
 import { CANCEL_PATH, CancelLobbyRequestSchema } from "../../shared/lobby/cancel.js";
 import { GET_QUESTION_SETS_PATH, GetQuestionSetsRequestSchema, GetQuestionSetsResponseSchema, type GetQuestionSetsResponse } from "../../shared/lobby/get-question-sets.js";
 import { JOIN_LOBBY_PATH, JoinLobbyRequestSchema, type JoinLobbyRequest, type JoinLobbyResponse, } from "../../shared/lobby/join-lobby.js";
+import { KICK_PLAYER_PATH, KickPlayerRequestSchema } from "../../shared/lobby/kick-player.js";
 import { type LobbyId } from "../../shared/lobby/lobby.js";
 import { CREATE_PATH, CreateLobbyRequestSchema, CreateLobbyResponseSchema, type CreateLobbyResponse } from "../../shared/lobby/create.js";
 import { type LobbyNotification } from "../../shared/lobby/notifications.js";
 import { SUBSCRIBE_PATH, SubscribeRequestSchema } from "../../shared/lobby/subscribe.js";
 import { type PrivateId } from "../../shared/player.js";
-import { type QuestionSetManager } from "../questions/question-set-manager.js";
 
 
 class LobbyNotifier extends Notifier<LobbyNotification> {}
@@ -157,6 +158,30 @@ export class LobbyApp {
 		return false;
 	}
 	
+	private kickPlayer(req: Request, res: Response): void {
+		const request = verifyRequest(
+			req.body, KickPlayerRequestSchema, `Invalid KickPlayerRequest: ${JSON.stringify(req.body)}`);
+		
+		const data = this.tryGetLobby(this.lobbies, request.lobbyId) || this.tryGetLobby(this.spectatorLobbies, request.lobbyId);
+		if (!data) {
+			throw new HttpError(404, `LobbyId ${request.lobbyId} not found.`);
+		}
+		
+		const { lobby, notifier } = data;
+		if (!lobby.isHost(request.requester)) {
+			throw new HttpError(403, "Only the lobby host may kick a player.");
+		}
+		
+		const player = lobby.getParticipant(request.player);
+		lobby.removeParticipant(player.privateId);
+		res.end();
+		
+		notifier
+			.notifyPlayer(player.privateId, { type: "kicked", id: lobby.getId() })
+			.closeAndRemovePlayer(player.privateId)
+			.notifyClients(data.lobby.makeUpdate());
+	}
+	
 	private beginGame(req: Request, res: Response): void {
 		const request = verifyRequest(
 			req.body, BeginGameRequestSchema, `Invalid BeginGameRequest: ${JSON.stringify(req.body)}`);
@@ -219,7 +244,11 @@ export class LobbyApp {
 				notifier.notifyClient(ws, lobby.makeUpdate());
 				
 				ws.onClose(() => {
-					notifier.removeClient(privateId, ws);
+					if (!notifier.hasClient(ws)) {
+						// Already removed.
+						return;
+					}
+					notifier.removeClient(ws);
 					if (!notifier.hasClients(privateId)) {
 						if (lobby.isHost(privateId)) {
 							// TODO: Uncomment when development is done.
@@ -248,6 +277,7 @@ export class LobbyApp {
 		return express.Router()
 			.post(CREATE_PATH, (req, res) => this.create(req, res))
 			.post(JOIN_LOBBY_PATH, (req, res) => this.joinLobby(req, res))
+			.post(KICK_PLAYER_PATH, (req, res) => this.kickPlayer(req, res))
 			.post(BEGIN_PATH, (req, res) => this.beginGame(req, res))
 			.post(CANCEL_PATH, (req, res) => this.cancel(req, res))
 			.get(GET_QUESTION_SETS_PATH, (req, res) => this.getQuestionSets(req, res))

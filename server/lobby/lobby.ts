@@ -12,18 +12,25 @@ import { type PrivateId, type PrivatePlayer, type PublicId } from "../../shared/
 import { HttpError } from "../utils/httperror.js";
 
 
-class Spectator implements SpectatorParams {
+export abstract class Participant {
 	// Display name for the user. Not unique.
 	public readonly name: string;
 	// An ID used to uniquely identify the user.
 	public readonly publicId: PublicId;
 	// An ID used to authenticate the user in RPCs.
 	public readonly privateId: PrivateId;
-
+	
 	constructor(player: SpectatorParams) {
 		this.name = player.name;
 		this.publicId = player.publicId;
 		this.privateId = player.privateId;
+	}
+}
+
+
+class Spectator extends Participant implements SpectatorParams {
+	constructor(player: SpectatorParams) {
+		super(player);
 	}
 	
 	public toJson(): LobbySpectator {
@@ -43,7 +50,7 @@ class Spectator implements SpectatorParams {
 };
 
 
-class Player extends Spectator implements PlayerParams {
+class Player extends Participant implements PlayerParams {
 	// The color for the user. Unique within a lobby or game.
 	public readonly color: string;
 	
@@ -52,7 +59,7 @@ class Player extends Spectator implements PlayerParams {
 		this.color = player.color;
 	}
 	
-	public override toJson(): LobbyPlayer {
+	public toJson(): LobbyPlayer {
 		return {
 			name: this.name,
 			publicId: this.publicId,
@@ -60,7 +67,7 @@ class Player extends Spectator implements PlayerParams {
 		};
 	}
 	
-	public override toPrivateJson(): PrivatePlayer {
+	public toPrivateJson(): PrivatePlayer {
 		return {
 			name: this.name,
 			publicId: this.publicId,
@@ -130,6 +137,15 @@ export class Lobby {
 		return this.host;
 	}
 	
+	public getParticipant(id: PrivateId | PublicId): Participant {
+		const player = this.players.find(player => player.privateId === id || player.publicId === id) ||
+			this.spectators.find(spectator => spectator.privateId === id || spectator.publicId === id);
+		if (!player) {
+			throw new HttpError(404, `Player with public or private ID ${id} not found.`);
+		}
+		return player;
+	}
+	
 	public addPlayer(name: string, existingId?: PrivateId): Player {
 		const existingPlayer = this.players.find(player => player.privateId === existingId);
 		const existingSpectator = this.spectators.find(player => player.privateId === existingId);
@@ -168,31 +184,31 @@ export class Lobby {
 		}
 	}
 	
-	public removePlayer(privateId: PrivateId): void {
-		this.doRemoveParticipant(this.players, privateId);
+	public removePlayer(id: PrivateId | PublicId): void {
+		this.doRemoveParticipant(this.players, id);
 	}
 	
-	public removeSpectator(privateId: PrivateId): void {
-		this.doRemoveParticipant(this.spectators, privateId);
+	public removeSpectator(id: PrivateId | PublicId): void {
+		this.doRemoveParticipant(this.spectators, id);
 	}
 	
 	// Remove either a player or a spectator.
-	public removeParticipant(privateId: PrivateId): void {
-		const playerIdx = this.players.findIndex(player => player.privateId === privateId);
-		const spectatorIdx = this.spectators.findIndex(player => player.privateId === privateId);
+	public removeParticipant(id: PrivateId | PublicId): void {
+		const playerIdx = this.players.findIndex(player => player.privateId === id || player.publicId === id);
+		const spectatorIdx = this.spectators.findIndex(player => player.privateId === id || player.publicId === id);
 		if (playerIdx >= 0) {
 			this.players.splice(playerIdx, 1);
 		} else if (spectatorIdx >= 0) {
 			this.spectators.splice(spectatorIdx, 1);
 		} else {
-			throw new HttpError(404, `Player with private ID ${privateId} not found.`);
+			throw new HttpError(404, `Player with public or private ID ${id} not found.`);
 		}
 	}
 	
-	private doRemoveParticipant(players: Player[] | Spectator[], privateId: PrivateId): void {
-		const i = players.findIndex(player => player.privateId === privateId);
+	private doRemoveParticipant(players: Player[] | Spectator[], id: PrivateId | PublicId): void {
+		const i = players.findIndex(player => player.privateId === id || player.publicId === id);
 		if (i < 0) {
-			throw new HttpError(404, `Player with private ID ${privateId} not found.`);
+			throw new HttpError(404, `Player with public or private ID ${id} not found.`);
 		}
 		players.splice(i, 1);
 	}

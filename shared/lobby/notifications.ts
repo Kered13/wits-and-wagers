@@ -32,12 +32,20 @@ export const LobbyCanceledSchema = strictObject({
 export type LobbyCanceled = InferOutput<typeof LobbyCanceledSchema>;
 
 
+export const KickedFromLobbySchema = strictObject({
+	type: literal("kicked"),
+	id: LobbyIdSchema
+});
+export type KickedFromLobby = InferOutput<typeof KickedFromLobbySchema>;
+
+
 // A notification about some change to the lobby.
 export const LobbyNotificationSchema = 
 	variant("type", [
 		LobbyUpdateSchema,
 		LobbyBeginGameSchema,
 		LobbyCanceledSchema,
+		KickedFromLobbySchema,
 		WsErrorSchema
 	]);
 export type LobbyNotification = InferOutput<typeof LobbyNotificationSchema>;

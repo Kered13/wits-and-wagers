@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, effect, Inject, OnDestroy, Signal } from "@angular/core";
+import { ChangeDetectionStrategy, Component, computed, effect, Inject, OnDestroy, Signal } from "@angular/core";
 import { ReactiveFormsModule } from "@angular/forms";
 import { MatButton, MatMiniFabButton } from "@angular/material/button";
 import { MatCardModule } from "@angular/material/card";
@@ -12,7 +12,7 @@ import { map, pairwise, Subscription, startWith, switchMap, combineLatest, catch
 
 
 import { LobbyInstanceService, LobbyService } from "./lobby.service.js";
-import { GAME_ID } from "../app/localstorage.keys.js";
+import { GAME_ID, PRIVATE_ID, PUBLIC_ID } from "../app/localstorage.keys.js";
 import { GlobalErrorHandler } from "../error-dialog/error-handler.js";
 import { RefCounted } from "../utils/refcounted.js";
 import { LobbyRoute, TypedRouteFor } from "../routes/routes.js";
@@ -35,6 +35,7 @@ export class LobbyComponent implements OnDestroy {
 	
 	readonly lobby: Signal<LobbyState>;
 	readonly thisParticipant: Signal<PrivatePlayer>;
+	readonly isHost: Signal<boolean>;
 	
 	constructor(
 			private readonly errorHandler: GlobalErrorHandler,
@@ -55,6 +56,8 @@ export class LobbyComponent implements OnDestroy {
 			instanceService.pipe(switchMap(service => service.get().onLobbyUpdate())),
 			{ initialValue: { title: "", host: "", players: [], spectators: [] } });
 		
+		this.isHost = computed(() => this.thisParticipant().publicId === this.lobby().host);
+		
 		effect(() => titleService.setTitle(route.routeConfig!.title! + " - " + this.lobby().title));
 	}
 	
@@ -72,6 +75,14 @@ export class LobbyComponent implements OnDestroy {
 			}),
 			newService.get().onCanceled().subscribe(() => {
 				localStorage.removeItem(GAME_ID);
+				this.routing.toHome();
+			}),
+			newService.get().onKicked().subscribe(() => {
+				// TODO: Improve this UI?
+				alert("You have been removed from the lobby.");
+				localStorage.removeItem(GAME_ID);
+				localStorage.removeItem(PUBLIC_ID);
+				localStorage.removeItem(PRIVATE_ID);
 				this.routing.toHome();
 			}),
 			newService.get().onError().subscribe(err => {
@@ -100,7 +111,9 @@ export class LobbyComponent implements OnDestroy {
 	}
 	
 	kickPlayer(player: PublicId): void {
-		console.log("Kick player: " + player);
+		if (this.isHost()) {
+			this.lobbyService().get().kickPlayer(player, this.thisParticipant().privateId).subscribe();
+		}
 	}
 	
 	onBeginGame(): void {
