@@ -1,12 +1,15 @@
 import { ChangeDetectionStrategy, Component, effect, Inject, OnDestroy, Signal } from "@angular/core";
 import { ReactiveFormsModule } from "@angular/forms";
-import { MatButton } from "@angular/material/button";
+import { MatButton, MatMiniFabButton } from "@angular/material/button";
 import { MatCardModule } from "@angular/material/card";
+import { MatIconModule } from "@angular/material/icon";
 import { MatInputModule } from '@angular/material/input';
+import { MatTooltipModule } from "@angular/material/tooltip";
 import { Title } from "@angular/platform-browser";
 import { ActivatedRoute } from "@angular/router";
 import { toSignal } from "@angular/core/rxjs-interop";
 import { map, pairwise, Subscription, startWith, switchMap, combineLatest, catchError, EMPTY } from "rxjs";
+
 
 import { LobbyInstanceService, LobbyService } from "./lobby.service.js";
 import { GAME_ID } from "../app/localstorage.keys.js";
@@ -14,13 +17,13 @@ import { GlobalErrorHandler } from "../error-dialog/error-handler.js";
 import { RefCounted } from "../utils/refcounted.js";
 import { LobbyRoute, TypedRouteFor } from "../routes/routes.js";
 import { LobbyState } from "../../shared/lobby/lobby.js";
-import { PrivatePlayer } from "../../shared/player.js";
+import { PrivatePlayer, PublicId } from "../../shared/player.js";
 import { RoutingService } from "../routes/routing.service.js";
 
 
 @Component({
 	selector: "app-lobby",
-	imports: [ReactiveFormsModule, MatButton, MatCardModule, MatInputModule],
+	imports: [ReactiveFormsModule, MatButton, MatCardModule, MatIconModule, MatInputModule, MatMiniFabButton, MatTooltipModule],
 	templateUrl: "./lobby.component.html",
 	styleUrl: "./lobby.component.css",
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -31,7 +34,7 @@ export class LobbyComponent implements OnDestroy {
 	private readonly instanceSub: Subscription;
 	
 	readonly lobby: Signal<LobbyState>;
-	readonly player: Signal<PrivatePlayer>;
+	readonly thisParticipant: Signal<PrivatePlayer>;
 	
 	constructor(
 			private readonly errorHandler: GlobalErrorHandler,
@@ -39,7 +42,7 @@ export class LobbyComponent implements OnDestroy {
 			lobbyService: LobbyService,
 			titleService: Title,
 			@Inject(ActivatedRoute) route: TypedRouteFor<LobbyRoute>) {
-		this.player = toSignal(
+		this.thisParticipant = toSignal(
 			route.data.pipe(map(data => data.player)), { requireSync: true });
 		
 		const instanceService = combineLatest([route.params, route.data]).pipe(
@@ -86,6 +89,18 @@ export class LobbyComponent implements OnDestroy {
 	public ngOnDestroy(): void {
 		this.closeLobbyService(this.lobbyService());
 		this.instanceSub.unsubscribe();
+	}
+	
+	moveToPlayers(player: PublicId): void {
+		console.log("Move to players: " + player);
+	}
+	
+	moveToSpectators(player: PublicId): void {
+		console.log("Move to spectators: " + player);
+	}
+	
+	kickPlayer(player: PublicId): void {
+		console.log("Kick player: " + player);
 	}
 	
 	onBeginGame(): void {

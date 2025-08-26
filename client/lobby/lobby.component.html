@@ -3,29 +3,68 @@
 		<h1>{{ lobby().title }}</h1>
 	</mat-card-header>
 	<mat-card-content>
-		<div style="display: flex; flex-direction: row">
+		<div style="display: flex">
 			<div style="flex: 1">
 				<h3>Players</h3>
 				@for (player of lobby().players; track player.publicId) {
-					<p [style.font-weight]="(player.publicId === lobby().host) ? 'bold' : 'normal'">
-						{{ player.name }}
-					</p>
+					<div style="display: flex; align-items: center">
+						@if (thisParticipant().publicId == lobby().host) {
+							<button
+								class="host-action-button"
+								#tooltip="matTooltip"
+								matTooltip="Kick from lobby"
+								mat-mini-fab
+								(click)="kickPlayer(player.publicId)">
+								<mat-icon>close</mat-icon>
+							</button>
+							<button
+								class="host-action-button"
+								#tooltip="matTooltip"
+								matTooltip="Move to spectators"
+								mat-mini-fab
+								(click)="moveToSpectators(player.publicId)">
+								<mat-icon>visibility</mat-icon>
+							</button>
+						}
+						<p [style.font-weight]="(player.publicId === lobby().host) ? 'bold' : 'normal'">
+							{{ player.name }}
+						</p>
+					</div>
 				}
 			</div>
 			@if (lobby().spectators.length > 0) {
 				<div style="flex: 1">
 					<h3>Spectators</h3>
 					@for (spectator of lobby().spectators; track spectator.publicId) {
-					<p [style.font-weight]="(spectator.publicId === lobby().host) ? 'bold' : 'normal'">
-						{{ spectator.name }}
-					</p>
+						<div style="display: flex; align-items: center">
+							@if (thisParticipant().publicId == lobby().host) {
+								<button
+									class="host-action-button"
+									#tooltip="matTooltip"
+									matTooltip="Kick from lobby"
+									mat-mini-fab
+									(click)="kickPlayer(spectator.publicId)">
+									<mat-icon>close</mat-icon>
+								</button>
+								<button
+									class="host-action-button"
+									matTooltip="Move to players"
+									mat-mini-fab
+									(click)="moveToPlayers(spectator.publicId)">
+									<mat-icon>person</mat-icon>
+								</button>
+							}
+							<p [style.font-weight]="(spectator.publicId === lobby().host) ? 'bold' : 'normal'">
+								{{ spectator.name }}
+							</p>
+						</div>
 					}
 				</div>
 			}
 		</div>
 	</mat-card-content>
 	<mat-card-actions>
-		@if (player().publicId == lobby().host) {
+		@if (thisParticipant().publicId == lobby().host) {
 			<button mat-raised-button (click)="onBeginGame()">Begin Game</button>
 			<button mat-raised-button (click)="onCancelLobby()">Cancel</button>
 		}

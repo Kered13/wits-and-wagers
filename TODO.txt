@@ -1,5 +1,8 @@
 * Implement game.
   * Add option for host to not be a player.
+  * Add move to player/spectator button.
+  * Add kick player button.
+  * Don't leak lobby player ID.
   * Allow withdrawing guesses? (Currently, new guesses override old.)
   * Add color picking.
   * Garbage collect inactive games.
