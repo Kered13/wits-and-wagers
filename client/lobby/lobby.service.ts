@@ -14,6 +14,7 @@ import { CREATE_PATH, CreateLobbyRequestSchema, type CreateLobbyRequest, type Cr
 import { JOIN_LOBBY_PATH, type JoinLobbyRequest, type JoinLobbyResponse } from "../../shared/lobby/join-lobby.js";
 import { KICK_PLAYER_PATH, type KickPlayerRequest } from "../../shared/lobby/kick-player.js";
 import { LOBBY_API_ROOT, type LobbyId, type LobbyState } from "../../shared/lobby/lobby.js";
+import { MOVE_PLAYER_PATH, type MovePlayerRequest } from "../../shared/lobby/move-player.js";
 import { LobbyNotificationSchema, type LobbyNotification } from "../../shared/lobby/notifications.js";
 import { SUBSCRIBE_PATH, type SubscribeRequest } from "../../shared/lobby/subscribe.js";
 import { PrivateId, PublicId } from "../../shared/player.js";
@@ -139,6 +140,15 @@ export class LobbyInstanceService extends Closeable {
 		return this.backend.postJson<KickPlayerRequest, void>(LOBBY_API_ROOT + KICK_PLAYER_PATH, {
 			lobbyId: this.lobbyId,
 			player: player,
+			requester: requester
+		});
+	}
+	
+	public movePlayer(player: PublicId, role: "player" | "spectator", requester: PrivateId): Observable<void> {
+		return this.backend.postJson<MovePlayerRequest, void>(LOBBY_API_ROOT + MOVE_PLAYER_PATH, {
+			lobbyId: this.lobbyId,
+			player: player,
+			role: role,
 			requester: requester
 		});
 	}

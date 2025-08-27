@@ -11,11 +11,12 @@ import { verifyRequest } from "../utils/verifyrequest.js";
 import { WebSocketUtil } from "../utils/websocket.js";
 import { BEGIN_PATH, BeginGameRequestSchema } from "../../shared/lobby/begin.js";
 import { CANCEL_PATH, CancelLobbyRequestSchema } from "../../shared/lobby/cancel.js";
+import { CREATE_PATH, CreateLobbyRequestSchema, CreateLobbyResponseSchema, type CreateLobbyResponse } from "../../shared/lobby/create.js";
 import { GET_QUESTION_SETS_PATH, GetQuestionSetsRequestSchema, GetQuestionSetsResponseSchema, type GetQuestionSetsResponse } from "../../shared/lobby/get-question-sets.js";
 import { JOIN_LOBBY_PATH, JoinLobbyRequestSchema, type JoinLobbyRequest, type JoinLobbyResponse, } from "../../shared/lobby/join-lobby.js";
 import { KICK_PLAYER_PATH, KickPlayerRequestSchema } from "../../shared/lobby/kick-player.js";
 import { type LobbyId } from "../../shared/lobby/lobby.js";
-import { CREATE_PATH, CreateLobbyRequestSchema, CreateLobbyResponseSchema, type CreateLobbyResponse } from "../../shared/lobby/create.js";
+import { MOVE_PLAYER_PATH, MovePlayerRequestSchema } from "../../shared/lobby/move-player.js";
 import { type LobbyNotification } from "../../shared/lobby/notifications.js";
 import { SUBSCRIBE_PATH, SubscribeRequestSchema } from "../../shared/lobby/subscribe.js";
 import { type PrivateId } from "../../shared/player.js";
@@ -182,6 +183,37 @@ export class LobbyApp {
 			.notifyClients(data.lobby.makeUpdate());
 	}
 	
+	private movePlayer(req: Request, res: Response): void {
+		const request = verifyRequest(
+			req.body, MovePlayerRequestSchema, `Invalid MovePlayerRequest: ${JSON.stringify(req.body)}`);
+			
+		const data = this.tryGetLobby(this.lobbies, request.lobbyId) || this.tryGetLobby(this.spectatorLobbies, request.lobbyId);
+		if (!data) {
+			throw new HttpError(404, `LobbyId ${request.lobbyId} not found.`);
+		}
+		
+		const { lobby, notifier } = data;
+		if (!lobby.isHost(request.requester)) {
+			throw new HttpError(403, "Only the lobby host may kick a player.");
+		}
+		
+		if (!lobby.hasParticipant(request.player)) {
+			throw new HttpError(404, `Player with public ID ${request.player} not found in lobby.`);
+		}
+		
+		if (request.role === "player") {
+			// Player is already in the lobby, so we don't need to provide a
+			// name.
+			lobby.addPlayer("", request.player);
+		} else {
+			// Player is already in the lobby, so we don't need to provide a name.
+			lobby.addSpectator("", request.player);
+		}
+		
+		res.end();
+		notifier.notifyClients(data.lobby.makeUpdate());
+	}
+	
 	private beginGame(req: Request, res: Response): void {
 		const request = verifyRequest(
 			req.body, BeginGameRequestSchema, `Invalid BeginGameRequest: ${JSON.stringify(req.body)}`);
@@ -278,6 +310,7 @@ export class LobbyApp {
 			.post(CREATE_PATH, (req, res) => this.create(req, res))
 			.post(JOIN_LOBBY_PATH, (req, res) => this.joinLobby(req, res))
 			.post(KICK_PLAYER_PATH, (req, res) => this.kickPlayer(req, res))
+			.post(MOVE_PLAYER_PATH, (req, res) => this.movePlayer(req, res))
 			.post(BEGIN_PATH, (req, res) => this.beginGame(req, res))
 			.post(CANCEL_PATH, (req, res) => this.cancel(req, res))
 			.get(GET_QUESTION_SETS_PATH, (req, res) => this.getQuestionSets(req, res))

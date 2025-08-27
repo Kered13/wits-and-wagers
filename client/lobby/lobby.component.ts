@@ -35,7 +35,7 @@ export class LobbyComponent implements OnDestroy {
 	
 	readonly lobby: Signal<LobbyState>;
 	readonly thisParticipant: Signal<PrivatePlayer>;
-	readonly isHost: Signal<boolean>;
+	readonly isThisPlayerHost: Signal<boolean>;
 	
 	constructor(
 			private readonly errorHandler: GlobalErrorHandler,
@@ -56,7 +56,7 @@ export class LobbyComponent implements OnDestroy {
 			instanceService.pipe(switchMap(service => service.get().onLobbyUpdate())),
 			{ initialValue: { title: "", host: "", players: [], spectators: [] } });
 		
-		this.isHost = computed(() => this.thisParticipant().publicId === this.lobby().host);
+		this.isThisPlayerHost = computed(() => this.thisParticipant().publicId === this.lobby().host);
 		
 		effect(() => titleService.setTitle(route.routeConfig!.title! + " - " + this.lobby().title));
 	}
@@ -103,15 +103,15 @@ export class LobbyComponent implements OnDestroy {
 	}
 	
 	moveToPlayers(player: PublicId): void {
-		console.log("Move to players: " + player);
+		this.lobbyService().get().movePlayer(player, "player", this.thisParticipant().privateId).subscribe();
 	}
 	
 	moveToSpectators(player: PublicId): void {
-		console.log("Move to spectators: " + player);
+		this.lobbyService().get().movePlayer(player, "spectator", this.thisParticipant().privateId).subscribe();
 	}
 	
 	kickPlayer(player: PublicId): void {
-		if (this.isHost()) {
+		if (this.isThisPlayerHost()) {
 			this.lobbyService().get().kickPlayer(player, this.thisParticipant().privateId).subscribe();
 		}
 	}

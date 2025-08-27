@@ -137,6 +137,11 @@ export class Lobby {
 		return this.host;
 	}
 	
+	public hasParticipant(id: PrivateId | PublicId): boolean {
+		return !!(this.players.find(player => player.privateId === id || player.publicId === id) ||
+			this.spectators.find(spectator => spectator.privateId === id || spectator.publicId === id));
+	}
+	
 	public getParticipant(id: PrivateId | PublicId): Participant {
 		const player = this.players.find(player => player.privateId === id || player.publicId === id) ||
 			this.spectators.find(spectator => spectator.privateId === id || spectator.publicId === id);
@@ -146,9 +151,9 @@ export class Lobby {
 		return player;
 	}
 	
-	public addPlayer(name: string, existingId?: PrivateId): Player {
-		const existingPlayer = this.players.find(player => player.privateId === existingId);
-		const existingSpectator = this.spectators.find(player => player.privateId === existingId);
+	public addPlayer(name: string, existingId?: PrivateId | PublicId): Player {
+		const existingPlayer = this.players.find(player => player.privateId === existingId || player.publicId === existingId);
+		const existingSpectator = this.spectators.find(player => player.privateId === existingId || player.publicId === existingId);
 		if (existingPlayer) {
 			return existingPlayer;
 		} else if (this.players.length >= this.options.numberOfPlayers!) {
@@ -166,9 +171,9 @@ export class Lobby {
 		}
 	}
 	
-	public addSpectator(name: string, existingId?: PrivateId): Spectator {
-		const existingSpectator = this.spectators.find(player => player.privateId === existingId);
-		const existingPlayer = this.players.find(player => player.privateId === existingId);
+	public addSpectator(name: string, existingId?: PrivateId | PublicId): Spectator {
+		const existingSpectator = this.spectators.find(player => player.privateId === existingId || player.publicId === existingId);
+		const existingPlayer = this.players.find(player => player.privateId === existingId || player.publicId === existingId);
 		if (existingSpectator) {
 			return existingSpectator;
 		} else if (existingPlayer) {

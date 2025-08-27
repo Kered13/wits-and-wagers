@@ -37,7 +37,7 @@ export const LobbyStateSchema = strictObject({
 	// Title of the lobby and subsequent game.
 	title: pipe(string(), nonEmpty()),
 	// Public ID of the host.
-	host: pipe(string(), nonEmpty()),
+	host: pipe(PublicIdSchema, nonEmpty()),
 	// The public information of each player in the lobby.
 	players: array(LobbyPlayerSchema),
 	// The public information of each spectator in the lobby.
