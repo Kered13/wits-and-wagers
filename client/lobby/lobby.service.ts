@@ -16,8 +16,10 @@ import { KICK_PLAYER_PATH, type KickPlayerRequest } from "../../shared/lobby/kic
 import { LOBBY_API_ROOT, type LobbyId, type LobbyState } from "../../shared/lobby/lobby.js";
 import { MOVE_PLAYER_PATH, type MovePlayerRequest } from "../../shared/lobby/move-player.js";
 import { LobbyNotificationSchema, type LobbyNotification } from "../../shared/lobby/notifications.js";
+import { SET_COLOR_PATH, type SetColorRequest } from "../../shared/lobby/set-color.js";
 import { SUBSCRIBE_PATH, type SubscribeRequest } from "../../shared/lobby/subscribe.js";
 import { PrivateId, PublicId } from "../../shared/player.js";
+import { Rgb } from "../../shared/rgb.js";
 import { WebSocketRequest } from "../../shared/websocket.interface.js";
 
 
@@ -149,6 +151,15 @@ export class LobbyInstanceService extends Closeable {
 			lobbyId: this.lobbyId,
 			player: player,
 			role: role,
+			requester: requester
+		});
+	}
+	
+	public setColor(player: PublicId, color: Rgb, requester: PrivateId): Observable<void> {
+		return this.backend.postJson<SetColorRequest, void>(LOBBY_API_ROOT + SET_COLOR_PATH, {
+			lobbyId: this.lobbyId,
+			player: player,
+			color: color,
 			requester: requester
 		});
 	}

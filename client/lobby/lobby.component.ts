@@ -18,6 +18,7 @@ import { RefCounted } from "../utils/refcounted.js";
 import { LobbyRoute, TypedRouteFor } from "../routes/routes.js";
 import { LobbyState } from "../../shared/lobby/lobby.js";
 import { PrivatePlayer, PublicId } from "../../shared/player.js";
+import { Rgb } from "../../shared/rgb.js";
 import { RoutingService } from "../routes/routing.service.js";
 
 
@@ -103,16 +104,26 @@ export class LobbyComponent implements OnDestroy {
 	}
 	
 	moveToPlayers(player: PublicId): void {
-		this.lobbyService().get().movePlayer(player, "player", this.thisParticipant().privateId).subscribe();
+		if (this.isThisPlayerHost()) {
+			this.lobbyService().get().movePlayer(player, "player", this.thisParticipant().privateId).subscribe();
+		}
 	}
 	
 	moveToSpectators(player: PublicId): void {
-		this.lobbyService().get().movePlayer(player, "spectator", this.thisParticipant().privateId).subscribe();
+		if (this.isThisPlayerHost()) {
+			this.lobbyService().get().movePlayer(player, "spectator", this.thisParticipant().privateId).subscribe();
+		}
 	}
 	
 	kickPlayer(player: PublicId): void {
 		if (this.isThisPlayerHost()) {
 			this.lobbyService().get().kickPlayer(player, this.thisParticipant().privateId).subscribe();
+		}
+	}
+	
+	setColor(player: PublicId, color: Rgb): void {
+		if (this.isThisPlayerHost() || player === this.thisParticipant().publicId) {
+			this.lobbyService().get().setColor(player, color, this.thisParticipant().privateId).subscribe();
 		}
 	}
 	

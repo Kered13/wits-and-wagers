@@ -4,12 +4,14 @@ import { Game } from "../game/game.js";
 import { type PlayerParams, type SpectatorParams } from "../game/player.js";
 import { QuestionGenerator } from "../questions/question-generator.js";
 import { type QuestionSetManager } from "../questions/question-set-manager.js";
+import { COLORS } from "../utils/color.js";
+import { HttpError } from "../utils/httperror.js";
 import { type GameId } from "../../shared/game/game.js";
 import { type LobbyOptions } from "../../shared/lobby/create.js";
 import { type LobbyPlayer, type LobbyState, type LobbyId, type LobbySpectator } from "../../shared/lobby/lobby.js";
 import { type LobbyBeginGame, type LobbyCanceled, type LobbyUpdate } from "../../shared/lobby/notifications.js";
 import { type PrivateId, type PrivatePlayer, type PublicId } from "../../shared/player.js";
-import { HttpError } from "../utils/httperror.js";
+import { type Rgb } from "../../shared/rgb.js";
 
 
 export abstract class Participant {
@@ -52,7 +54,7 @@ class Spectator extends Participant implements SpectatorParams {
 
 class Player extends Participant implements PlayerParams {
 	// The color for the user. Unique within a lobby or game.
-	public readonly color: string;
+	public color: string;
 	
 	constructor(player: PlayerParams) {
 		super(player);
@@ -142,6 +144,14 @@ export class Lobby {
 			this.spectators.find(spectator => spectator.privateId === id || spectator.publicId === id));
 	}
 	
+	public getPlayer(id: PrivateId | PublicId): Player {
+		const player = this.players.find(player => player.privateId === id || player.publicId === id);
+		if (!player) {
+			throw new HttpError(404, `Player with public or private ID ${id} not found.`);
+		}
+		return player;
+	}
+	
 	public getParticipant(id: PrivateId | PublicId): Participant {
 		const player = this.players.find(player => player.privateId === id || player.publicId === id) ||
 			this.spectators.find(spectator => spectator.privateId === id || spectator.publicId === id);
@@ -195,6 +205,18 @@ export class Lobby {
 	
 	public removeSpectator(id: PrivateId | PublicId): void {
 		this.doRemoveParticipant(this.spectators, id);
+	}
+	
+	public setPlayerColor(playerId: PrivateId | PublicId, color: Rgb): void {
+		if (!COLORS.includes(color)) {
+			throw new HttpError(400, `Color ${color} is not a valid color.`);
+		}
+		
+		if (this.players.some(player => player.color === color)) {
+			throw new HttpError(400, `Color ${color} is already taken.`);
+		}
+		
+		this.getPlayer(playerId).color = color;
 	}
 	
 	// Remove either a player or a spectator.
@@ -306,7 +328,12 @@ export class Lobby {
 	}
 	
 	private generateColor(): string {
-		// TODO
-		return "#000000";
+		const usedColors = this.players.map(player => player.color);
+		const availableColors = COLORS.filter(color => !usedColors.includes(color));
+		
+		if (availableColors.length === 0) {
+			throw new HttpError(500, "No colors available. This is a server bug.");
+		}
+		return availableColors[0]!;
 	}
 }

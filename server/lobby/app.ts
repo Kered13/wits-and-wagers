@@ -19,6 +19,7 @@ import { type LobbyId } from "../../shared/lobby/lobby.js";
 import { MOVE_PLAYER_PATH, MovePlayerRequestSchema } from "../../shared/lobby/move-player.js";
 import { type LobbyNotification } from "../../shared/lobby/notifications.js";
 import { SUBSCRIBE_PATH, SubscribeRequestSchema } from "../../shared/lobby/subscribe.js";
+import { SET_COLOR_PATH, SetColorRequestSchema } from "../../shared/lobby/set-color.js";
 import { type PrivateId } from "../../shared/player.js";
 
 
@@ -214,6 +215,26 @@ export class LobbyApp {
 		notifier.notifyClients(data.lobby.makeUpdate());
 	}
 	
+	private setColor(req: Request, res: Response): void {
+		const request = verifyRequest(
+			req.body, SetColorRequestSchema, `Invalid SetColorRequest: ${JSON.stringify(req.body)}`);
+		
+		const data = this.tryGetLobby(this.lobbies, request.lobbyId) || this.tryGetLobby(this.spectatorLobbies, request.lobbyId);
+		if (!data) {
+			throw new HttpError(404, `LobbyId ${request.lobbyId} not found.`);
+		}
+		
+		const { lobby, notifier } = data;
+		if (!lobby.isHost(request.requester) || lobby.getPlayer(request.player) === lobby.getPlayer(request.requester)) {
+			throw new HttpError(403, "Player's color may only be changed by the host or themself.");
+		}
+		
+		lobby.setPlayerColor(request.player, request.color);
+		
+		res.end();
+		notifier.notifyClients(data.lobby.makeUpdate());
+	}
+	
 	private beginGame(req: Request, res: Response): void {
 		const request = verifyRequest(
 			req.body, BeginGameRequestSchema, `Invalid BeginGameRequest: ${JSON.stringify(req.body)}`);
@@ -311,6 +332,7 @@ export class LobbyApp {
 			.post(JOIN_LOBBY_PATH, (req, res) => this.joinLobby(req, res))
 			.post(KICK_PLAYER_PATH, (req, res) => this.kickPlayer(req, res))
 			.post(MOVE_PLAYER_PATH, (req, res) => this.movePlayer(req, res))
+			.post(SET_COLOR_PATH, (req, res) => this.setColor(req, res))
 			.post(BEGIN_PATH, (req, res) => this.beginGame(req, res))
 			.post(CANCEL_PATH, (req, res) => this.cancel(req, res))
 			.get(GET_QUESTION_SETS_PATH, (req, res) => this.getQuestionSets(req, res))

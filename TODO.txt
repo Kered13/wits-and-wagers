@@ -2,6 +2,7 @@
   * Don't leak lobby player ID.
   * Allow withdrawing guesses? (Currently, new guesses override old.)
   * Add color picking.
+    * Communicate available colors to client.
   * Garbage collect inactive games.
   * Support mixing question sets?
 * Implement desktop UI.
