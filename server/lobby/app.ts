@@ -225,7 +225,7 @@ export class LobbyApp {
 		}
 		
 		const { lobby, notifier } = data;
-		if (!lobby.isHost(request.requester) || lobby.getPlayer(request.player) === lobby.getPlayer(request.requester)) {
+		if (!lobby.isHost(request.requester) && lobby.getPlayer(request.player) !== lobby.getPlayer(request.requester)) {
 			throw new HttpError(403, "Player's color may only be changed by the host or themself.");
 		}
 		

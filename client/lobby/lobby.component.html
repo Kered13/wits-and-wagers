@@ -26,6 +26,35 @@
 								<mat-icon>visibility</mat-icon>
 							</button>
 						}
+						@if (isThisPlayerHost() || player.publicId === thisParticipant().publicId) {
+							<button
+								class="host-action-button"
+								#tooltip="matTooltip"
+								matTooltip="Change color"
+								(click)="isOpen = !isOpen"
+								cdkOverlayOrigin
+								#trigger="cdkOverlayOrigin"
+								mat-mini-fab>
+								<div class="color-box" [style.background-color]="player.color"></div>
+							</button>
+							<ng-template
+								style="width: 200px"
+								cdkConnectedOverlay
+								[cdkConnectedOverlayOrigin]="trigger"
+								[cdkConnectedOverlayOpen]="isOpen"
+								(overlayOutsideClick)="isOpen = false"
+								(detach)="isOpen = false">
+								<div class="color-picker" style="display: flex; flex-wrap: wrap; width: 160px">
+									@for (color of COLORS; track $index) {
+										<button mat-icon-button (click)="setColor(player.publicId, color); isOpen = false">
+											<div class="color-box" [style.background-color]="color"></div>
+										</button>
+									}
+								</div>
+							</ng-template>
+						} @else {
+							<div class="color-box" [style.background-color]="player.color"></div>
+						}
 						<p>{{ player.name + (player.publicId === lobby().host ? " (host)" : "") }}</p>
 					</div>
 				}

@@ -212,11 +212,12 @@ export class Lobby {
 			throw new HttpError(400, `Color ${color} is not a valid color.`);
 		}
 		
-		if (this.players.some(player => player.color === color)) {
+		const player = this.getPlayer(playerId);
+		if (this.players.some(other => other.color === color && player !== other)) {
 			throw new HttpError(400, `Color ${color} is already taken.`);
 		}
 		
-		this.getPlayer(playerId).color = color;
+		player.color = color;
 	}
 	
 	// Remove either a player or a spectator.

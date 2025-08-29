@@ -138,29 +138,29 @@ export class LobbyInstanceService extends Closeable {
 		} satisfies WebSocketRequest<SubscribeRequest>);
 	}
 	
-	public kickPlayer(player: PublicId, requester: PrivateId): Observable<void> {
+	public kickPlayer(player: PublicId): Observable<void> {
 		return this.backend.postJson<KickPlayerRequest, void>(LOBBY_API_ROOT + KICK_PLAYER_PATH, {
 			lobbyId: this.lobbyId,
 			player: player,
-			requester: requester
+			requester: this.privateId
 		});
 	}
 	
-	public movePlayer(player: PublicId, role: "player" | "spectator", requester: PrivateId): Observable<void> {
+	public movePlayer(player: PublicId, role: "player" | "spectator"): Observable<void> {
 		return this.backend.postJson<MovePlayerRequest, void>(LOBBY_API_ROOT + MOVE_PLAYER_PATH, {
 			lobbyId: this.lobbyId,
 			player: player,
 			role: role,
-			requester: requester
+			requester: this.privateId
 		});
 	}
 	
-	public setColor(player: PublicId, color: Rgb, requester: PrivateId): Observable<void> {
+	public setColor(player: PublicId, color: Rgb): Observable<void> {
 		return this.backend.postJson<SetColorRequest, void>(LOBBY_API_ROOT + SET_COLOR_PATH, {
 			lobbyId: this.lobbyId,
 			player: player,
 			color: color,
-			requester: requester
+			requester: this.privateId
 		});
 	}
 	
