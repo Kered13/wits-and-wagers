@@ -1,16 +1,17 @@
 import { type Rgb } from "./rgb.js";
 
 
-export const BLACK: Rgb = "#303030";
-export const GRAY: Rgb = "#A0A0A0";
-export const BROWN: Rgb = "#805420";
-export const YELLOW: Rgb = "#FFFF00";
-export const PURPLE: Rgb = "#A020F0";
-export const PINK: Rgb = "#FFB3C0";
-export const ORANGE: Rgb = "#F0A010";
-export const RED: Rgb = "#F01010";
-export const BLUE: Rgb = "#4040FF";
-export const GREEN: Rgb = "#30D030";
+export const BLACK: Rgb = "#1d1a06";
+export const GRAY: Rgb = "#b4b4b0";
+export const BROWN: Rgb = "#77362B";
+export const YELLOW: Rgb = "#f5e63d";
+export const PURPLE: Rgb = "#6953ac";
+export const PINK: Rgb = "#efa9b9";
+export const ORANGE: Rgb = "#fd9935";
+export const RED: Rgb = "#df0719";
+export const BLUE: Rgb = "#1cb0ca";
+export const GREEN: Rgb = "#37ae41";
+
 
 export const COLORS = [
 	BLACK,
