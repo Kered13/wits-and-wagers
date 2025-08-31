@@ -25,3 +25,29 @@
 	position: absolute;
 	z-index: -1;
 }
+
+.crossout {
+	width: 23px;
+	height: 23px;
+	top: 0;
+	left: 0;
+	border-width: medium;
+	border-style: solid;
+	border-radius: 20%;
+	border-color: rgb(125, 125, 125);
+	position: absolute;
+	pointer-events: none;
+	z-index: 1;
+	
+	.diagonal {
+		height: 3px;
+		width: 142%;
+		top: 98%;
+		left: -8%;
+		background-color: rgb(125, 125, 125);
+		transform: rotate(-45deg);
+		transform-origin: 0% 0%;
+		position: absolute;
+		z-index: 1;
+	}
+}
