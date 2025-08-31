@@ -13,6 +13,7 @@ import { toSignal } from "@angular/core/rxjs-interop";
 import { map, pairwise, Subscription, startWith, switchMap, combineLatest } from "rxjs";
 
 
+import { ColorButton } from "./color-button.component.js";
 import { LobbyInstanceService, LobbyService } from "./lobby.service.js";
 import { GAME_ID, PRIVATE_ID, PUBLIC_ID } from "../app/localstorage.keys.js";
 import { GlobalErrorHandler } from "../error-dialog/error-handler.js";
@@ -27,9 +28,9 @@ import { RoutingService } from "../routes/routing.service.js";
 
 @Component({
 	selector: "app-lobby",
-	imports: [ReactiveFormsModule, MatButton, MatCardModule, MatIconModule, MatInputModule, MatMenuModule, MatMiniFabButton, MatTooltip, OverlayModule, MatIconButton],
+	imports: [ColorButton, ReactiveFormsModule, MatButton, MatCardModule, MatIconModule, MatInputModule, MatMenuModule, MatMiniFabButton, MatTooltip, OverlayModule, MatIconButton],
 	templateUrl: "./lobby.component.html",
-	styleUrl: "./lobby.component.css",
+	styleUrl: "./lobby.component.scss",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class LobbyComponent implements OnDestroy {

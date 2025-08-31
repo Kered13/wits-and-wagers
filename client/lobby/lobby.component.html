@@ -38,19 +38,27 @@
 								<div class="color-box" [style.background-color]="player.color"></div>
 							</button>
 							<ng-template
-								style="width: 200px"
 								cdkConnectedOverlay
 								[cdkConnectedOverlayOrigin]="trigger"
 								[cdkConnectedOverlayOpen]="isOpen"
 								(overlayOutsideClick)="isOpen = false"
 								(detach)="isOpen = false">
-								<div class="color-picker" style="display: flex; flex-wrap: wrap; width: 160px">
+								<div class="color-picker">
 									@for (color of COLORS; track $index) {
-										<button mat-icon-button (click)="setColor(player.publicId, color); isOpen = false">
+										<color-button [color]="color" (click)="setColor(player.publicId, color); isOpen = false"></color-button>
+									}
+								</div>
+								<!-- <div class="color-picker" style="display: flex; flex-wrap: wrap; width: 170px">
+									@for (color of COLORS; track $index) {
+										<button
+											class="color-picker-button"
+											style="margin: -3px"
+											mat-icon-button
+											(click)="setColor(player.publicId, color); isOpen = false">
 											<div class="color-box" [style.background-color]="color"></div>
 										</button>
 									}
-								</div>
+								</div> -->
 							</ng-template>
 						} @else {
 							<div class="color-box" [style.background-color]="player.color"></div>

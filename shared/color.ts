@@ -8,7 +8,7 @@ export const YELLOW: Rgb = "#FFFF00";
 export const PURPLE: Rgb = "#A020F0";
 export const PINK: Rgb = "#FFB3C0";
 export const ORANGE: Rgb = "#F0A010";
-export const RED: Rgb = "#F010010";
+export const RED: Rgb = "#F01010";
 export const BLUE: Rgb = "#4040FF";
 export const GREEN: Rgb = "#30D030";
 

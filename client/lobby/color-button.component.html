@@ -1,0 +1,13 @@
+<button	class="color-button" (click)="onClick()">
+	<div
+		class="color-box"
+		[style.background-color]="color"
+		(mouseenter)="hover(true)"
+		(mouseleave)="hover(false)">
+	</div>
+	<div
+		#bubble
+		class="bubble"
+		[hidden]="!showBubble">
+	</div>
+</button>
