@@ -1,7 +1,7 @@
 import { OverlayModule } from "@angular/cdk/overlay";
 import { ChangeDetectionStrategy, Component, computed, effect, Inject, OnDestroy, Signal } from "@angular/core";
 import { ReactiveFormsModule } from "@angular/forms";
-import { MatButton, MatMiniFabButton, MatIconButton } from "@angular/material/button";
+import { MatButton, MatMiniFabButton } from "@angular/material/button";
 import { MatCardModule } from "@angular/material/card";
 import { MatIconModule } from "@angular/material/icon";
 import { MatInputModule } from '@angular/material/input';
@@ -17,18 +17,18 @@ import { ColorButton } from "./color-button.component.js";
 import { LobbyInstanceService, LobbyService } from "./lobby.service.js";
 import { GAME_ID, PRIVATE_ID, PUBLIC_ID } from "../app/localstorage.keys.js";
 import { GlobalErrorHandler } from "../error-dialog/error-handler.js";
+import { RoutingService } from "../routes/routing.service.js";
 import { RefCounted } from "../utils/refcounted.js";
 import { LobbyRoute, TypedRouteFor } from "../routes/routes.js";
 import { COLORS } from "../../shared/color.js";
-import { LobbyState } from "../../shared/lobby/lobby.js";
+import { LobbyPlayer, LobbyState } from "../../shared/lobby/lobby.js";
 import { PrivatePlayer, PublicId } from "../../shared/player.js";
 import { Rgb } from "../../shared/rgb.js";
-import { RoutingService } from "../routes/routing.service.js";
 
 
 @Component({
 	selector: "app-lobby",
-	imports: [ColorButton, ReactiveFormsModule, MatButton, MatCardModule, MatIconModule, MatInputModule, MatMenuModule, MatMiniFabButton, MatTooltip, OverlayModule, MatIconButton],
+	imports: [ColorButton, ReactiveFormsModule, MatButton, MatCardModule, MatIconModule, MatInputModule, MatMenuModule, MatMiniFabButton, MatTooltip, OverlayModule],
 	templateUrl: "./lobby.component.html",
 	styleUrl: "./lobby.component.scss",
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -43,6 +43,7 @@ export class LobbyComponent implements OnDestroy {
 	readonly lobby: Signal<LobbyState>;
 	readonly thisParticipant: Signal<PrivatePlayer>;
 	readonly isThisPlayerHost: Signal<boolean>;
+	readonly openColorPickers: Signal<Record<PublicId, boolean>>;
 	
 	isOpen: boolean = false;
 	
@@ -66,6 +67,7 @@ export class LobbyComponent implements OnDestroy {
 			{ initialValue: { title: "", host: "", players: [], spectators: [] } });
 		
 		this.isThisPlayerHost = computed(() => this.thisParticipant().publicId === this.lobby().host);
+		this.openColorPickers = computed(() => Object.fromEntries(this.lobby().players.map(p => [p.publicId, false])));
 		
 		effect(() => titleService.setTitle(route.routeConfig!.title! + " - " + this.lobby().title));
 	}
@@ -141,5 +143,9 @@ export class LobbyComponent implements OnDestroy {
 	
 	onCancelLobby(): void {
 		this.lobbyService().get().cancelLobby().subscribe();
+	}
+	
+	isColorAvailable(players: LobbyPlayer[], color: Rgb): boolean {
+		return !players.some(p => p.color === color);
 	}
 }

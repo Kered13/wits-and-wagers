@@ -10,6 +10,8 @@ import { Component, ElementRef, EventEmitter, Input, Output, ViewChild } from "@
 export class ColorButton {
 	@Input() color: string = "#000000";
 	
+	@Input() disabled: boolean = false;
+	
 	@Output("click") readonly click = new EventEmitter<void>();
 	
 	showBubble: boolean = false;

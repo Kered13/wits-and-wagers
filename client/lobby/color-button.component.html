@@ -1,4 +1,7 @@
-<button	class="color-button" (click)="onClick()">
+<button
+	class="color-button"
+	[disabled]="disabled"
+	(click)="onClick()">
 	<div
 		class="color-box"
 		[style.background-color]="color"
