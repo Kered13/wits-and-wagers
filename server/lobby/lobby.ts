@@ -265,7 +265,6 @@ export class Lobby {
 	public makeUpdate(): LobbyUpdate {
 		return {
 			type: "update",
-			id: this.id,
 			state: this.toJson()
 		};
 	}

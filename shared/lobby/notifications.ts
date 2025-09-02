@@ -8,7 +8,6 @@ import { WsErrorSchema } from "../ws-error.js";
 // Represents an update to the lobby state.
 export const LobbyUpdateSchema = strictObject({
 	type: literal("update"),
-	id: LobbyIdSchema,
 	state: LobbyStateSchema
 });
 export type LobbyUpdate = InferOutput<typeof LobbyUpdateSchema>;
