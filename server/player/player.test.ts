@@ -22,50 +22,71 @@ function makePlayer(name: string): Player {
 
 
 describe("Spectator", () => {
-	test("toJson", () => {
+	test("toLobbyJson", () => {
 		const player = makeSpectator("Alice");
 		player.chips = 13;
 		
-		expect(player.toJson()).to.deep.equal({
+		expect(player.toLobbyJson()).to.deep.equal({
 			name: "Alice",
 			publicId: "public-Alice",
-			chips: 13
+		});
+	});
+	
+	test("toGameJson", () => {
+		const player = makeSpectator("Alice");
+		player.chips = 13;
+		
+		expect(player.toGameJson()).to.deep.equal({
+			name: "Alice",
+			publicId: "public-Alice",
+			chips: 13,
 		});
 	});
 	
 	test("begins with 2 chips", () => {
 		const player = makeSpectator("Alice");
 		
-		expect(player.toJson()).to.deep.equal({
+		expect(player.toGameJson()).to.deep.equal({
 			name: "Alice",
 			publicId: "public-Alice",
-			chips: 2
+			chips: 2,
 		});
 	});
 });
 
 
 describe("Player", () => {
-	test("toJson", () => {
+	test("toLobbyJson", () => {
 		const player = makePlayer("Alice");
 		player.chips = 13;
 		
-		expect(player.toJson()).to.deep.equal({
+		expect(player.toLobbyJson()).to.deep.equal({
 			name: "Alice",
 			publicId: "public-Alice",
 			color: "#FF0000",
-			chips: 13
+		});
+	});
+	
+	test("toGameJson", () => {
+		const player = makePlayer("Alice");
+		player.chips = 13;
+		
+		expect(player.toGameJson()).to.deep.equal({
+			name: "Alice",
+			publicId: "public-Alice",
+			color: "#FF0000",
+			chips: 13,
 		});
 	});
 	
 	test("begins with 2 chips", () => {
 		const player = makePlayer("Alice");
 		
-		expect(player.toJson()).to.deep.equal({
+		expect(player.toGameJson()).to.deep.equal({
 			name: "Alice",
 			publicId: "public-Alice",
 			color: "#FF0000",
-			chips: 2
+			chips: 2,
 		});
 	});
 });

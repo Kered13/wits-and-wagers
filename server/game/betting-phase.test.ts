@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { BettingPhase, bettingPhaseDefaultOptions, BettingPhaseOptions } from "./betting-phase.js";
-import { Player, Spectator } from "./player.js";
+import { Player, Spectator } from "../player/player.js";
+import { PlayerManager } from "../player/player-manager.js";
 import { type BettingPhaseState } from "../../shared/game/betting-phase.js";
-import { PlayerManager } from "./player-manager.js";
 
 
 function makePlayer(name: string): Player {

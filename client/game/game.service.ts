@@ -9,6 +9,7 @@ import { WebsocketError } from "../utils/websocket-error.js";
 import { BetTarget } from "../../shared/game/betting-phase.js";
 import { END_PHASE_PATH, EndPhaseRequest } from "../../shared/game/end-phase.js";
 import { GAME_API_ROOT, type GameId, type GameState } from "../../shared/game/game.js";
+import { JOIN_SPECTATOR_PATH, type JoinSpectatorRequest, type JoinSpectatorResponse } from "../../shared/game/join-spectator.js";
 import { GameNotificationSchema, type GameNotification } from "../../shared/game/notifications.js";
 import { SUBMIT_BET_PATH, SubmitBetRequest } from "../../shared/game/submit-bet.js";
 import { SUBMIT_GUESS_PATH, SubmitGuessRequest } from "../../shared/game/submit-guess.js";
@@ -22,10 +23,10 @@ import { type WebSocketRequest } from "../../shared/websocket.interface.js";
 export class GameService {
 	private gameInstances = new Map<GameId, RefCounted<GameInstanceService>>();
 	
-	constructor(private http: BackendService) {}
+	constructor(private backend: BackendService) {}
 	
 	private createGameInstanceService(gameId: GameId, privateId: PrivateId): RefCounted<GameInstanceService> {
-		return new RefCounted<GameInstanceService>(new GameInstanceService(this, this.http, gameId, privateId));
+		return new RefCounted<GameInstanceService>(new GameInstanceService(this, this.backend, gameId, privateId));
 	}
 	
 	public getGameInstanceService(gameId: GameId, privateId: PrivateId): RefCounted<GameInstanceService> {
@@ -35,6 +36,11 @@ export class GameService {
 			this.gameInstances.set(gameId, gameInstanceService);
 		}
 		return gameInstanceService;
+	}
+	
+	public joinSpectator(gameId: GameId, name: string, privateId?: PrivateId): Observable<JoinSpectatorResponse> {
+		return this.backend.postJson<JoinSpectatorRequest, JoinSpectatorResponse>(
+			GAME_API_ROOT + JOIN_SPECTATOR_PATH, { gameId, name, privateId });
 	}
 	
 	public removeGame(id: GameId): void {

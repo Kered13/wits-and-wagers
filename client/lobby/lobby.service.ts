@@ -49,12 +49,7 @@ export class LobbyService {
 	
 	public joinLobby(lobbyId: LobbyId, name: string, privateId?: PrivateId): Observable<JoinLobbyResponse> {
 		return this.backend.postJson<JoinLobbyRequest, JoinLobbyResponse>(
-			LOBBY_API_ROOT + JOIN_LOBBY_PATH,
-			{
-				lobbyId: lobbyId,
-				name: name,
-				privateId: privateId
-			});
+			LOBBY_API_ROOT + JOIN_LOBBY_PATH, { lobbyId, name, privateId });
 	}
 	
 	public removeLobby(id: LobbyId): void {

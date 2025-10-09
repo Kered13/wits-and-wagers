@@ -1,5 +1,4 @@
 import express, { Router, type Request, type Response } from "express";
-import { merge } from "rxjs";
 import { type WebSocket } from "ws";
 
 import { Game } from "./game.js";
@@ -7,13 +6,15 @@ import { HttpError } from "../utils/httperror.js";
 import { Notifier } from "../utils/notifier.js";
 import { verifyRequest } from "../utils/verifyrequest.js";
 import { WebSocketUtil } from "../utils/websocket.js";
-import { type GameId } from "../../shared/game/game.js";
-import { type GameNotification } from "../../shared/game/notifications.js";
 import { SUBSCRIBE_PATH, SubscribeRequestSchema } from "../../shared/game/subscribe.js";
-import { SUBMIT_GUESS_PATH, SubmitGuessRequestSchema } from "../../shared/game/submit-guess.js";
-import { SUBMIT_BET_PATH, SubmitBetRequestSchema } from "../../shared/game/submit-bet.js";
-import { WITHDRAW_BET_PATH, WithdrawBetRequestSchema } from "../../shared/game/withdraw-bet.js";
 import { END_PHASE_PATH, EndPhaseRequestSchema } from "../../shared/game/end-phase.js";
+import { type GameId } from "../../shared/game/game.js";
+import { JOIN_SPECTATOR_PATH, JoinSpectatorRequestSchema, type JoinSpectatorResponse } from "../../shared/game/join-spectator.js";
+import { type GameNotification } from "../../shared/game/notifications.js";
+import { SUBMIT_BET_PATH, SubmitBetRequestSchema } from "../../shared/game/submit-bet.js";
+import { SUBMIT_GUESS_PATH, SubmitGuessRequestSchema } from "../../shared/game/submit-guess.js";
+import { WITHDRAW_BET_PATH, WithdrawBetRequestSchema } from "../../shared/game/withdraw-bet.js";
+import type { PrivateId } from "../../shared/player.js";
 
 
 class GameNotifier extends Notifier<GameNotification> {}
@@ -27,15 +28,36 @@ type GameData = {
 
 export class GameApp {
 	private readonly games: Map<GameId, GameData> = new Map();
+	private readonly spectatorGames: Map<GameId, GameData> = new Map();
 	
 	constructor() {}
 	
-	public tryGetGame(id: GameId): GameData | undefined {
-		return this.games.get(id);
+	private static tryGetGame(games: Map<GameId, GameData>, id: GameId): GameData | undefined {
+		return games.get(id);
 	}
 	
-	public getGame(id: GameId): GameData {
-		const data = this.tryGetGame(id);
+	private static getGame(games: Map<GameId, GameData>, id: GameId): GameData {
+		const data = this.tryGetGame(games, id);
+		if (!data) {
+			throw new HttpError(404, `GameId ${id} not found.`);
+		}
+		return data;
+	}
+	
+	public tryGetGame(id: GameId): GameData | undefined {
+		return GameApp.tryGetGame(this.games, id);
+	}
+	
+	public tryGetSpectatorGame(id: GameId): GameData | undefined {
+		return GameApp.tryGetGame(this.spectatorGames, id);
+	}
+	
+	public tryGetAnyGame(id: GameId): GameData | undefined {
+		return this.tryGetGame(id) || this.tryGetSpectatorGame(id);
+	}
+	
+	public getAnyGame(id: GameId): GameData {
+		const data = this.tryGetAnyGame(id);
 		if (!data) {
 			throw new HttpError(404, `GameId ${id} not found.`);
 		}
@@ -45,9 +67,11 @@ export class GameApp {
 	public addGame(game: Game): void {
 		const notifier = new GameNotifier();
 		this.games.set(game.getId(), { game, notifier });
+		this.spectatorGames.set(game.getSpectatorId(), { game, notifier });
 		
 		game.onUpdates().subscribe({
 			next: () => {
+				console.log(`Sending game update.`);
 				game.getParticipants().forEach(
 					player => notifier.notifyPlayer(player.privateId, game.makeUpdate(player.privateId)));
 			},
@@ -58,11 +82,55 @@ export class GameApp {
 		});
 	}
 	
+	private joinGame(req: Request, res: Response): void {
+		const { gameId, name, privateId } = verifyRequest(
+			req.body, JoinSpectatorRequestSchema, `Invalid JoinSpectatorRequest: ${JSON.stringify(req.body)}`);
+		
+		if (!this.tryJoinPlayer(gameId, privateId, res) &&
+				!this.tryJoinSpectator(gameId, name, privateId, res)) {
+			throw new HttpError(404, `GameId ${gameId} not found.`);
+		}
+	}
+	
+	private tryJoinPlayer(gameId: GameId, privateId: PrivateId | undefined, res: Response): boolean {
+		const data = this.tryGetGame(gameId);
+		if (!data) {
+			return false;
+		}
+		
+		const player = data.game.getPlayers().find(p => p.privateId === privateId);
+		if (!player) {
+			return false;
+		}
+		
+		res.send({
+			player: player.toPrivateJson()
+		} satisfies JoinSpectatorResponse);
+		res.end();
+		return true;
+	}
+	
+	private tryJoinSpectator(gameId: GameId, name: string, privateId: PrivateId | undefined, res: Response): boolean {
+		const data = this.tryGetSpectatorGame(gameId);
+		if (!data) {
+			return false;
+		}
+		
+		const spectator = data.game.addSpectator(name, privateId);
+		res.send({
+			player: spectator.toPrivateJson()
+		} satisfies JoinSpectatorResponse);
+		
+		console.log(`Sending joinSpectator respond.`);
+		res.end();
+		return true;
+	}
+	
 	private submitGuess(req: Request, res: Response): void {
 		const { gameId, requester, guess } = verifyRequest(
 			req.body, SubmitGuessRequestSchema, `Invalid SubmitGuessRequest: ${JSON.stringify(req.body)}`);
 		
-		const { notifier, game } = this.getGame(gameId);
+		const { game } = this.getAnyGame(gameId);
 		game.submitGuess(requester, guess);
 		
 		res.end();
@@ -72,7 +140,7 @@ export class GameApp {
 		const { gameId, requester, target, wager } = verifyRequest(
 			req.body, SubmitBetRequestSchema, `Invalid SubmitBetRequest: ${JSON.stringify(req.body)}`);
 		
-		const { notifier, game } = this.getGame(gameId);
+		const { game } = this.getAnyGame(gameId);
 		game.submitBet(requester, target, wager);
 		
 		res.end();
@@ -82,7 +150,7 @@ export class GameApp {
 		const { gameId, requester, target } = verifyRequest(
 			req.body, WithdrawBetRequestSchema, `Invalid WithdrawBetRequest: ${JSON.stringify(req.body)}`);
 		
-		const { notifier, game } = this.getGame(gameId);
+		const { game } = this.getAnyGame(gameId);
 		game.withdrawBet(requester, target);
 		
 		res.end();
@@ -92,7 +160,7 @@ export class GameApp {
 		const { gameId, requester } = verifyRequest(
 			req.body, EndPhaseRequestSchema, `Invalid WithdrawBetRequest: ${JSON.stringify(req.body)}`);
 		
-		const { notifier, game } = this.getGame(gameId);
+		const { game } = this.getAnyGame(gameId);
 		game.endPhase(requester);
 		
 		res.end();
@@ -107,7 +175,8 @@ export class GameApp {
 				const { privateId, gameId } = verifyRequest(
 					msg, SubscribeRequestSchema, `Invalid SubscribeRequest: ${JSON.stringify(msg)}`);
 				
-				const { game, notifier } = this.getGame(gameId);
+				// TODO: Verify that player is in game.
+				const { game, notifier } = this.getAnyGame(gameId);
 				notifier.addClient(privateId, ws);
 				notifier.notifyClient(ws, game.makeUpdate(privateId));
 				
@@ -126,6 +195,7 @@ export class GameApp {
 	
 	public getRouter() : Router {
 		return express.Router()
+			.post(JOIN_SPECTATOR_PATH, (req, res) => this.joinGame(req, res))
 			.post(SUBMIT_GUESS_PATH, (req, res) => this.submitGuess(req, res))
 			.post(SUBMIT_BET_PATH, (req, res) => this.submitBet(req, res))
 			.post(WITHDRAW_BET_PATH, (req, res) => this.withdrawBet(req, res))

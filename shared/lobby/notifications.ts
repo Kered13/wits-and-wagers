@@ -16,7 +16,6 @@ export type LobbyUpdate = InferOutput<typeof LobbyUpdateSchema>;
 // Indicates that the game for this lobby has begun.
 export const LobbyBeginGameSchema = strictObject({
 	type: literal("begin-game"),
-	id: LobbyIdSchema,
 	// Game ID of the new game. In practice, this is the same as the lobby ID.
 	gameId: GameIdSchema
 });
@@ -26,14 +25,12 @@ export type LobbyBeginGame = InferOutput<typeof LobbyBeginGameSchema>;
 // Indicates that this lobby has been canceled.
 export const LobbyCanceledSchema = strictObject({
 	type: literal("canceled"),
-	id: LobbyIdSchema
 });
 export type LobbyCanceled = InferOutput<typeof LobbyCanceledSchema>;
 
 
 export const KickedFromLobbySchema = strictObject({
 	type: literal("kicked"),
-	id: LobbyIdSchema
 });
 export type KickedFromLobby = InferOutput<typeof KickedFromLobbySchema>;
 

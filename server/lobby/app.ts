@@ -13,7 +13,7 @@ import { BEGIN_PATH, BeginGameRequestSchema } from "../../shared/lobby/begin.js"
 import { CANCEL_PATH, CancelLobbyRequestSchema } from "../../shared/lobby/cancel.js";
 import { CREATE_PATH, CreateLobbyRequestSchema, CreateLobbyResponseSchema, type CreateLobbyResponse } from "../../shared/lobby/create.js";
 import { GET_QUESTION_SETS_PATH, GetQuestionSetsRequestSchema, GetQuestionSetsResponseSchema, type GetQuestionSetsResponse } from "../../shared/lobby/get-question-sets.js";
-import { JOIN_LOBBY_PATH, JoinLobbyRequestSchema, type JoinLobbyRequest, type JoinLobbyResponse, } from "../../shared/lobby/join-lobby.js";
+import { JOIN_LOBBY_PATH, JoinLobbyRequestSchema, type JoinLobbyResponse, } from "../../shared/lobby/join-lobby.js";
 import { KICK_PLAYER_PATH, KickPlayerRequestSchema } from "../../shared/lobby/kick-player.js";
 import { type LobbyId } from "../../shared/lobby/lobby.js";
 import { MOVE_PLAYER_PATH, MovePlayerRequestSchema } from "../../shared/lobby/move-player.js";
@@ -45,12 +45,16 @@ export class LobbyApp {
 		}
 	}
 	
-	private tryGetLobby(lobbies: Map<LobbyId, LobbyData>, id: LobbyId): LobbyData | undefined {
+	private static tryGetLobby(lobbies: Map<LobbyId, LobbyData>, id: LobbyId): LobbyData | undefined {
 		return lobbies.get(id);
 	}
 	
-	private getLobby(lobbies: Map<LobbyId, LobbyData>, id: LobbyId): LobbyData {
-		const data = this.tryGetLobby(lobbies, id);
+	private tryGetAnyLobby(id: LobbyId): LobbyData | undefined {
+		return LobbyApp.tryGetLobby(this.lobbies, id) || LobbyApp.tryGetLobby(this.spectatorLobbies, id);
+	}
+	
+	private getAnyLobby(id: LobbyId): LobbyData {
+		const data = this.tryGetAnyLobby(id);
 		if (!data) {
 			throw new HttpError(404, `LobbyId ${id} not found.`);
 		}
@@ -59,6 +63,7 @@ export class LobbyApp {
 	
 	private removeLobby(lobby: Lobby): void {
 		this.lobbies.delete(lobby.getId());
+		this.spectatorLobbies.delete(lobby.getSpectatorId());
 	}
 	
 	// TODO
@@ -83,8 +88,9 @@ export class LobbyApp {
 			request.questionSet,
 			request.options,
 			this.questionSetManager);
-		this.lobbies.set(lobby.getId(), { lobby: lobby, notifier: new LobbyNotifier });
-		this.spectatorLobbies.set(lobby.getSpectatorId(), this.lobbies.get(lobby.getId())!);
+		const notifier = new LobbyNotifier();
+		this.lobbies.set(lobby.getId(), { lobby, notifier });
+		this.spectatorLobbies.set(lobby.getSpectatorId(), { lobby, notifier });
 		
 		const response: CreateLobbyResponse = {
 			id: lobby.getId(),
@@ -96,25 +102,25 @@ export class LobbyApp {
 	}
 	
 	private joinLobby(req: Request, res: Response): void {
-		const request = verifyRequest(
+		const { lobbyId, name, privateId } = verifyRequest(
 			req.body, JoinLobbyRequestSchema, `Invalid JoinLobbyRequest: ${JSON.stringify(req.body)}`);
 		
-		if (!this.tryJoinLobby(request, res) &&
-				!this.tryJoinGame(request, res) &&
-				!this.tryJoinSpectatorLobby(request, res) &&
-				!this.tryJoinSpectatorGame()) {
-			throw new HttpError(404, `LobbyId ${request.lobbyId} not found.`);
+		if (!this.tryJoinLobby(lobbyId, name, privateId, res) &&
+				!this.tryJoinSpectatorLobby(lobbyId, name, privateId, res) &&
+				!this.tryJoinGame(lobbyId, privateId, res) &&
+				!this.tryJoinSpectatorGame(lobbyId, name, privateId, res)) {
+			throw new HttpError(404, `LobbyId ${lobbyId} not found.`);
 		}
 	}
 	
-	private tryJoinLobby(request: JoinLobbyRequest, res: Response): boolean {
-		const data = this.tryGetLobby(this.lobbies, request.lobbyId);
+	private tryJoinLobby(lobbyId: LobbyId, name: string, privateId: PrivateId | undefined, res: Response): boolean {
+		const data = LobbyApp.tryGetLobby(this.lobbies, lobbyId);
 		if (!data) {
 			return false;
 		}
 		
 		const { lobby, notifier } = data;
-		const player = lobby.addPlayer(request.name, request.privateId);
+		const player = lobby.addPlayer(name, privateId);
 		
 		res.send({
 			player: player.toPrivateJson()
@@ -124,14 +130,14 @@ export class LobbyApp {
 		return true;
 	}
 	
-	private tryJoinSpectatorLobby(request: JoinLobbyRequest, res: Response): boolean {
-		const data = this.tryGetLobby(this.spectatorLobbies, request.lobbyId);
+	private tryJoinSpectatorLobby(lobbyId: LobbyId, name: string, privateId: PrivateId | undefined, res: Response): boolean {
+		const data = LobbyApp.tryGetLobby(this.spectatorLobbies, lobbyId);
 		if (!data) {
 			return false;
 		}
 		
 		const { lobby, notifier } = data;
-		const player = lobby.addSpectator(request.name, request.privateId);
+		const player = lobby.addSpectator(name, privateId);
 		
 		res.send({
 			player: player.toPrivateJson()
@@ -141,11 +147,11 @@ export class LobbyApp {
 		return true;
 	}
 	
-	private tryJoinGame(request: JoinLobbyRequest, res: Response): boolean {
+	private tryJoinGame(lobbyId: LobbyId, privateId: PrivateId | undefined, res: Response): boolean {
 		// Check if the lobby has become a game, and if this player is part
 		// of that game. Then redirect them to the game.
-		const gameData = this.gameApp.tryGetGame(Lobby.gameIdFromLobbyId(request.lobbyId));
-		if (!gameData || !request.privateId || !gameData.game.getPlayers().some(player => player.privateId === request.privateId)) {
+		const gameData = this.gameApp.tryGetGame(Lobby.gameIdFromLobbyId(lobbyId));
+		if (!gameData || !privateId || !gameData.game.getPlayers().some(player => player.privateId === privateId)) {
 			return false;
 		}
 		res.send({
@@ -155,60 +161,70 @@ export class LobbyApp {
 		return true;
 	}
 	
-	private tryJoinSpectatorGame(): boolean {
-		// TODO
-		return false;
+	private tryJoinSpectatorGame(lobbyId: LobbyId, name: string, privateId: PrivateId | undefined, res: Response): boolean {
+		// Check if the lobby has become a game, then redirect them to the game.
+		// Spectators can join in the middle of a game, so we do not need to
+		// check if they are already part of the game.
+		const gameData = this.gameApp.tryGetSpectatorGame(Lobby.gameIdFromLobbyId(lobbyId));
+		if (!gameData) {
+			return false;
+		}
+		res.send({
+			gameId: gameData.game.getSpectatorId()
+		} satisfies JoinLobbyResponse);
+		
+		return true;
 	}
 	
 	private kickPlayer(req: Request, res: Response): void {
-		const request = verifyRequest(
+		const { lobbyId, player, requester } = verifyRequest(
 			req.body, KickPlayerRequestSchema, `Invalid KickPlayerRequest: ${JSON.stringify(req.body)}`);
 		
-		const data = this.tryGetLobby(this.lobbies, request.lobbyId) || this.tryGetLobby(this.spectatorLobbies, request.lobbyId);
+		const data = this.tryGetAnyLobby(lobbyId);
 		if (!data) {
-			throw new HttpError(404, `LobbyId ${request.lobbyId} not found.`);
+			throw new HttpError(404, `LobbyId ${lobbyId} not found.`);
 		}
 		
 		const { lobby, notifier } = data;
-		if (!lobby.isHost(request.requester)) {
+		if (!lobby.isHost(requester)) {
 			throw new HttpError(403, "Only the lobby host may kick a player.");
 		}
 		
-		const player = lobby.getParticipant(request.player);
-		lobby.removeParticipant(player.privateId);
+		const privateId = lobby.getParticipant(player).privateId;
+		lobby.removeParticipant(privateId);
 		res.end();
 		
 		notifier
-			.notifyPlayer(player.privateId, { type: "kicked", id: lobby.getId() })
-			.closeAndRemovePlayer(player.privateId)
+			.notifyPlayer(privateId, { type: "kicked" })
+			.closeAndRemovePlayer(privateId)
 			.notifyClients(data.lobby.makeUpdate());
 	}
 	
 	private movePlayer(req: Request, res: Response): void {
-		const request = verifyRequest(
+		const { lobbyId, player, role, requester } = verifyRequest(
 			req.body, MovePlayerRequestSchema, `Invalid MovePlayerRequest: ${JSON.stringify(req.body)}`);
 			
-		const data = this.tryGetLobby(this.lobbies, request.lobbyId) || this.tryGetLobby(this.spectatorLobbies, request.lobbyId);
+		const data = this.tryGetAnyLobby(lobbyId);
 		if (!data) {
-			throw new HttpError(404, `LobbyId ${request.lobbyId} not found.`);
+			throw new HttpError(404, `LobbyId ${lobbyId} not found.`);
 		}
 		
 		const { lobby, notifier } = data;
-		if (!lobby.isHost(request.requester)) {
-			throw new HttpError(403, "Only the lobby host may kick a player.");
+		if (!lobby.isHost(requester)) {
+			throw new HttpError(403, "Only the lobby host may move a player.");
 		}
 		
-		if (!lobby.hasParticipant(request.player)) {
-			throw new HttpError(404, `Player with public ID ${request.player} not found in lobby.`);
+		if (!lobby.hasParticipant(player)) {
+			throw new HttpError(404, `Player with public ID ${player} not found in lobby.`);
 		}
 		
-		if (request.role === "player") {
+		if (role === "player") {
 			// Player is already in the lobby, so we don't need to provide a
 			// name.
-			lobby.addPlayer("", request.player);
+			lobby.addPlayer("", player);
 		} else {
 			// Player is already in the lobby, so we don't need to provide a name.
-			lobby.addSpectator("", request.player);
+			lobby.addSpectator("", player);
 		}
 		
 		res.end();
@@ -216,31 +232,28 @@ export class LobbyApp {
 	}
 	
 	private setColor(req: Request, res: Response): void {
-		const request = verifyRequest(
+		const { lobbyId, player, color, requester } = verifyRequest(
 			req.body, SetColorRequestSchema, `Invalid SetColorRequest: ${JSON.stringify(req.body)}`);
 		
-		const data = this.tryGetLobby(this.lobbies, request.lobbyId) || this.tryGetLobby(this.spectatorLobbies, request.lobbyId);
-		if (!data) {
-			throw new HttpError(404, `LobbyId ${request.lobbyId} not found.`);
-		}
+		const data = this.getAnyLobby(lobbyId);
 		
 		const { lobby, notifier } = data;
-		if (!lobby.isHost(request.requester) && lobby.getPlayer(request.player) !== lobby.getPlayer(request.requester)) {
+		if (!lobby.isHost(requester) && lobby.getPlayer(player) !== lobby.getPlayer(requester)) {
 			throw new HttpError(403, "Player's color may only be changed by the host or themself.");
 		}
 		
-		lobby.setPlayerColor(request.player, request.color);
+		lobby.setPlayerColor(player, color);
 		
 		res.end();
 		notifier.notifyClients(data.lobby.makeUpdate());
 	}
 	
 	private beginGame(req: Request, res: Response): void {
-		const request = verifyRequest(
+		const { lobbyId, requester } = verifyRequest(
 			req.body, BeginGameRequestSchema, `Invalid BeginGameRequest: ${JSON.stringify(req.body)}`);
 		
-		const { lobby, notifier } = this.getLobby(this.lobbies, request.lobbyId);
-		this.verifyHost(lobby, request.requester);
+		const { lobby, notifier } = this.getAnyLobby(lobbyId);
+		this.verifyHost(lobby, requester);
 		
 		this.removeLobby(lobby);
 		const [game, beginGame] = lobby.beginGame();
@@ -253,11 +266,11 @@ export class LobbyApp {
 	}
 	
 	private cancel(req: Request, res: Response): void {
-		const request = verifyRequest(
+		const { lobbyId, requester } = verifyRequest(
 			req.body, CancelLobbyRequestSchema, `Invalid CancelLobbyRequest: ${JSON.stringify(req.body)}`);
 		
-		const { lobby, notifier } = this.getLobby(this.lobbies, request.lobbyId);
-		this.verifyHost(lobby, request.requester);
+		const { lobby, notifier } = this.getAnyLobby(lobbyId);
+		this.verifyHost(lobby, requester);
 		
 		this.removeLobby(lobby);
 		
@@ -268,8 +281,7 @@ export class LobbyApp {
 	}
 	
 	private getQuestionSets(req: Request, res: Response): void {
-		const request = verifyRequest(
-			req.body, GetQuestionSetsRequestSchema, `Invalid GetQuestionSetsRequest: ${JSON.stringify(req.body)}`);
+		verifyRequest(req.body, GetQuestionSetsRequestSchema, `Invalid GetQuestionSetsRequest: ${JSON.stringify(req.body)}`);
 		
 		const questionSets = this.questionSetManager.getQuestionSets();
 		
@@ -292,7 +304,8 @@ export class LobbyApp {
 				const { privateId, lobbyId } = verifyRequest(
 					msg, SubscribeRequestSchema, `Invalid SubscribeRequest: ${JSON.stringify(msg)}`);
 				
-				const { lobby, notifier } = this.tryGetLobby(this.lobbies, lobbyId) || this.getLobby(this.spectatorLobbies, lobbyId);
+				// TODO: Verify that player is in lobby.
+				const { lobby, notifier } = this.getAnyLobby(lobbyId);
 				notifier.addClient(privateId, ws);
 				notifier.notifyClient(ws, lobby.makeUpdate());
 				

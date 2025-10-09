@@ -1,8 +1,8 @@
 import { Subject, type Observable } from "rxjs";
 
 import { type Phase } from "./phase.js";
-import { Participant, Spectator, type Player } from "./player.js";
-import { type PlayerManager } from "./player-manager.js";
+import { Participant, Spectator, type Player } from "../player/player.js";
+import { type PlayerManager } from "../player/player-manager.js";
 import { HttpError } from "../utils/httperror.js";
 import { type Bet, type BetTarget, type BettingPhaseState, type Guess as GuessJson } from "../../shared/game/betting-phase.js";
 import { type PrivateId, type PublicId } from "../../shared/player.js";

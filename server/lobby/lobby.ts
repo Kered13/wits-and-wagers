@@ -1,82 +1,15 @@
-import * as uuid from "uuid";
-
 import { Game } from "../game/game.js";
-import { type PlayerParams, type SpectatorParams } from "../game/player.js";
+import { type Participant, Player, Spectator } from "../player/player.js";
 import { QuestionGenerator } from "../questions/question-generator.js";
 import { type QuestionSetManager } from "../questions/question-set-manager.js";
 import { HttpError } from "../utils/httperror.js";
 import { COLORS } from "../../shared/color.js";
 import { type GameId } from "../../shared/game/game.js";
 import { type LobbyOptions } from "../../shared/lobby/create.js";
-import { type LobbyPlayer, type LobbyState, type LobbyId, type LobbySpectator } from "../../shared/lobby/lobby.js";
+import { type LobbyState, type LobbyId } from "../../shared/lobby/lobby.js";
 import { type LobbyBeginGame, type LobbyCanceled, type LobbyUpdate } from "../../shared/lobby/notifications.js";
 import { type PrivateId, type PrivatePlayer, type PublicId } from "../../shared/player.js";
 import { type Rgb } from "../../shared/rgb.js";
-
-
-export abstract class Participant {
-	// Display name for the user. Not unique.
-	public readonly name: string;
-	// An ID used to uniquely identify the user.
-	public readonly publicId: PublicId;
-	// An ID used to authenticate the user in RPCs.
-	public readonly privateId: PrivateId;
-	
-	constructor(player: SpectatorParams) {
-		this.name = player.name;
-		this.publicId = player.publicId;
-		this.privateId = player.privateId;
-	}
-}
-
-
-class Spectator extends Participant implements SpectatorParams {
-	constructor(player: SpectatorParams) {
-		super(player);
-	}
-	
-	public toJson(): LobbySpectator {
-		return {
-			name: this.name,
-			publicId: this.publicId,
-		};
-	}
-	
-	public toPrivateJson(): PrivatePlayer {
-		return {
-			name: this.name,
-			publicId: this.publicId,
-			privateId: this.privateId
-		};
-	}
-};
-
-
-class Player extends Participant implements PlayerParams {
-	// The color for the user. Unique within a lobby or game.
-	public color: string;
-	
-	constructor(player: PlayerParams) {
-		super(player);
-		this.color = player.color;
-	}
-	
-	public toJson(): LobbyPlayer {
-		return {
-			name: this.name,
-			publicId: this.publicId,
-			color: this.color,
-		};
-	}
-	
-	public toPrivateJson(): PrivatePlayer {
-		return {
-			name: this.name,
-			publicId: this.publicId,
-			privateId: this.privateId,
-		};
-	}
-};
 
 
 export class Lobby {
@@ -96,7 +29,7 @@ export class Lobby {
 			private readonly questionSet: number,
 			private readonly options: LobbyOptions,
 			private readonly questionSetManager: QuestionSetManager) {
-		const hostPlayer = this.generatePlayer(hostName);
+		const hostPlayer = Player.generate(hostName, this.generateColor());
 		this.players.push(hostPlayer);
 		this.host = {
 			name: hostPlayer.name,
@@ -171,29 +104,29 @@ export class Lobby {
 		} else if (existingSpectator) {
 			// Move spectator to player.
 			this.removeSpectator(existingSpectator.privateId);
-			const player = this.playerFromSpectator(existingSpectator);
+			const player = Player.fromSpectator(existingSpectator, this.generateColor());
 			this.players.push(player);
 			return player;
 		} else {
-			const player = this.generatePlayer(name);
+			const player = Player.generate(name, this.generateColor());
 			this.players.push(player);
 			return player;
 		}
 	}
 	
 	public addSpectator(name: string, existingId?: PrivateId | PublicId): Spectator {
-		const existingSpectator = this.spectators.find(player => player.privateId === existingId || player.publicId === existingId);
+		const existingSpectator = this.spectators.find(spec => spec.privateId === existingId || spec.publicId === existingId);
 		const existingPlayer = this.players.find(player => player.privateId === existingId || player.publicId === existingId);
 		if (existingSpectator) {
 			return existingSpectator;
 		} else if (existingPlayer) {
 			// Move spectator to player.
 			this.removePlayer(existingPlayer.privateId);
-			const spectator = this.spectatorFromPlayer(existingPlayer);
+			const spectator = Spectator.fromPlayer(existingPlayer);
 			this.spectators.push(spectator);
 			return spectator;
 		} else {
-			const spectator = this.generateSpectator(name);
+			const spectator = Spectator.generate(name);
 			this.spectators.push(spectator);
 			return spectator;
 		}
@@ -244,6 +177,7 @@ export class Lobby {
 	public beginGame(): [Game, LobbyBeginGame] {
 		const game = new Game(
 			Lobby.gameIdFromLobbyId(this.id),
+			Lobby.gameIdFromLobbyId(this.spectatorId),
 			this.title,
 			this.host,
 			this.players,
@@ -257,8 +191,8 @@ export class Lobby {
 		return {
 			title: this.title,
 			host: this.host.publicId,
-			players: this.players.map(player => player.toJson()),
-			spectators: this.spectators.map(spectator => spectator.toJson()),
+			players: this.players.map(player => player.toLobbyJson()),
+			spectators: this.spectators.map(spectator => spectator.toLobbyJson()),
 		};
 	}
 	
@@ -272,7 +206,6 @@ export class Lobby {
 	private makeBeginGame(gameId: GameId): LobbyBeginGame {
 		return {
 			type: "begin-game",
-			id: this.id,
 			gameId: gameId
 		};
 	}
@@ -280,50 +213,6 @@ export class Lobby {
 	public makeCancel(): LobbyCanceled {
 		return {
 			type: "canceled",
-			id: this.id,
-		};
-	}
-	
-	private generatePlayer(name: string): Player {
-		const { privateId, publicId } = this.generatePlayerIds();
-		return new Player({
-			name: name,
-			publicId: publicId,
-			privateId: privateId,
-			color: this.generateColor()
-		});
-	}
-	
-	private generateSpectator(name: string) {
-		const { privateId, publicId } = this.generatePlayerIds();
-		return new Spectator({
-			name: name,
-			publicId: publicId,
-			privateId: privateId
-		});
-	}
-	
-	private playerFromSpectator(spectator: Spectator): Player {
-		return new Player({
-			name: spectator.name,
-			publicId: spectator.publicId,
-			privateId: spectator.privateId,
-			color: this.generateColor()
-		});
-	}
-	
-	private spectatorFromPlayer(player: Player): Spectator {
-		return new Spectator({
-			name: player.name,
-			publicId: player.publicId,
-			privateId: player.privateId,
-		});
-	}
-	
-	private generatePlayerIds(): { privateId: PrivateId, publicId: PublicId } {
-		return {
-			privateId: uuid.v4(),
-			publicId: uuid.v4()
 		};
 	}
 	

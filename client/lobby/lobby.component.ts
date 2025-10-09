@@ -86,6 +86,8 @@ export class LobbyComponent implements OnDestroy {
 			}),
 			newService.get().onCanceled().subscribe(() => {
 				localStorage.removeItem(GAME_ID);
+				localStorage.removeItem(PUBLIC_ID);
+				localStorage.removeItem(PRIVATE_ID);
 				this.routing.toHome();
 			}),
 			newService.get().onKicked().subscribe(() => {

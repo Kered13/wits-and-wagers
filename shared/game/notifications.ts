@@ -7,7 +7,6 @@ import { WsErrorSchema } from "../ws-error.js";
 // Represents an update to the game state.
 export const GameUpdateSchema = strictObject({
 	type: literal("update"),
-	id: GameIdSchema,
 	state: GameStateSchema
 });
 export type GameUpdate = InferOutput<typeof GameUpdateSchema>;

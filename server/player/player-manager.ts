@@ -38,6 +38,10 @@ export class PlayerManager<P extends Participant> {
 		return this.players.find(player => player.publicId === id);
 	}
 	
+	public addPlayer(player: P): void {
+		this.players.push(player);
+	}
+	
 	public getAll(): P[] {
 		return this.players;
 	}

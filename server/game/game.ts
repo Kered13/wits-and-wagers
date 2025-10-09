@@ -4,7 +4,8 @@ import { BettingPhase, bettingPhaseDefaultOptions, type BettingPhaseOptions } fr
 import { GameOverPhase } from "./game-over-phase.js";
 import { IntermissionPhase, intermissionPhaseDefaultOptions, type IntermissionPhaseOptions } from "./intermission-phase.js";
 import { type Phase } from "./phase.js";
-import { Player, Spectator, type ParticipantParams, type PlayerParams, type SpectatorParams } from "./player.js";
+import { Player, Spectator, type ParticipantParams, type PlayerParams, type SpectatorParams } from "../player/player.js";
+import { PlayerManager } from "../player/player-manager.js";
 import { QuestionPhase, questionPhaseDefaultOptions, type QuestionPhaseOptions } from "./question-phase.js";
 import { type QuestionGenerator } from "../questions/question-generator.js";
 import { HttpError } from "../utils/httperror.js";
@@ -13,7 +14,6 @@ import { type GameId, type GameState } from "../../shared/game/game.js";
 import { type PrivateId } from "../../shared/player.js";
 import { type GameUpdate } from "../../shared/game/notifications.js";
 import { type BettingConclusion, type SkippedBettingPhase } from "../../shared/game/intermission-phase.js";
-import { PlayerManager } from "./player-manager.js";
 
 
 export type GameOptions = QuestionPhaseOptions & BettingPhaseOptions & IntermissionPhaseOptions &{
@@ -42,6 +42,7 @@ export class Game {
 	
 	constructor(
 			private readonly id: GameId,
+			private readonly spectatorId: GameId,
 			private readonly title: string,
 			private readonly host: ParticipantParams,
 			players: PlayerParams[],
@@ -63,6 +64,22 @@ export class Game {
 	
 	public getId(): GameId {
 		return this.id;
+	}
+	
+	public getSpectatorId(): GameId {
+		return this.spectatorId;
+	}
+	
+	public addSpectator(name: string, id?: PrivateId): Spectator {
+		const existingSpectator = this.spectators.tryGetPrivatePlayer(id ?? "");
+		if (existingSpectator) {
+			return existingSpectator;
+		}
+		
+		const spectator: Spectator = Spectator.generate(name);
+		this.spectators.addPlayer(spectator);
+		this.updates.next();
+		return spectator;
 	}
 	
 	public submitGuess(playerId: PrivateId, guess: number): void {
@@ -186,8 +203,8 @@ export class Game {
 		return {
 			title: this.title,
 			host: this.host.publicId,
-			players: this.players.sortedByChips().map(player => player.toJson()),
-			spectators: this.spectators.sortedByChips().map(spectator => spectator.toJson()),
+			players: this.players.sortedByChips().map(player => player.toGameJson()),
+			spectators: this.spectators.sortedByChips().map(spectator => spectator.toGameJson()),
 			round: this.round,
 			phase: this.phase.toJson(forPlayer)
 		};
@@ -197,7 +214,6 @@ export class Game {
 	public makeUpdate(forPlayer: PrivateId): GameUpdate {
 		return {
 			type: "update",
-			id: this.id,
 			state: this.toJson(forPlayer)
 		};
 	}

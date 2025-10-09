@@ -1,9 +1,9 @@
 import { describe, expect, test, vi } from "vitest";
 
 import { Game, GameOptions } from "./game.js";
-import { Player, Spectator } from "./player.js";
-import { HttpError } from "../utils/httperror.js";
+import { Player, Spectator } from "../player/player.js";
 import { QuestionGenerator } from "../questions/question-generator.js";
+import { HttpError } from "../utils/httperror.js";
 
 
 function makePlayer(name: string): Player {
@@ -37,6 +37,7 @@ function makeQuestionGenerator() {
 function makeGame(id: string, title: string, players: Player[], spectators?: Spectator[], options?: Partial<GameOptions>): Game {
 	// Do not automatically end the question phase. This makes testing easier.
 	return new Game(
+		id,
 		id,
 		title,
 		players[0],
@@ -181,7 +182,6 @@ describe("Game", () => {
 		
 		expect(game.makeUpdate(alice.privateId)).to.deep.equal({
 			type: "update",
-			id: "id",
 			state: game.toJson(alice.privateId)
 		});
 	});
@@ -463,5 +463,43 @@ describe("Game", () => {
 		
 		expect(() => game.endPhase(bob.privateId))
 			.to.throw(HttpError, "Only the host can end the phase.");
+	});
+	
+	test("spectator can join in middle of game", () => {
+		const alice = makePlayer("Alice");
+		const game = makeGame("id", "Game", [alice]);
+		
+		const callback = vi.fn();
+		game.onUpdates().subscribe(callback);
+		
+		const bob = game.addSpectator("Bob");
+		expect(bob.name).to.equal("Bob");
+		expect(bob.chips).to.equal(2);
+		
+		expect(game.toJson(bob.privateId)).to.deep.equal({
+			title: "Game",
+			host: alice.publicId,
+			players: [{
+				name: alice.name,
+				publicId: alice.publicId,
+				color: alice.color,
+				chips: 2
+			}],
+			spectators: [{
+				name: bob.name,
+				publicId: bob.publicId,
+				chips: 2
+			}],
+			round: 1,
+			phase: {
+				phase: "question",
+				question: "Guess a number?",
+				guesses: {
+					"public-Alice": false
+				}
+			}
+		});
+		
+		expect(callback).toHaveBeenCalled();
 	});
 });

@@ -34,7 +34,8 @@ describe("IntermissionPhase", () => {
 			earnings: {
 				"public-Alice": 100,
 				"public-Bob": 200
-			}
+			},
+			spectatorEarnings: {},
 		});
 
 		expect(phase.toJson("")).to.deep.equal({
@@ -47,7 +48,8 @@ describe("IntermissionPhase", () => {
 				earnings: {
 					"public-Alice": 100,
 					"public-Bob": 200
-				}
+				},
+				spectatorEarnings: {},
 			}
 		});
 	});
