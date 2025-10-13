@@ -9,6 +9,7 @@
 	--gray-900: oklch(19.37% 0.006 300.98);
 	--gray-700: oklch(36.98% 0.014 302.71);
 	--gray-400: oklch(70.9% 0.015 304.04);
+	--text-color: #dcdcdc;
 
 	--red-to-pink-to-purple-vertical-gradient: linear-gradient(180deg,
 			var(--orange-red) 0%,
@@ -44,18 +45,20 @@ h1 {
 
 p {
 	margin: 0;
-	color: var(--gray-700);
+	color: var(--text-color);
 }
 
 .main {
-	width: 100%;
-	min-height: 100%;
+	width: 100vw;
+	min-height: 100vh;
 	display: flex;
+	flex-direction: column;
 	justify-content: center;
 	align-items: center;
 	padding: 1rem;
 	box-sizing: inherit;
 	position: relative;
+	background-color: #3c3c3c;
 }
 
 .angular-logo {
