@@ -1,16 +1,16 @@
 @let phase = game().phase;
 
 <div class="board">
-	<betting-box color="green"/>
-	<betting-box color="red"/>
-	<betting-box color="red"/>
-	<betting-box color="red"/>
-	<betting-box color="darkgreen" [guess]="testGuess()" [bets]="testBets()"/>
-	<betting-box color="black"/>
-	<betting-box color="black"/>
-	<betting-box color="black"/>
-	<div class="red-box"></div>
-	<div class="black-box"></div>
+	<all-too-high-box payoff="6" color="var(--green-space)" [bets]="testBets()"/>
+	<betting-box payoff="5" color="var(--red-space)"/>
+	<betting-box payoff="4" color="var(--red-space)"/>
+	<betting-box payoff="3" color="var(--red-space)"/>
+	<betting-box payoff="2" color="var(--green-space)" [guess]="testGuess()" [bets]="testBets()"/>
+	<betting-box payoff="3" color="var(--black-space)"/>
+	<betting-box payoff="4" color="var(--black-space)"/>
+	<betting-box payoff="5" color="var(--black-space)"/>
+	<color-wager-box class="red-bet" payoff="1" color="var(--red-space)" [bets]="testBets()"/>
+	<color-wager-box class="black-bet" payoff="1" color="var(--black-space)"/>
 </div>
 <div style="display: flex; justify-content: center">
 	<mat-card style="max-width: 400px;">

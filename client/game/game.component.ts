@@ -10,7 +10,9 @@ import { ActivatedRoute } from "@angular/router";
 import { parseIntSafe } from "complete-common";
 import { combineLatest, concat, delay, map, type Observable, of, pairwise, startWith, Subscription, switchMap, take } from "rxjs";
 
-import { BettingBox } from "./betting-box/betting-box.component.js";
+import { AllTooHighBox } from "./betting-box/all-too-high-box.component.js";
+import { BettingBox } from "./betting-box/wager-box.component.js";
+import { ColorWagerBox } from "./betting-box/color-wager-box.component.js";
 import { GameInstanceService, GameService } from "./game.service.js";
 import { GameEndDialogComponent } from "../game-end-dialog/game-end-dialog.component.js";
 import { GlobalErrorHandler } from "../error-dialog/error-handler.js";
@@ -92,16 +94,18 @@ type PhaseState = QuestionPhaseState
 @Component({
 	selector: "app-game",
 	imports: [
-    ChipValidator,
-    FormsModule,
-    GuessValidator,
-    MatButton,
-    MatCardModule,
-    MatError,
-    MatInputModule,
-    TargetValidator,
-    BettingBox
-],
+		ChipValidator,
+		FormsModule,
+		GuessValidator,
+		MatButton,
+		MatCardModule,
+		MatError,
+		MatInputModule,
+		TargetValidator,
+		AllTooHighBox,
+		BettingBox,
+		ColorWagerBox,
+	],
 	templateUrl: "./game.component.html",
 	styleUrl: "./game.component.css",
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -300,13 +304,13 @@ export class GameComponent implements OnDestroy {
 	// TODO: Temporary
 	public testBets(): { value: number; color: string }[] {
 		return [
-			{ value: 5, color: "red" },
-			{ value: 10, color: "black" },
+			{ value: 1, color: "red" },
+			{ value: 5, color: "black" },
 			{ value: 20, color: "green" },
-			{ value: 20, color: "blue" },
-			{ value: 20, color: "orange" },
-			{ value: 20, color: "purple" },
-			{ value: 20, color: "gray" },
+			{ value: 100, color: "blue" },
+			{ value: 1000, color: "orange" },
+			{ value: 10000, color: "purple" },
+			{ value: 100000, color: "gray" },
 		];
 	}
 }

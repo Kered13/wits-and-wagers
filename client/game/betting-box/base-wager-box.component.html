@@ -1,0 +1,20 @@
+<div class="inner-box" [style.background-color]="color()">
+	@let guessVal = guess();
+	@if (guessVal !== undefined) {
+		<div class="guess-card" [style.border-color]="guessVal.color">
+			<span class="guess-value" [fittext]="true" [modelToWatch]="guessVal">
+				{{ guessVal.value }}
+			</span>
+		</div>
+	}
+	@for (bet of bets(); track bet.color) {
+		<div class="bet-chip" [style.inset]="chipPositions()[$index]" [style.border-color]="bet.color">
+			<div class="bet-chip-inner">
+				<span class="bet-quantity" [fittext]="true" [modelToWatch]="bet">
+					{{ bet.value }}
+				</span>
+			</div>
+		</div>
+	}
+	<span class="payoff">{{ payoff() }} <span class="payoff-to">to</span> 1</span>
+</div>
