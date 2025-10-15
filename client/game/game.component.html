@@ -1,14 +1,14 @@
 @let phase = game().phase;
 
 <div class="board">
-	<div class="all-too-high"></div>
-	<div class="betting-box"></div>
-	<div class="betting-box"></div>
-	<div class="betting-box"></div>
-	<div class="betting-box"></div>
-	<div class="betting-box"></div>
-	<div class="betting-box"></div>
-	<div class="betting-box"></div>
+	<betting-box color="green"/>
+	<betting-box color="red"/>
+	<betting-box color="red"/>
+	<betting-box color="red"/>
+	<betting-box color="darkgreen" [guess]="testGuess()" [bets]="testBets()"/>
+	<betting-box color="black"/>
+	<betting-box color="black"/>
+	<betting-box color="black"/>
 	<div class="red-box"></div>
 	<div class="black-box"></div>
 </div>

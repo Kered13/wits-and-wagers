@@ -10,6 +10,7 @@ import { ActivatedRoute } from "@angular/router";
 import { parseIntSafe } from "complete-common";
 import { combineLatest, concat, delay, map, type Observable, of, pairwise, startWith, Subscription, switchMap, take } from "rxjs";
 
+import { BettingBox } from "./betting-box/betting-box.component.js";
 import { GameInstanceService, GameService } from "./game.service.js";
 import { GameEndDialogComponent } from "../game-end-dialog/game-end-dialog.component.js";
 import { GlobalErrorHandler } from "../error-dialog/error-handler.js";
@@ -91,15 +92,16 @@ type PhaseState = QuestionPhaseState
 @Component({
 	selector: "app-game",
 	imports: [
-		ChipValidator,
-		FormsModule,
-		GuessValidator,
-		MatButton,
-		MatCardModule,
-		MatError,
-		MatInputModule,
-		TargetValidator
-	],
+    ChipValidator,
+    FormsModule,
+    GuessValidator,
+    MatButton,
+    MatCardModule,
+    MatError,
+    MatInputModule,
+    TargetValidator,
+    BettingBox
+],
 	templateUrl: "./game.component.html",
 	styleUrl: "./game.component.css",
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -285,5 +287,26 @@ export class GameComponent implements OnDestroy {
 	
 	public onEndPhase(): void {
 		this.gameService().get().endPhase().subscribe();
+	}
+	
+	// TODO: Temporary
+	public testGuess(): { value: number; color: string } {
+		return {
+			value: 42,
+			color: "gold",
+		};
+	}
+	
+	// TODO: Temporary
+	public testBets(): { value: number; color: string }[] {
+		return [
+			{ value: 5, color: "red" },
+			{ value: 10, color: "black" },
+			{ value: 20, color: "green" },
+			{ value: 20, color: "blue" },
+			{ value: 20, color: "orange" },
+			{ value: 20, color: "purple" },
+			{ value: 20, color: "gray" },
+		];
 	}
 }
