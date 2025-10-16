@@ -2,11 +2,12 @@ import { Component } from "@angular/core";
 import { Ng2FittextModule } from "ng2-fittext";
 
 import { BaseWagerBox } from "./base-wager-box.component.js";
+import { BettingChip } from "../betting-chip/betting-chip.component.js";
 
 
 @Component({
 	selector: 'betting-box',
-	imports: [Ng2FittextModule],
+	imports: [Ng2FittextModule, BettingChip],
 	templateUrl: './base-wager-box.component.html',
 	styleUrl: './base-wager-box.component.css'
 })

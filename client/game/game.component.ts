@@ -25,6 +25,7 @@ import { BettingPhaseState } from "../../shared/game/betting-phase.js";
 import { GameOverPhaseState, GamePlayer, GameState } from "../../shared/game/game.js";
 import { QuestionPhaseState } from "../../shared/game/question-phase.js";
 import { IntermissionPhaseState } from "../../shared/game/intermission-phase.js";
+import { BLACK, GRAY, GREEN, ORANGE, PURPLE, RED, YELLOW } from "../../shared/color.js";
 
 
 @Directive({
@@ -304,13 +305,13 @@ export class GameComponent implements OnDestroy {
 	// TODO: Temporary
 	public testBets(): { value: number; color: string }[] {
 		return [
-			{ value: 1, color: "red" },
-			{ value: 5, color: "black" },
-			{ value: 20, color: "green" },
-			{ value: 100, color: "blue" },
-			{ value: 1000, color: "orange" },
-			{ value: 10000, color: "purple" },
-			{ value: 100000, color: "gray" },
+			{ value: 1, color: RED },
+			{ value: 5, color: BLACK },
+			{ value: 20, color: GREEN },
+			{ value: 100, color: YELLOW },
+			{ value: 1000, color: ORANGE },
+			{ value: 10000, color: PURPLE },
+			{ value: 100000, color: GRAY },
 		];
 	}
 }
