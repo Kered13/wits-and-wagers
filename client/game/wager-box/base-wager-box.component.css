@@ -1,20 +1,14 @@
-:host {
-	width: 100%;
-	height: 100%;
-	border: 3px solid black;
-	border-radius: 10px;
-	background-color: white;
-}
-
-.inner-box {
+.wager-box {
 	position: relative;
 	width: calc(100% - 10px);
 	height: calc(100% - 10px);
-	border-radius: 4px;
+	border: 5px solid white;
+	border-radius: 9px;
+	outline: 3px solid black;
 	margin: 5px;
 	z-index: 0;
 }
-
+	
 .guess-card {
 	position: absolute;
 	width: 83%;
