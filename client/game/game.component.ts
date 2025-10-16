@@ -10,9 +10,9 @@ import { ActivatedRoute } from "@angular/router";
 import { parseIntSafe } from "complete-common";
 import { combineLatest, concat, delay, map, type Observable, of, pairwise, startWith, Subscription, switchMap, take } from "rxjs";
 
-import { AllTooHighBox } from "./betting-box/all-too-high-box.component.js";
-import { BettingBox } from "./betting-box/wager-box.component.js";
-import { ColorWagerBox } from "./betting-box/color-wager-box.component.js";
+import { AllTooHighBox } from "./wager-box/all-too-high-box.component.js";
+import { BettingBox } from "./wager-box/wager-box.component.js";
+import { ColorWagerBox } from "./wager-box/color-wager-box.component.js";
 import { GameInstanceService, GameService } from "./game.service.js";
 import { GameEndDialogComponent } from "../game-end-dialog/game-end-dialog.component.js";
 import { GlobalErrorHandler } from "../error-dialog/error-handler.js";
