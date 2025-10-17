@@ -71,7 +71,7 @@ export class BettingPhase implements Phase {
 			[R, R, R, B, B, B],
 			[R, R, R, N, B, B, B]
 		][guesses.size]!;
-
+		
 		this.guesses = Array.from(guesses)
 			.sort((first, second) => first[1] - second[1])
 			.map(([player, guess], i): Guess => ({
@@ -88,6 +88,44 @@ export class BettingPhase implements Phase {
 			this.timeout = setTimeout(() => this.endPhase(), phaseDuration);
 			this.endTime = new Date().getTime() + phaseDuration;
 		}
+	}
+	
+	public targetToGuess(target: BetTarget): Guess | undefined {
+		const U = undefined;
+		const guessMap = [
+			[U, U, U, U, U, U, U],
+			[U, U, U, 0, U, U, U],
+			[U, U, 0, U, 1, U, U],
+			[U, U, 0, 1, 2, U, U],
+			[U, 0, 1, U, 2, 3, U],
+			[U, 0, 1, 2, 3, 4, U],
+			[0, 1, 2, U, 3, 4, 5],
+			[0, 1, 2, 3, 4, 5, 6],
+		];
+		
+		if (typeof(target) !== "number") {
+			return undefined;
+		}
+		
+		const guessIdx = guessMap[this.guesses.length]![target];
+		if (guessIdx === undefined) {
+			return undefined;
+		}
+		return this.guesses[guessIdx];
+	}
+	
+	public guessToTarget(guessIdx: number): BetTarget {
+		const targetMap: BetTarget[][] = [
+			[                   ],
+			[         3         ],
+			[      2,    4      ],
+			[      2, 3, 4      ],
+			[   1, 2,    4, 5   ],
+			[   1, 2, 3, 4, 5   ],
+			[0, 1, 2,    4, 5, 6],
+			[0, 1, 2, 3, 4, 5, 6],
+		];
+		return targetMap[this.guesses.length]![guessIdx]!;
 	}
 	
 	public submitBet(playerId: PrivateId, target: BetTarget, wager: number): void {
@@ -135,7 +173,7 @@ export class BettingPhase implements Phase {
 		const winningGuess: Guess | undefined = this.guesses[winningGuessIdx];
 		const winningColors = this.winningColors(winningGuess);
 		const winningPayout = winningGuess?.payout ?? 6;
-		const winningTarget = this.normalizeTarget(winningGuessIdx >= 0 ? winningGuessIdx : "AllTooHigh");
+		const winningTarget = this.normalizeTarget(winningGuessIdx >= 0 ? this.guessToTarget(winningGuessIdx) : "AllTooHigh");
 		
 		// Payout all bets. Ties are handled by normalizing bets on submission,
 		// so they do not need to be handled here.
@@ -212,8 +250,9 @@ export class BettingPhase implements Phase {
 	// Validate the given bet.
 	private validateBet(player: Participant, target: BetTarget, wager: number): void {
 		if (typeof target === "number") {
-			if (target < 0 || target >= this.guesses.length) {
-				throw new HttpError(400, `Invalid bet target. ${target} is not between 0 and ${this.bets.length - 1}.`);
+			const guess = this.targetToGuess(target);
+			if (guess === undefined) {
+				throw new HttpError(400, `Invalid bet target. ${target} is not a valid target for ${this.guesses.length} guesses.`);
 			}
 		}
 		
@@ -227,6 +266,8 @@ export class BettingPhase implements Phase {
 		} else if (existingBets > 2) {
 			throw new HttpError(500, `Player ${player.publicId} somehow has too many ${existingBets} bets. This should not happen.`);
 		}
+		
+		// TODO: Check for betting on the same thing twice.
 	}
 	
 	// When targets are tied, we need to pick a canonical target to use for bets
@@ -238,14 +279,15 @@ export class BettingPhase implements Phase {
 		if (typeof(target) !== "number") {
 			return target;
 		}
-		const targetGuess = this.guesses[target]!;
+		
+		const targetGuess = this.targetToGuess(target)!;  // Safe because we already validated.
 		const bestGuess = this.guesses.filter(guess => guess.guess === targetGuess.guess)
 			.sort((first, second) =>
 				first.player < second.player ? -1 :
 				first.player > second.player ? 1 : 0)
 			.sort((first, second) => second.payout - first.payout)
 			.at(0)!;
-		return this.guesses.findIndex(guess => guess === bestGuess);
+		return this.guessToTarget(this.guesses.findIndex(guess => guess === bestGuess));
 	}
 	
 	// Returns the number of reserved chips a player should get for each of

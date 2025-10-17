@@ -1,4 +1,4 @@
-import { Directive, input } from "@angular/core";
+import { Directive, HostListener, input, output } from "@angular/core";
 
 
 type Guess = {
@@ -15,10 +15,22 @@ type Bet = {
 
 @Directive()
 export abstract class BaseWagerBox {
-	color = input.required<string>();
-	guess = input<Guess | undefined>();
-	bets = input<Bet[]>([]);
-	payoff = input.required<string>();
+	readonly color = input.required<string>();
+	readonly guess = input<Guess | undefined>();
+	readonly bets = input<Bet[]>([]);
+	readonly payoff = input.required<string>();
+	readonly disabled = input<boolean>(false);
+	
+	readonly onClick = output<void>();
 	
 	abstract chipPositions(): string[];
+	isDisabled(): boolean {
+		return this.disabled();
+	}
+	
+	click(): void {
+		if (!this.isDisabled()) {
+			this.onClick.emit();
+		}
+	}
 };

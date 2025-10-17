@@ -4,7 +4,7 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angula
 import { MatButton } from "@angular/material/button";
 import { MatCardModule } from "@angular/material/card";
 import { MatCheckboxModule } from "@angular/material/checkbox";
-import { MatInputModule } from '@angular/material/input';
+import { MatInputModule } from "@angular/material/input";
 import { MatOption, MatSelect } from "@angular/material/select";
 import { ActivatedRoute } from "@angular/router";
 import { parseIntSafe } from "complete-common";

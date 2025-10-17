@@ -6,10 +6,10 @@ import { BettingChip } from "../betting-chip/betting-chip.component.js";
 
 
 @Component({
-	selector: 'betting-box',
+	selector: "betting-box",
 	imports: [Ng2FittextModule, BettingChip],
-	templateUrl: './base-wager-box.component.html',
-	styleUrl: './base-wager-box.component.css'
+	templateUrl: "./base-wager-box.component.html",
+	styleUrl: "./base-wager-box.component.css",
 })
 export class BettingBox extends BaseWagerBox {
 	override chipPositions() {
@@ -22,5 +22,9 @@ export class BettingBox extends BaseWagerBox {
 			"2% 6%",
 			"85% 6%",
 		];
+	}
+	
+	override isDisabled(): boolean {
+		return this.disabled() || this.guess() === undefined;
 	}
 };

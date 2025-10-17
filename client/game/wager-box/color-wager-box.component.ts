@@ -6,10 +6,10 @@ import { BettingChip } from "../betting-chip/betting-chip.component.js";
 
 
 @Component({
-	selector: 'color-wager-box',
+	selector: "color-wager-box",
 	imports: [Ng2FittextModule, BettingChip],
-	templateUrl: './base-wager-box.component.html',
-	styleUrl: './base-wager-box.component.css'
+	templateUrl: "./base-wager-box.component.html",
+	styleUrl: "./base-wager-box.component.css"
 })
 export class ColorWagerBox extends BaseWagerBox {
 	override chipPositions() {

@@ -1,6 +1,6 @@
 import { Injectable } from "@angular/core";
 import { Observable, map, filter, catchError, of, NEVER } from "rxjs";
-import { WebSocketSubject } from 'rxjs/webSocket';
+import { WebSocketSubject } from "rxjs/webSocket";
 import { is } from "valibot";
 
 import { BackendService } from "../utils/backend.service.js";

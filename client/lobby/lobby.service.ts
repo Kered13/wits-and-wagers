@@ -1,6 +1,6 @@
 import { Injectable } from "@angular/core";
 import { Observable, map, filter, take, catchError, NEVER } from "rxjs";
-import { WebSocketSubject } from 'rxjs/webSocket';
+import { WebSocketSubject } from "rxjs/webSocket";
 import { assert, is } from "valibot";
 
 import { BackendService } from "../utils/backend.service.js";
@@ -95,7 +95,7 @@ export class LobbyInstanceService extends Closeable {
 			catchError(err => NEVER),
 			filter(notification => notification.type === "begin-game"),
 			map(update => update.gameId),
-			// take(1) instead of first() so we don't error when the connection is closed.
+			// take(1) instead of first() so we don"t error when the connection is closed.
 			take(1));
 		
 		this.canceled = notifications.pipe(
@@ -104,7 +104,7 @@ export class LobbyInstanceService extends Closeable {
 			catchError(err => NEVER),
 			filter(notification => notification.type === "canceled"),
 			map(_ => undefined),
-			// take(1) instead of first() so we don't error when the connection is closed.
+			// take(1) instead of first() so we don"t error when the connection is closed.
 			take(1));
 		
 		this.kicked = notifications.pipe(
@@ -113,7 +113,7 @@ export class LobbyInstanceService extends Closeable {
 			catchError(err => NEVER),
 			filter(notification => notification.type === "kicked"),
 			map(_ => undefined),
-			// take(1) instead of first() so we don't error when the connection is closed.
+			// take(1) instead of first() so we don"t error when the connection is closed.
 			take(1));
 		
 		this.error = notifications.pipe(

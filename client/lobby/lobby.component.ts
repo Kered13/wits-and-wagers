@@ -4,7 +4,7 @@ import { ReactiveFormsModule } from "@angular/forms";
 import { MatButton, MatMiniFabButton } from "@angular/material/button";
 import { MatCardModule } from "@angular/material/card";
 import { MatIconModule } from "@angular/material/icon";
-import { MatInputModule } from '@angular/material/input';
+import { MatInputModule } from "@angular/material/input";
 import { MatMenuModule } from "@angular/material/menu";
 import { MatTooltip } from "@angular/material/tooltip";
 import { Title } from "@angular/platform-browser";

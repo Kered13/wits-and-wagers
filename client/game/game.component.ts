@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, Directive, effect, Inject, Input, OnDestroy, Signal, viewChild } from "@angular/core";
+import { ChangeDetectionStrategy, Component, computed, Directive, effect, Inject, input, Input, OnDestroy, Signal, viewChild } from "@angular/core";
 import { toSignal } from "@angular/core/rxjs-interop";
 import { AbstractControl, FormsModule, NG_VALIDATORS, NgModel, ValidationErrors, Validator } from "@angular/forms";
 import { MatButton } from "@angular/material/button";
@@ -13,6 +13,7 @@ import { combineLatest, concat, delay, map, type Observable, of, pairwise, start
 import { AllTooHighBox } from "./wager-box/all-too-high-box.component.js";
 import { BettingBox } from "./wager-box/wager-box.component.js";
 import { ColorWagerBox } from "./wager-box/color-wager-box.component.js";
+import { WagerDialog } from "./wager-dialog/wager-dialog.component.js";
 import { GameInstanceService, GameService } from "./game.service.js";
 import { GameEndDialogComponent } from "../game-end-dialog/game-end-dialog.component.js";
 import { GlobalErrorHandler } from "../error-dialog/error-handler.js";
@@ -21,7 +22,7 @@ import { GameRoute, TypedRouteFor } from "../routes/routes.js";
 import { RoutingService } from "../routes/routing.service.js";
 import { RefCounted } from "../utils/refcounted.js";
 import { PrivatePlayer } from "../../shared/player.js";
-import { BettingPhaseState } from "../../shared/game/betting-phase.js";
+import { BetTarget, BettingPhaseState } from "../../shared/game/betting-phase.js";
 import { GameOverPhaseState, GamePlayer, GameState } from "../../shared/game/game.js";
 import { QuestionPhaseState } from "../../shared/game/question-phase.js";
 import { IntermissionPhaseState } from "../../shared/game/intermission-phase.js";
@@ -70,7 +71,7 @@ export class GuessValidator implements Validator {
 	providers: [{ provide: NG_VALIDATORS, useExisting: ChipValidator, multi: true }]
 })
 export class ChipValidator {
-	@Input({ alias: "chipValidator" }) availableChips = 0;
+	readonly availableChips = input.required<number>({ alias: "chipValidator" });
 	
 	public validate(control: AbstractControl): ValidationErrors | null {
 		const value = parseIntSafe(control.value);
@@ -78,7 +79,7 @@ export class ChipValidator {
 			return { "notAnInteger": true };
 		} else if (value < 0) {
 			return { "mustBePositive": true };
-		} else if (value > this.availableChips) {
+		} else if (value > this.availableChips()) {
 			return { "insufficientChips": true };
 		}
 		return null;
@@ -279,7 +280,7 @@ export class GameComponent implements OnDestroy {
 				: parseInt(this.target)!;
 		
 		const wager = parseInt(this.wager)!;
-		this.gameService().get().submitBet(target, wager).subscribe();
+		this.gameService().get().submitBet(target as BetTarget, wager).subscribe();
 	}
 	
 	public onWithdrawBet(): void {
@@ -287,11 +288,28 @@ export class GameComponent implements OnDestroy {
 			this.target === "AllTooHigh" || this.target === "Red" || this.target === "Black"
 				? this.target
 				: parseInt(this.target)!;
-		this.gameService().get().withdrawBet(target).subscribe();
+		this.gameService().get().withdrawBet(target as BetTarget).subscribe();
 	}
 	
 	public onEndPhase(): void {
 		this.gameService().get().endPhase().subscribe();
+	}
+	
+	public onWagerBoxClick(target: BetTarget): void {
+		// TODO: Close dialog if timer runs out.
+		this.dialog
+			.open(WagerDialog, { 
+				width: "280px",
+				height: "235px",
+				data: this.availableChips(),
+			})
+			.afterClosed()
+			.subscribe(wager => {
+				// TODO: Target is incorrect.
+				if (wager !== undefined) {
+					this.gameService().get().submitBet(target as BetTarget, wager).subscribe();
+				}
+			});
 	}
 	
 	// TODO: Temporary

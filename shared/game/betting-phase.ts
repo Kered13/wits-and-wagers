@@ -16,7 +16,13 @@ export const BetTargetSchema = union([
 	literal("AllTooHigh"),
 	literal("Red"),
 	literal("Black"),
-	pipe(number(), integer())
+	literal(0),
+	literal(1),
+	literal(2),
+	literal(3),
+	literal(4),
+	literal(5),
+	literal(6),
 ]);
 export type BetTarget = InferOutput<typeof BetTargetSchema>;
 

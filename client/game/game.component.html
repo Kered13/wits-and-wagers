@@ -1,16 +1,63 @@
 @let phase = game().phase;
 
 <div class="board">
-	<all-too-high-box payoff="6" color="var(--green-space)" [bets]="testBets()"/>
-	<betting-box payoff="5" color="var(--red-space)"/>
-	<betting-box payoff="4" color="var(--red-space)"/>
-	<betting-box payoff="3" color="var(--red-space)"/>
-	<betting-box payoff="2" color="var(--green-space)" [guess]="testGuess()" [bets]="testBets()"/>
-	<betting-box payoff="3" color="var(--black-space)"/>
-	<betting-box payoff="4" color="var(--black-space)"/>
-	<betting-box payoff="5" color="var(--black-space)"/>
-	<color-wager-box class="red-bet" payoff="1" color="var(--red-space)" [bets]="testBets()"/>
-	<color-wager-box class="black-bet" payoff="1" color="var(--black-space)"/>
+	<all-too-high-box
+		payoff="6"
+		color="var(--green-space)"
+		[disabled]="!isBettingPhase(phase)"
+		(onClick)="onWagerBoxClick('AllTooHigh')"
+		[bets]="testBets()" />
+	<betting-box
+		payoff="5"
+		color="var(--red-space)"
+		[disabled]="!isBettingPhase(phase)"
+		(onClick)="onWagerBoxClick(0)" />
+	<betting-box
+		payoff="4"
+		color="var(--red-space)"
+		[disabled]="!isBettingPhase(phase)"
+		(onClick)="onWagerBoxClick(1)" />
+	<betting-box
+		payoff="3"
+		color="var(--red-space)"
+		[disabled]="!isBettingPhase(phase)"
+		(onClick)="onWagerBoxClick(2)" />
+	<betting-box
+		payoff="2"
+		color="var(--green-space)"
+		[disabled]="!isBettingPhase(phase)"
+		(onClick)="onWagerBoxClick(3)"
+		[guess]="testGuess()"
+		[bets]="testBets()" />
+	<betting-box
+		payoff="3"
+		color="var(--black-space)"
+		[disabled]="!isBettingPhase(phase)"
+		(onClick)="onWagerBoxClick(4)"
+		[bets]="testBets()" />
+	<betting-box
+		payoff="4"
+		color="var(--black-space)"
+		[disabled]="!isBettingPhase(phase)"
+		(onClick)="onWagerBoxClick(5)" />
+	<betting-box
+		payoff="5"
+		color="var(--black-space)"
+		[disabled]="!isBettingPhase(phase)"
+		(onClick)="onWagerBoxClick(6)" />
+	<color-wager-box
+		class="red-bet"
+		payoff="1"
+		color="var(--red-space)"
+		[disabled]="!isBettingPhase(phase)"
+		(onClick)="onWagerBoxClick('Red')"
+		[bets]="testBets()" />
+	<color-wager-box
+		class="black-bet"
+		payoff="1"
+		color="var(--black-space)"
+		[disabled]="!isBettingPhase(phase)"
+		(onClick)="onWagerBoxClick('Black')" />
 </div>
 <div style="display: flex; justify-content: center">
 	<mat-card style="max-width: 400px;">

@@ -6,10 +6,10 @@ import { BettingChip } from "../betting-chip/betting-chip.component.js";
 
 
 @Component({
-	selector: 'all-too-high-box',
+	selector: "all-too-high-box",
 	imports: [Ng2FittextModule, BettingChip],
-	templateUrl: './base-wager-box.component.html',
-	styleUrl: './base-wager-box.component.css'
+	templateUrl: "./base-wager-box.component.html",
+	styleUrl: "./base-wager-box.component.css"
 })
 export class AllTooHighBox extends BaseWagerBox {
 	override chipPositions() {

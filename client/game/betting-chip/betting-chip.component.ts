@@ -9,6 +9,6 @@ import { Ng2FittextModule } from "ng2-fittext";
 	styleUrls: ["./betting-chip.component.css"],
 })
 export class BettingChip {
-	value = input.required<number>();
-	color = input.required<string>();
+	readonly value = input.required<number>();
+	readonly color = input.required<string>();
 }

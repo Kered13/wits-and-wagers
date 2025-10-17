@@ -1,5 +1,8 @@
-<div class="wager-box" [style.background-color]="color()">
-	@let guessVal = guess();
+@let guessVal = guess();
+<div class="wager-box"
+	[style.--background-color]="color()"
+	[class.enabled]="!isDisabled()"
+	(click)="click()">
 	@if (guessVal !== undefined) {
 		<div class="guess-card" [style.border-color]="guessVal.color">
 			<span class="guess-value" [fittext]="true" [modelToWatch]="guessVal">

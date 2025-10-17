@@ -1,0 +1,21 @@
+<h1 mat-dialog-title>Place Bet!</h1>
+<div mat-dialog-content>
+	<mat-form-field>
+		<mat-label>Wager:</mat-label>
+		<input matInput
+			#wagerField="ngModel"
+			placeholder="Wager"
+			inputmode="numeric"
+			[chipValidator]="availableChips"
+			[(ngModel)]="wager" />
+		@if (wagerField.hasError("insufficientChips")) {
+			<mat-error>Insufficient chips. {{ availableChips }} chips available.</mat-error>
+		} @else {
+			<mat-error>Wager must be a positive integer.</mat-error>
+		}
+	</mat-form-field>
+</div>
+<div mat-dialog-actions>
+	<button mat-raised-button [mat-dialog-close]="undefined">Cancel</button>
+	<button mat-raised-button [mat-dialog-close]="getWager()!" [disabled]="!wagerField.valid">Wager</button>
+</div>

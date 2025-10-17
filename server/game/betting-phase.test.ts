@@ -48,7 +48,7 @@ function makeBettingPhase(
 		question,
 		answer,
 		new PlayerManager(guesses.map(([player, guess]) => player)),
-		new PlayerManager(spectators), // No spectators in this test.
+		new PlayerManager(spectators),
 		round,
 		new Map(guesses),
 		options);
@@ -70,7 +70,7 @@ describe("BettingPhase", () => {
 		const phase = makeBettingPhase({ guesses: [[alice, 42]] });
 		
 		phase.submitBet(alice.privateId, "AllTooHigh", 10);
-		phase.submitBet(alice.privateId, 0, 20);
+		phase.submitBet(alice.privateId, 3, 20);
 		
 		expect(alice.chips).to.equal(70);
 	});
@@ -82,9 +82,20 @@ describe("BettingPhase", () => {
 		const phase = makeBettingPhase({ guesses: [[alice, 42]], spectators: [bob] });
 		
 		phase.submitBet(bob.privateId, "AllTooHigh", 10);
-		phase.submitBet(bob.privateId, 0, 20);
+		phase.submitBet(bob.privateId, 3, 20);
 		
 		expect(bob.chips).to.equal(70);
+	});
+	
+	test("can withdraw a bet", () => {
+		const alice = makePlayer("Alice");
+		
+		const phase = makeBettingPhase({ guesses: [[alice, 42]] });
+		
+		phase.submitBet(alice.privateId, "AllTooHigh", 1);
+		phase.submitBet(alice.privateId, 3, 1);
+		expect(() => phase.withdrawBet(alice.privateId, "AllTooHigh")).not.to.throw();
+		expect(() => phase.withdrawBet(alice.privateId, 3)).not.to.throw();
 	});
 	
 	test("withdrawBet returns chips", () => {
@@ -92,11 +103,11 @@ describe("BettingPhase", () => {
 		
 		const phase = makeBettingPhase({ guesses: [[alice, 42]] });
 		phase.submitBet(alice.privateId, "AllTooHigh", 10);
-		phase.submitBet(alice.privateId, 0, 20);
+		phase.submitBet(alice.privateId, 3, 20);
 		
 		expect(alice.chips).to.equal(70);
 		
-		phase.withdrawBet(alice.privateId, 0);
+		phase.withdrawBet(alice.privateId, 3);
 		
 		expect(alice.chips).to.equal(90);
 	});
@@ -107,11 +118,11 @@ describe("BettingPhase", () => {
 		
 		const phase = makeBettingPhase({ guesses: [[alice, 42]], spectators: [bob] });
 		phase.submitBet(bob.privateId, "AllTooHigh", 10);
-		phase.submitBet(bob.privateId, 0, 20);
+		phase.submitBet(bob.privateId, 3, 20);
 		
 		expect(bob.chips).to.equal(70);
 		
-		phase.withdrawBet(bob.privateId, 0);
+		phase.withdrawBet(bob.privateId, 3);
 		
 		expect(bob.chips).to.equal(90);
 	});
@@ -159,12 +170,8 @@ describe("BettingPhase", () => {
 			expect(() => phase.submitBet(alice.privateId, "AllTooHigh", 0.5)).to.throw();
 		});
 		
-		test("cannot bet on negative", () => {
-			expect(() => phase.submitBet(alice.privateId, -1, 1)).to.throw();
-		});
-		
-		test("cannot bet on too large", () => {
-			expect(() => phase.submitBet(alice.privateId, 4, 1)).to.throw();
+		test("cannot bet on unavailable", () => {
+			expect(() => phase.submitBet(alice.privateId, 3, 1)).to.throw();
 		});
 		
 		test("cannot place more than two bets", () => {
@@ -174,24 +181,13 @@ describe("BettingPhase", () => {
 		});
 	});
 	
-	test("can withdraw a bet", () => {
-		const alice = makePlayer("Alice");
-		
-		const phase = makeBettingPhase({ guesses: [[alice, 42]] });
-		
-		phase.submitBet(alice.privateId, "AllTooHigh", 1);
-		phase.submitBet(alice.privateId, 0, 1);
-		expect(() => phase.withdrawBet(alice.privateId, "AllTooHigh")).not.to.throw();
-		expect(() => phase.withdrawBet(alice.privateId, 0)).not.to.throw();
-	});
-	
 	test("player not in game cannot withdraw bet", () => {
 		const alice = makePlayer("Alice");
 		const bob = makePlayer("Bob");
 		
 		const phase = makeBettingPhase({ guesses: [[alice, 42]] });
 		
-		expect(() => phase.withdrawBet(bob.privateId, 1)).to.throw();
+		expect(() => phase.withdrawBet(bob.privateId, 3)).to.throw();
 	});
 	
 	test("cannot withdraw a bet that doesn't exist", () => {
@@ -199,7 +195,7 @@ describe("BettingPhase", () => {
 		
 		const phase = makeBettingPhase({ guesses: [[alice, 42]] });
 		
-		expect(() => phase.withdrawBet(alice.privateId, 1)).to.throw();
+		expect(() => phase.withdrawBet(alice.privateId, 3)).to.throw();
 	});
 	
 	test("toJson is same for all players", () => {
@@ -208,19 +204,17 @@ describe("BettingPhase", () => {
 		const charlie = makePlayer("Charlie");
 		const derek = makePlayer("Derek");
 		
-		const phase = new BettingPhase(
-			"What is the question?",
-			42,
-			new PlayerManager([alice, bob, charlie, derek]),
-			new PlayerManager([]), // No spectators in this test.
-			1,
-			new Map([[alice, 42], [bob, 13], [charlie, 7], [derek, 60]]),
-			{});
+		const phase = makeBettingPhase({
+			question: "What is the question?",
+			answer: 42,
+			round: 1,
+			guesses: [[alice, 42], [bob, 13], [charlie, 7], [derek, 60]]
+		});
 		
 		phase.submitBet(alice.privateId, "AllTooHigh", 37);
 		phase.submitBet(bob.privateId, "Red", 10);
 		phase.submitBet(charlie.privateId, "Black", 50);
-		phase.submitBet(derek.privateId, 3, 60);
+		phase.submitBet(derek.privateId, 2, 60);
 		
 		const expected: BettingPhaseState = {
 			phase: "betting",
@@ -235,7 +229,7 @@ describe("BettingPhase", () => {
 				{ player: "public-Alice", target: "AllTooHigh", wager: 37 },
 				{ player: "public-Bob", target: "Red", wager: 10 },
 				{ player: "public-Charlie", target: "Black", wager: 50 },
-				{ player: "public-Derek", target: 3, wager: 60 },
+				{ player: "public-Derek", target: 2, wager: 60 },
 			]
 		};
 		
@@ -251,14 +245,13 @@ describe("BettingPhase", () => {
 		
 		const alice = makePlayer("Alice");
 		
-		const phase = new BettingPhase(
-			"What is the question?",
-			42,
-			new PlayerManager([alice]),
-			new PlayerManager([]), // No spectators in this test.
-			1,
-			new Map([[alice, 42]]),
-			{ bettingPhaseDuration: 60_000 });
+		const phase = makeBettingPhase({
+			question: "What is the question?",
+			answer: 42,
+			round: 1,
+			guesses: [[alice, 42]],
+			options: { bettingPhaseDuration: 60_000 },
+		});
 		
 		expect(phase.toJson(alice.privateId)).to.deep.equal({
 			phase: "betting",
@@ -326,16 +319,16 @@ describe("BettingPhase", () => {
 			});
 			
 			// All bets should be normalized to 4x.
-			phase.submitBet(alice.privateId, 0, 10);
-			phase.submitBet(bob.privateId, 1, 10);
-			phase.submitBet(charlie.privateId, 2, 10);
-			phase.submitBet(derek.privateId, 3, 10);
+			phase.submitBet(alice.privateId, 1, 10);
+			phase.submitBet(bob.privateId, 2, 10);
+			phase.submitBet(charlie.privateId, 3, 10);
+			phase.submitBet(derek.privateId, 4, 10);
 			
 			const expectedBets = [
-				{ player: "public-Alice", target: 0, wager: 10 },
-				{ player: "public-Bob", target: 0, wager: 10 },
-				{ player: "public-Charlie", target: 0, wager: 10 },
-				{ player: "public-Derek", target: 0, wager: 10 }
+				{ player: "public-Alice", target: 1, wager: 10 },
+				{ player: "public-Bob", target: 1, wager: 10 },
+				{ player: "public-Charlie", target: 1, wager: 10 },
+				{ player: "public-Derek", target: 1, wager: 10 }
 			];
 			
 			expect(phase.toJson(alice.privateId).bets).to.have.deep.members(expectedBets);
@@ -354,16 +347,16 @@ describe("BettingPhase", () => {
 			});
 			
 			// All bets should be normalized to 4x.
-			phase.submitBet(alice.privateId, 1, 10);
-			phase.submitBet(bob.privateId, 2, 10);
-			phase.submitBet(charlie.privateId, 3, 10);
-			phase.submitBet(derek.privateId, 4, 10);
+			phase.submitBet(alice.privateId, 2, 10);
+			phase.submitBet(bob.privateId, 3, 10);
+			phase.submitBet(charlie.privateId, 4, 10);
+			phase.submitBet(derek.privateId, 5, 10);
 			
 			const expectedBets = [
-				{ player: "public-Alice", target: 4, wager: 10 },
-				{ player: "public-Bob", target: 4, wager: 10 },
-				{ player: "public-Charlie", target: 4, wager: 10 },
-				{ player: "public-Derek", target: 4, wager: 10 }
+				{ player: "public-Alice", target: 5, wager: 10 },
+				{ player: "public-Bob", target: 5, wager: 10 },
+				{ player: "public-Charlie", target: 5, wager: 10 },
+				{ player: "public-Derek", target: 5, wager: 10 }
 			];
 			
 			expect(phase.toJson(alice.privateId).bets).to.have.deep.members(expectedBets);
@@ -380,7 +373,7 @@ describe("BettingPhase", () => {
 			});
 			
 			phase.submitBet(alice.privateId, "AllTooHigh", 10);
-			phase.submitBet(alice.privateId, 0, 15);
+			phase.submitBet(alice.privateId, 3, 15);
 			const conclusion = phase.resolve();
 			
 			expect(conclusion).to.deep.equal({
@@ -406,7 +399,7 @@ describe("BettingPhase", () => {
 			});
 			
 			phase.submitBet(alice.privateId, "AllTooHigh", 10);
-			phase.submitBet(alice.privateId, 0, 15);
+			phase.submitBet(alice.privateId, 3, 15);
 			const conclusion = phase.resolve();
 			
 			expect(conclusion).to.deep.equal({
@@ -437,10 +430,10 @@ describe("BettingPhase", () => {
 				guesses: [[charlie, 30], [derek, 50], [bob, 60], [alice, 40]]
 			});
 			
-			phase.submitBet(alice.privateId, 0, 10);
-			phase.submitBet(bob.privateId, 1, 10);
-			phase.submitBet(charlie.privateId, 2, 10);
-			phase.submitBet(derek.privateId, 3, 10);
+			phase.submitBet(alice.privateId, 1, 10);
+			phase.submitBet(bob.privateId, 2, 10);
+			phase.submitBet(charlie.privateId, 4, 10);
+			phase.submitBet(derek.privateId, 5, 10);
 			phase.resolve();
 			
 			// Alice loses her bet but gets her reserved chips back and wins the
@@ -502,9 +495,9 @@ describe("BettingPhase", () => {
 				guesses: [[alice, 40], [bob, 50], [charlie, 50], [derek, 50], [elizabeth, 60]]
 			});
 			
-			phase.submitBet(alice.privateId, 1, 10);
-			phase.submitBet(bob.privateId, 2, 10);
-			phase.submitBet(charlie.privateId, 3, 10);
+			phase.submitBet(alice.privateId, 2, 10);
+			phase.submitBet(bob.privateId, 3, 10);
+			phase.submitBet(charlie.privateId, 4, 10);
 			
 			const conclusion = phase.resolve();
 			
@@ -573,12 +566,12 @@ describe("BettingPhase", () => {
 				guesses: [[alice, 50], [bob, 60], [charlie, 70], [derek, 80]]
 			});
 			
-			phase.submitBet(alice.privateId, 0, 10);
 			phase.submitBet(alice.privateId, 1, 10);
-			phase.submitBet(bob.privateId, 1, 20);
-			phase.submitBet(charlie.privateId, 2, 10);
+			phase.submitBet(alice.privateId, 2, 10);
+			phase.submitBet(bob.privateId, 2, 20);
+			phase.submitBet(charlie.privateId, 4, 10);
 			phase.submitBet(charlie.privateId, "AllTooHigh", 10);
-			phase.submitBet(derek.privateId, 3, 1);
+			phase.submitBet(derek.privateId, 5, 1);
 			
 			phase.resolve();
 			
@@ -619,7 +612,7 @@ describe("BettingPhase", () => {
 					guesses: [[alice, 40]]
 				});
 				
-				phase.submitBet(alice.privateId, 0, 10);
+				phase.submitBet(alice.privateId, 3, 10);
 				
 				phase.resolve();
 				
@@ -674,7 +667,7 @@ describe("BettingPhase", () => {
 				});
 				
 				phase.submitBet(alice.privateId, "AllTooHigh", 10);
-				phase.submitBet(alice.privateId, 0, 15);
+				phase.submitBet(alice.privateId, 2, 15);
 				phase.submitBet(bob.privateId, "Red", 10);
 				phase.submitBet(bob.privateId, "Black", 15);
 				
@@ -697,9 +690,9 @@ describe("BettingPhase", () => {
 					guesses: [[alice, 40], [bob, 50]]
 				});
 				
-				phase.submitBet(alice.privateId, 0, 10);
+				phase.submitBet(alice.privateId, 2, 10);
 				phase.submitBet(alice.privateId, "Red", 15);
-				phase.submitBet(bob.privateId, 1, 10);
+				phase.submitBet(bob.privateId, 4, 10);
 				phase.submitBet(bob.privateId, "Black", 15);
 				
 				phase.resolve();
@@ -720,9 +713,9 @@ describe("BettingPhase", () => {
 					guesses: [[alice, 50], [bob, 40]]
 				});
 				
-				phase.submitBet(alice.privateId, 0, 10);
+				phase.submitBet(alice.privateId, 2, 10);
 				phase.submitBet(alice.privateId, "Red", 15);
-				phase.submitBet(bob.privateId, 1, 10);
+				phase.submitBet(bob.privateId, 4, 10);
 				phase.submitBet(bob.privateId, "Black", 15);
 				
 				phase.resolve();
@@ -743,9 +736,9 @@ describe("BettingPhase", () => {
 					guesses: [[alice, 50], [bob, 40]]
 				});
 				
-				phase.submitBet(alice.privateId, 0, 10);
+				phase.submitBet(alice.privateId, 2, 10);
 				phase.submitBet(alice.privateId, "Red", 15);
-				phase.submitBet(bob.privateId, 1, 10);
+				phase.submitBet(bob.privateId, 4, 10);
 				phase.submitBet(bob.privateId, "Black", 15);
 				
 				phase.resolve();
@@ -770,11 +763,11 @@ describe("BettingPhase", () => {
 				});
 				
 				phase.submitBet(alice.privateId, "AllTooHigh", 10);
-				phase.submitBet(alice.privateId, 0, 15);
+				phase.submitBet(alice.privateId, 2, 15);
 				phase.submitBet(bob.privateId, "Red", 10);
 				phase.submitBet(bob.privateId, "Black", 15);
-				phase.submitBet(charlie.privateId, 1, 10);
-				phase.submitBet(charlie.privateId, 2, 15);
+				phase.submitBet(charlie.privateId, 3, 10);
+				phase.submitBet(charlie.privateId, 4, 15);
 				
 				phase.resolve();
 				
@@ -799,10 +792,10 @@ describe("BettingPhase", () => {
 				
 				phase.submitBet(alice.privateId, "AllTooHigh", 10);
 				phase.submitBet(alice.privateId, "Red", 15);
-				phase.submitBet(bob.privateId, 1, 10);
+				phase.submitBet(bob.privateId, 3, 10);
 				phase.submitBet(bob.privateId, "Black", 15);
-				phase.submitBet(charlie.privateId, 0, 10);
-				phase.submitBet(charlie.privateId, 2, 15);
+				phase.submitBet(charlie.privateId, 2, 10);
+				phase.submitBet(charlie.privateId, 4, 15);
 				
 				phase.resolve();
 				
@@ -828,10 +821,10 @@ describe("BettingPhase", () => {
 				
 				phase.submitBet(alice.privateId, "AllTooHigh", 10);
 				phase.submitBet(alice.privateId, "Red", 15);
-				phase.submitBet(bob.privateId, 1, 10);
+				phase.submitBet(bob.privateId, 3, 10);
 				phase.submitBet(bob.privateId, "Black", 15);
-				phase.submitBet(charlie.privateId, 0, 10);
-				phase.submitBet(charlie.privateId, 2, 15);
+				phase.submitBet(charlie.privateId, 2, 10);
+				phase.submitBet(charlie.privateId, 4, 15);
 				
 				phase.resolve();
 				
@@ -858,10 +851,10 @@ describe("BettingPhase", () => {
 				
 				phase.submitBet(alice.privateId, "AllTooHigh", 10);
 				phase.submitBet(alice.privateId, "Red", 15);
-				phase.submitBet(bob.privateId, 1, 10);
+				phase.submitBet(bob.privateId, 3, 10);
 				phase.submitBet(bob.privateId, "Black", 15);
-				phase.submitBet(charlie.privateId, 0, 10);
-				phase.submitBet(charlie.privateId, 2, 15);
+				phase.submitBet(charlie.privateId, 2, 10);
+				phase.submitBet(charlie.privateId, 4, 15);
 				
 				phase.resolve();
 				
@@ -890,12 +883,12 @@ describe("BettingPhase", () => {
 				});
 				
 				phase.submitBet(alice.privateId, "AllTooHigh", 10);
-				phase.submitBet(alice.privateId, 0, 15);
+				phase.submitBet(alice.privateId, 1, 15);
 				phase.submitBet(bob.privateId, "Red", 10);
 				phase.submitBet(bob.privateId, "Black", 15);
-				phase.submitBet(charlie.privateId, 1, 10);
-				phase.submitBet(charlie.privateId, 2, 15);
-				phase.submitBet(derek.privateId, 3, 20);
+				phase.submitBet(charlie.privateId, 2, 10);
+				phase.submitBet(charlie.privateId, 4, 15);
+				phase.submitBet(derek.privateId, 5, 20);
 				
 				phase.resolve();
 				
@@ -924,11 +917,11 @@ describe("BettingPhase", () => {
 				
 				phase.submitBet(alice.privateId, "AllTooHigh", 10);
 				phase.submitBet(alice.privateId, "Red", 15);
-				phase.submitBet(bob.privateId, 1, 10);
+				phase.submitBet(bob.privateId, 2, 10);
 				phase.submitBet(bob.privateId, "Black", 15);
-				phase.submitBet(charlie.privateId, 0, 10);
-				phase.submitBet(charlie.privateId, 2, 15);
-				phase.submitBet(derek.privateId, 3, 20);
+				phase.submitBet(charlie.privateId, 1, 10);
+				phase.submitBet(charlie.privateId, 4, 15);
+				phase.submitBet(derek.privateId, 5, 20);
 				
 				phase.resolve();
 				
@@ -957,11 +950,11 @@ describe("BettingPhase", () => {
 				
 				phase.submitBet(alice.privateId, "AllTooHigh", 10);
 				phase.submitBet(alice.privateId, "Red", 15);
-				phase.submitBet(bob.privateId, 1, 10);
+				phase.submitBet(bob.privateId, 2, 10);
 				phase.submitBet(bob.privateId, "Black", 15);
-				phase.submitBet(charlie.privateId, 0, 10);
-				phase.submitBet(charlie.privateId, 2, 15);
-				phase.submitBet(derek.privateId, 3, 20);
+				phase.submitBet(charlie.privateId, 1, 10);
+				phase.submitBet(charlie.privateId, 4, 15);
+				phase.submitBet(derek.privateId, 5, 20);
 				
 				phase.resolve();
 				
@@ -991,11 +984,11 @@ describe("BettingPhase", () => {
 				
 				phase.submitBet(alice.privateId, "AllTooHigh", 10);
 				phase.submitBet(alice.privateId, "Red", 15);
-				phase.submitBet(bob.privateId, 1, 10);
+				phase.submitBet(bob.privateId, 2, 10);
 				phase.submitBet(bob.privateId, "Black", 15);
-				phase.submitBet(charlie.privateId, 0, 10);
-				phase.submitBet(charlie.privateId, 2, 15);
-				phase.submitBet(derek.privateId, 3, 20);
+				phase.submitBet(charlie.privateId, 1, 10);
+				phase.submitBet(charlie.privateId, 4, 15);
+				phase.submitBet(derek.privateId, 5, 20);
 				
 				phase.resolve();
 				
@@ -1025,11 +1018,11 @@ describe("BettingPhase", () => {
 				
 				phase.submitBet(alice.privateId, "AllTooHigh", 10);
 				phase.submitBet(alice.privateId, "Red", 15);
-				phase.submitBet(bob.privateId, 1, 10);
+				phase.submitBet(bob.privateId, 2, 10);
 				phase.submitBet(bob.privateId, "Black", 15);
-				phase.submitBet(charlie.privateId, 0, 10);
-				phase.submitBet(charlie.privateId, 2, 15);
-				phase.submitBet(derek.privateId, 3, 20);
+				phase.submitBet(charlie.privateId, 1, 10);
+				phase.submitBet(charlie.privateId, 4, 15);
+				phase.submitBet(derek.privateId, 5, 20);
 				
 				phase.resolve();
 				
@@ -1061,14 +1054,14 @@ describe("BettingPhase", () => {
 				});
 				
 				phase.submitBet(alice.privateId, "AllTooHigh", 10);
-				phase.submitBet(alice.privateId, 0, 15);
+				phase.submitBet(alice.privateId, 1, 15);
 				phase.submitBet(bob.privateId, "Red", 10);
 				phase.submitBet(bob.privateId, "Black", 15);
-				phase.submitBet(charlie.privateId, 1, 10);
-				phase.submitBet(charlie.privateId, 2, 15);
-				phase.submitBet(derek.privateId, 3, 20);
-				phase.submitBet(elizabeth.privateId, 4, 5);
-				phase.submitBet(elizabeth.privateId, 2, 25);
+				phase.submitBet(charlie.privateId, 2, 10);
+				phase.submitBet(charlie.privateId, 3, 15);
+				phase.submitBet(derek.privateId, 4, 20);
+				phase.submitBet(elizabeth.privateId, 5, 5);
+				phase.submitBet(elizabeth.privateId, 3, 25);
 				
 				phase.resolve();
 				
@@ -1101,13 +1094,13 @@ describe("BettingPhase", () => {
 				
 				phase.submitBet(alice.privateId, "AllTooHigh", 10);
 				phase.submitBet(alice.privateId, "Red", 15);
-				phase.submitBet(bob.privateId, 1, 10);
+				phase.submitBet(bob.privateId, 2, 10);
 				phase.submitBet(bob.privateId, "Black", 15);
-				phase.submitBet(charlie.privateId, 0, 10);
-				phase.submitBet(charlie.privateId, 2, 15);
-				phase.submitBet(derek.privateId, 3, 20);
-				phase.submitBet(elizabeth.privateId, 4, 5);
-				phase.submitBet(elizabeth.privateId, 2, 25);
+				phase.submitBet(charlie.privateId, 1, 10);
+				phase.submitBet(charlie.privateId, 3, 15);
+				phase.submitBet(derek.privateId, 4, 20);
+				phase.submitBet(elizabeth.privateId, 5, 5);
+				phase.submitBet(elizabeth.privateId, 3, 25);
 				
 				phase.resolve();
 				
@@ -1140,13 +1133,13 @@ describe("BettingPhase", () => {
 				
 				phase.submitBet(alice.privateId, "AllTooHigh", 10);
 				phase.submitBet(alice.privateId, "Red", 15);
-				phase.submitBet(bob.privateId, 1, 10);
+				phase.submitBet(bob.privateId, 2, 10);
 				phase.submitBet(bob.privateId, "Black", 15);
-				phase.submitBet(charlie.privateId, 0, 10);
-				phase.submitBet(charlie.privateId, 2, 15);
-				phase.submitBet(derek.privateId, 3, 20);
-				phase.submitBet(elizabeth.privateId, 4, 5);
-				phase.submitBet(elizabeth.privateId, 2, 25);
+				phase.submitBet(charlie.privateId, 1, 10);
+				phase.submitBet(charlie.privateId, 3, 15);
+				phase.submitBet(derek.privateId, 4, 20);
+				phase.submitBet(elizabeth.privateId, 5, 5);
+				phase.submitBet(elizabeth.privateId, 3, 25);
 				
 				phase.resolve();
 				
@@ -1180,13 +1173,13 @@ describe("BettingPhase", () => {
 				
 				phase.submitBet(alice.privateId, "AllTooHigh", 10);
 				phase.submitBet(alice.privateId, "Red", 15);
-				phase.submitBet(bob.privateId, 1, 10);
+				phase.submitBet(bob.privateId, 2, 10);
 				phase.submitBet(bob.privateId, "Black", 15);
-				phase.submitBet(charlie.privateId, 0, 10);
-				phase.submitBet(charlie.privateId, 2, 15);
-				phase.submitBet(derek.privateId, 3, 20);
-				phase.submitBet(elizabeth.privateId, 4, 5);
-				phase.submitBet(elizabeth.privateId, 2, 25);
+				phase.submitBet(charlie.privateId, 1, 10);
+				phase.submitBet(charlie.privateId, 3, 15);
+				phase.submitBet(derek.privateId, 4, 20);
+				phase.submitBet(elizabeth.privateId, 5, 5);
+				phase.submitBet(elizabeth.privateId, 3, 25);
 				
 				phase.resolve();
 				
@@ -1219,13 +1212,13 @@ describe("BettingPhase", () => {
 				
 				phase.submitBet(alice.privateId, "AllTooHigh", 10);
 				phase.submitBet(alice.privateId, "Red", 15);
-				phase.submitBet(bob.privateId, 1, 10);
+				phase.submitBet(bob.privateId, 2, 10);
 				phase.submitBet(bob.privateId, "Black", 15);
-				phase.submitBet(charlie.privateId, 0, 10);
-				phase.submitBet(charlie.privateId, 2, 15);
-				phase.submitBet(derek.privateId, 3, 20);
-				phase.submitBet(elizabeth.privateId, 4, 5);
-				phase.submitBet(elizabeth.privateId, 2, 25);
+				phase.submitBet(charlie.privateId, 1, 10);
+				phase.submitBet(charlie.privateId, 3, 15);
+				phase.submitBet(derek.privateId, 4, 20);
+				phase.submitBet(elizabeth.privateId, 5, 5);
+				phase.submitBet(elizabeth.privateId, 3, 25);
 				
 				phase.resolve();
 				
@@ -1259,13 +1252,13 @@ describe("BettingPhase", () => {
 				
 				phase.submitBet(alice.privateId, "AllTooHigh", 10);
 				phase.submitBet(alice.privateId, "Red", 15);
-				phase.submitBet(bob.privateId, 1, 10);
+				phase.submitBet(bob.privateId, 2, 10);
 				phase.submitBet(bob.privateId, "Black", 15);
-				phase.submitBet(charlie.privateId, 0, 10);
-				phase.submitBet(charlie.privateId, 2, 15);
-				phase.submitBet(derek.privateId, 3, 20);
-				phase.submitBet(elizabeth.privateId, 4, 5);
-				phase.submitBet(elizabeth.privateId, 2, 25);
+				phase.submitBet(charlie.privateId, 1, 10);
+				phase.submitBet(charlie.privateId, 3, 15);
+				phase.submitBet(derek.privateId, 4, 20);
+				phase.submitBet(elizabeth.privateId, 5, 5);
+				phase.submitBet(elizabeth.privateId, 3, 25);
 				
 				phase.resolve();
 				
@@ -1299,18 +1292,18 @@ describe("BettingPhase", () => {
 					round: 3,
 					guesses: [[alice, 40], [bob, 50], [charlie, 60], [derek, 70], [elizabeth, 80], [frieren, 90]]
 				});
-
+				
 				phase.submitBet(alice.privateId, "AllTooHigh", 10);
 				phase.submitBet(alice.privateId, 0, 15);
 				phase.submitBet(bob.privateId, "Red", 10);
 				phase.submitBet(bob.privateId, "Black", 15);
 				phase.submitBet(charlie.privateId, 1, 10);
 				phase.submitBet(charlie.privateId, 2, 15);
-				phase.submitBet(derek.privateId, 3, 20);
-				phase.submitBet(elizabeth.privateId, 4, 5);
+				phase.submitBet(derek.privateId, 4, 20);
+				phase.submitBet(elizabeth.privateId, 5, 5);
 				phase.submitBet(elizabeth.privateId, 2, 25);
-				phase.submitBet(frieren.privateId, 5, 15);
-				phase.submitBet(frieren.privateId, 3, 20);
+				phase.submitBet(frieren.privateId, 6, 15);
+				phase.submitBet(frieren.privateId, 4, 20);
 				
 				phase.resolve();
 				
@@ -1351,11 +1344,11 @@ describe("BettingPhase", () => {
 				phase.submitBet(bob.privateId, "Black", 15);
 				phase.submitBet(charlie.privateId, 0, 10);
 				phase.submitBet(charlie.privateId, 2, 15);
-				phase.submitBet(derek.privateId, 3, 20);
-				phase.submitBet(elizabeth.privateId, 4, 5);
+				phase.submitBet(derek.privateId, 4, 20);
+				phase.submitBet(elizabeth.privateId, 5, 5);
 				phase.submitBet(elizabeth.privateId, 2, 25);
-				phase.submitBet(frieren.privateId, 5, 15);
-				phase.submitBet(frieren.privateId, 3, 20);
+				phase.submitBet(frieren.privateId, 6, 15);
+				phase.submitBet(frieren.privateId, 4, 20);
 				
 				phase.resolve();
 				
@@ -1396,11 +1389,11 @@ describe("BettingPhase", () => {
 				phase.submitBet(bob.privateId, "Black", 15);
 				phase.submitBet(charlie.privateId, 0, 10);
 				phase.submitBet(charlie.privateId, 2, 15);
-				phase.submitBet(derek.privateId, 3, 20);
-				phase.submitBet(elizabeth.privateId, 4, 5);
+				phase.submitBet(derek.privateId, 4, 20);
+				phase.submitBet(elizabeth.privateId, 5, 5);
 				phase.submitBet(elizabeth.privateId, 2, 25);
-				phase.submitBet(frieren.privateId, 5, 15);
-				phase.submitBet(frieren.privateId, 3, 20);
+				phase.submitBet(frieren.privateId, 6, 15);
+				phase.submitBet(frieren.privateId, 4, 20);
 				
 				phase.resolve();
 				
@@ -1442,11 +1435,11 @@ describe("BettingPhase", () => {
 				phase.submitBet(bob.privateId, "Black", 15);
 				phase.submitBet(charlie.privateId, 0, 10);
 				phase.submitBet(charlie.privateId, 2, 15);
-				phase.submitBet(derek.privateId, 3, 20);
-				phase.submitBet(elizabeth.privateId, 4, 5);
+				phase.submitBet(derek.privateId, 4, 20);
+				phase.submitBet(elizabeth.privateId, 5, 5);
 				phase.submitBet(elizabeth.privateId, 2, 25);
-				phase.submitBet(frieren.privateId, 5, 15);
-				phase.submitBet(frieren.privateId, 3, 20);
+				phase.submitBet(frieren.privateId, 6, 15);
+				phase.submitBet(frieren.privateId, 4, 20);
 				
 				phase.resolve();
 				
@@ -1487,11 +1480,11 @@ describe("BettingPhase", () => {
 				phase.submitBet(bob.privateId, "Black", 15);
 				phase.submitBet(charlie.privateId, 0, 10);
 				phase.submitBet(charlie.privateId, 2, 15);
-				phase.submitBet(derek.privateId, 3, 20);
-				phase.submitBet(elizabeth.privateId, 4, 5);
+				phase.submitBet(derek.privateId, 4, 20);
+				phase.submitBet(elizabeth.privateId, 5, 5);
 				phase.submitBet(elizabeth.privateId, 2, 25);
-				phase.submitBet(frieren.privateId, 5, 15);
-				phase.submitBet(frieren.privateId, 3, 20);
+				phase.submitBet(frieren.privateId, 6, 15);
+				phase.submitBet(frieren.privateId, 4, 20);
 				
 				phase.resolve();
 				
@@ -1533,11 +1526,11 @@ describe("BettingPhase", () => {
 				phase.submitBet(bob.privateId, "Black", 15);
 				phase.submitBet(charlie.privateId, 0, 10);
 				phase.submitBet(charlie.privateId, 2, 15);
-				phase.submitBet(derek.privateId, 3, 20);
-				phase.submitBet(elizabeth.privateId, 4, 5);
+				phase.submitBet(derek.privateId, 4, 20);
+				phase.submitBet(elizabeth.privateId, 5, 5);
 				phase.submitBet(elizabeth.privateId, 2, 25);
-				phase.submitBet(frieren.privateId, 5, 15);
-				phase.submitBet(frieren.privateId, 3, 20);
+				phase.submitBet(frieren.privateId, 6, 15);
+				phase.submitBet(frieren.privateId, 4, 20);
 				
 				phase.resolve();
 				
@@ -1579,11 +1572,11 @@ describe("BettingPhase", () => {
 				phase.submitBet(bob.privateId, "Black", 15);
 				phase.submitBet(charlie.privateId, 0, 10);
 				phase.submitBet(charlie.privateId, 2, 15);
-				phase.submitBet(derek.privateId, 3, 20);
-				phase.submitBet(elizabeth.privateId, 4, 5);
+				phase.submitBet(derek.privateId, 4, 20);
+				phase.submitBet(elizabeth.privateId, 5, 5);
 				phase.submitBet(elizabeth.privateId, 2, 25);
-				phase.submitBet(frieren.privateId, 5, 15);
-				phase.submitBet(frieren.privateId, 3, 20);
+				phase.submitBet(frieren.privateId, 6, 15);
+				phase.submitBet(frieren.privateId, 4, 20);
 				
 				phase.resolve();
 				
