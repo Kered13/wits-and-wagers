@@ -94,11 +94,13 @@ describe("BettingPhase", () => {
 		
 		phase.submitBet(alice.privateId, "AllTooHigh", 1);
 		phase.submitBet(alice.privateId, 3, 1);
-		expect(() => phase.withdrawBet(alice.privateId, "AllTooHigh")).not.to.throw();
-		expect(() => phase.withdrawBet(alice.privateId, 3)).not.to.throw();
+		expect(() => phase.submitBet(alice.privateId, "AllTooHigh", 0)).not.to.throw();
+		expect(() => phase.submitBet(alice.privateId, 3, 0)).not.to.throw();
+		
+		expect(phase.toJson(alice.privateId).bets).to.be.empty;
 	});
 	
-	test("withdrawBet returns chips", () => {
+	test("withdraw bet returns chips", () => {
 		const alice = makePlayer("Alice");
 		
 		const phase = makeBettingPhase({ guesses: [[alice, 42]] });
@@ -107,12 +109,12 @@ describe("BettingPhase", () => {
 		
 		expect(alice.chips).to.equal(70);
 		
-		phase.withdrawBet(alice.privateId, 3);
+		phase.submitBet(alice.privateId, 3, 0);
 		
 		expect(alice.chips).to.equal(90);
 	});
 	
-	test("withdrawBet returns chips for spectators", () => {
+	test("withdraw bet returns chips for spectators", () => {
 		const alice = makePlayer("Alice");
 		const bob = makeSpectator("Bob");
 		
@@ -122,9 +124,27 @@ describe("BettingPhase", () => {
 		
 		expect(bob.chips).to.equal(70);
 		
-		phase.withdrawBet(bob.privateId, 3);
+		phase.submitBet(bob.privateId, 3, 0);
 		
 		expect(bob.chips).to.equal(90);
+	});
+	
+	test("can replace bet", () => {
+		const alice = makePlayer("Alice");
+		
+		const phase = makeBettingPhase({ guesses: [[alice, 42]] });
+		phase.submitBet(alice.privateId, 3, 60);
+		
+		expect(alice.chips).to.equal(40);
+		
+		phase.submitBet(alice.privateId, 3, 70);
+		
+		expect(alice.chips).to.equal(30);
+		expect(phase.toJson(alice.privateId).bets).to.deep.equal([{
+			player: alice.publicId,
+			target: 3,
+			wager: 70,
+		}]);
 	});
 	
 	test("player not in game cannot bet", () => {
@@ -148,18 +168,11 @@ describe("BettingPhase", () => {
 			phase = makeBettingPhase({ guesses: [[alice, 42], [bob, 13], [charlie, 7], [derek, 60]] });
 		});
 		
-		test("cannot wager 0", () => {
-			expect(() => phase.submitBet(alice.privateId, "AllTooHigh", 0)).to.throw();
-		});
-		
 		test("cannot wager more than chips", () => {
 			expect(() => phase.submitBet(alice.privateId, "AllTooHigh", 101)).to.throw();
 			
 			phase.submitBet(alice.privateId, "AllTooHigh", 60);
-			expect(() => phase.submitBet(alice.privateId, "AllTooHigh", 60)).to.throw();
-			
-			// TODO: Should clean this up in some better manner.
-			phase.withdrawBet(alice.privateId, "AllTooHigh");
+			expect(() => phase.submitBet(alice.privateId, "Red", 60)).to.throw();
 		});
 		
 		test("cannot wager negative", () => {
@@ -179,23 +192,6 @@ describe("BettingPhase", () => {
 			phase.submitBet(alice.privateId, "Black", 1);
 			expect(() => phase.submitBet(alice.privateId, "Red", 1)).to.throw();
 		});
-	});
-	
-	test("player not in game cannot withdraw bet", () => {
-		const alice = makePlayer("Alice");
-		const bob = makePlayer("Bob");
-		
-		const phase = makeBettingPhase({ guesses: [[alice, 42]] });
-		
-		expect(() => phase.withdrawBet(bob.privateId, 3)).to.throw();
-	});
-	
-	test("cannot withdraw a bet that doesn't exist", () => {
-		const alice = makePlayer("Alice");
-		
-		const phase = makeBettingPhase({ guesses: [[alice, 42]] });
-		
-		expect(() => phase.withdrawBet(alice.privateId, 3)).to.throw();
 	});
 	
 	test("toJson is same for all players", () => {

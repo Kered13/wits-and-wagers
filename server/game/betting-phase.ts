@@ -130,15 +130,27 @@ export class BettingPhase implements Phase {
 	
 	public submitBet(playerId: PrivateId, target: BetTarget, wager: number): void {
 		const player = this.getPrivatePlayerOrSpectator(playerId);
-		this.validateBet(player, target, wager);
+		
+		this.validateTarget(target);
 		
 		// Normalize bet by moving it to the highest valued target with the same
 		// guess. This gives the player the best possible payout.
 		target = this.normalizeTarget(target);
 		
-		this.bets.push({ player: player.publicId, target: target, wager: wager });
-		// Deduct the wager from the player's chips.
-		player.chips -= wager;
+		const existingBetIdx = this.bets.findIndex(bet => bet.player === player.publicId && bet.target === target);
+		const existingBet = existingBetIdx >= 0 ? this.bets[existingBetIdx]! : undefined;
+		this.validateWager(player, wager, existingBet);
+		
+		if (existingBet) {
+			player.chips += existingBet.wager;
+			this.bets.splice(existingBetIdx, 1);
+		}
+		
+		if (wager > 0) {
+			this.bets.push({ player: player.publicId, target: target, wager: wager });
+			// Deduct the wager from the player's chips.
+			player.chips -= wager;
+		}
 	}
 	
 	public withdrawBet(playerId: PrivateId, target: BetTarget): void {
@@ -247,27 +259,28 @@ export class BettingPhase implements Phase {
 				.map(guess => guess.description!));
 	}
 	
-	// Validate the given bet.
-	private validateBet(player: Participant, target: BetTarget, wager: number): void {
+	private validateTarget(target: BetTarget): void {
 		if (typeof target === "number") {
 			const guess = this.targetToGuess(target);
 			if (guess === undefined) {
 				throw new HttpError(400, `Invalid bet target. ${target} is not a valid target for ${this.guesses.length} guesses.`);
 			}
 		}
-		
-		if (wager < 1 || wager > player.chips || !Number.isInteger(wager)) {
+	}
+	
+	// Validate the given bet.
+	private validateWager(player: Participant, wager: number, existingBet?: Bet): void {
+		const existingWager = existingBet ? existingBet.wager : 0;
+		if (wager < 0 || wager > player.chips + existingWager || !Number.isInteger(wager)) {
 			throw new HttpError(400, `Invalid wager. ${wager} is not an integer between 1 and ${player.chips}`);
 		}
 		
-		const existingBets = this.bets.filter(bet => bet.player === player.publicId).length;
+		const existingBets = this.bets.filter(bet => bet !== existingBet && bet.player === player.publicId).length;
 		if (existingBets == 2) {
 			throw new HttpError(400, `Only two bets per player allowed. Player ${player.publicId} has played ${existingBets} bets.`);
 		} else if (existingBets > 2) {
 			throw new HttpError(500, `Player ${player.publicId} somehow has too many ${existingBets} bets. This should not happen.`);
 		}
-		
-		// TODO: Check for betting on the same thing twice.
 	}
 	
 	// When targets are tied, we need to pick a canonical target to use for bets

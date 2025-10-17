@@ -11,7 +11,7 @@
 		@if (wagerField.hasError("insufficientChips")) {
 			<mat-error>Insufficient chips. {{ availableChips }} chips available.</mat-error>
 		} @else {
-			<mat-error>Wager must be a positive integer.</mat-error>
+			<mat-error>Wager must not be negative.</mat-error>
 		}
 	</mat-form-field>
 </div>

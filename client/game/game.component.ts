@@ -41,7 +41,7 @@ export class TargetValidator implements Validator {
 			return null;
 		}
 		const value = parseIntSafe(control.value);
-		if (value === undefined || value < 0 || value >= this.numGuesses) {
+		if (value === undefined || value < 0 || value >= 7) {
 			return { "invalidTarget": true };
 		}
 		return null;
@@ -288,7 +288,7 @@ export class GameComponent implements OnDestroy {
 			this.target === "AllTooHigh" || this.target === "Red" || this.target === "Black"
 				? this.target
 				: parseInt(this.target)!;
-		this.gameService().get().withdrawBet(target as BetTarget).subscribe();
+		this.gameService().get().submitBet(target as BetTarget, 0).subscribe();
 	}
 	
 	public onEndPhase(): void {

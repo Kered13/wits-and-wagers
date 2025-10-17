@@ -14,7 +14,6 @@ import { GameNotificationSchema, type GameNotification } from "../../shared/game
 import { SUBMIT_BET_PATH, SubmitBetRequest } from "../../shared/game/submit-bet.js";
 import { SUBMIT_GUESS_PATH, SubmitGuessRequest } from "../../shared/game/submit-guess.js";
 import { SUBSCRIBE_PATH, SubscribeRequest } from "../../shared/game/subscribe.js";
-import { WITHDRAW_BET_PATH, WithdrawBetRequest } from "../../shared/game/withdraw-bet.js";
 import { PrivateId } from "../../shared/player.js";
 import { type WebSocketRequest } from "../../shared/websocket.interface.js";
 
@@ -114,14 +113,6 @@ export class GameInstanceService extends Closeable {
 			requester: this.privateId,
 			target,
 			wager
-		});
-	}
-	
-	public withdrawBet(target: BetTarget): Observable<void> {
-		return this.backend.postJson<WithdrawBetRequest, void>(GAME_API_ROOT + WITHDRAW_BET_PATH, {
-			gameId: this.gameId,
-			requester: this.privateId,
-			target
 		});
 	}
 	

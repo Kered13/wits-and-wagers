@@ -269,21 +269,6 @@ describe("Game", () => {
 		expect(callback).toHaveBeenCalled();
 	});
 	
-	test("withdrawBet notifies update", () => {
-		const alice = makePlayer("Alice");
-		const game = makeGame("id", "Game", [alice]);
-		game.submitGuess(alice.privateId, 42);
-		game.endPhase(alice.privateId);
-		game.submitBet(alice.privateId, "Red", 2);
-		
-		const callback = vi.fn();
-		game.onUpdates().subscribe(callback);
-		
-		game.withdrawBet(alice.privateId, "Red");
-		
-		expect(callback).toHaveBeenCalled();
-	});
-	
 	test("endPhase notifies update", () => {
 		const alice = makePlayer("Alice");
 		const game = makeGame("id", "Game", [alice]);
@@ -381,24 +366,6 @@ describe("Game", () => {
 			.to.throw(HttpError, "Cannot submit bets during the question phase.");
 	});
 	
-	test("can withdraw bet during betting phase", () => {
-		const alice = makePlayer("Alice");
-		const game = makeGame("id", "Game", [alice]);
-		game.submitGuess(alice.privateId, 42);
-		game.endPhase(alice.privateId);
-		game.submitBet(alice.privateId, "Red", 2);
-		
-		expect(() => game.withdrawBet(alice.privateId, "Red")).to.not.throw();
-	});
-	
-	test("cannot withdraw bet during guessing phase", () => {
-		const alice = makePlayer("Alice");
-		const game = makeGame("id", "Game", [alice]);
-		
-		expect(() => game.withdrawBet(alice.privateId, "Red"))
-			.to.throw(HttpError, "Cannot withdraw bets during the question phase.");
-	});
-	
 	test("cannot submit guess after game over", () => {
 		const alice = makePlayer("Alice");
 		const game = makeGame("id", "Game", [alice]);
@@ -425,20 +392,6 @@ describe("Game", () => {
 		
 		expect(() => game.submitBet(alice.privateId, "Red", 2))
 			.to.throw(HttpError, "Game is over, cannot submit bets.");
-	});
-	
-	test("cannot withdraw bets after game over", () => {
-		const alice = makePlayer("Alice");
-		const game = makeGame("id", "Game", [alice]);
-		
-		// End all seven rounds.
-		for (let i = 0; i < 7; i++) {
-			game.endPhase(alice.privateId);
-			game.endPhase(alice.privateId);
-		}
-		
-		expect(() => game.withdrawBet(alice.privateId, "Red"))
-			.to.throw(HttpError, "Game is over, cannot withdraw bets.");
 	});
 	
 	test("cannot endPhase after game over", () => {

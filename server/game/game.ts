@@ -106,18 +106,6 @@ export class Game {
 		this.updates.next();
 	}
 	
-	public withdrawBet(playerId: PrivateId, target: BetTarget): void {
-		if (this.isGameOver()) {
-			throw new HttpError(400, "Game is over, cannot withdraw bets.");
-		}
-		if (!(this.phase instanceof BettingPhase)) {
-			throw new HttpError(400, "Cannot withdraw bets during the question phase.");
-		}
-		this.phase.withdrawBet(playerId, target);
-		
-		this.updates.next();
-	}
-	
 	public endPhase(requester: PrivateId): void {
 		if (this.isGameOver()) {
 			throw new HttpError(400, "Game is over, cannot end phase.");

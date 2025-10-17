@@ -9,7 +9,8 @@ export const SUBMIT_BET_PATH = "/submitbet";
 
 
 // During the betting phase, submit a bet for the given player on the given
-// target.
+// target. If the player already has a bet on this target, it will be replaced.
+// If the wager is 0, then any existing bet on this target will be removed.
 export const SubmitBetRequestSchema = strictObject({
 	gameId: GameIdSchema,
 	requester: PrivateIdSchema,

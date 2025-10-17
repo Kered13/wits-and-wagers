@@ -15,10 +15,10 @@ export class ChipValidator {
 	
 	public validate(control: AbstractControl): ValidationErrors | null {
 		const value = parseIntSafe(control.value);
-		if (!value) {
+		if (value === undefined) {
 			return { "notAnInteger": true };
 		} else if (value < 0) {
-			return { "mustBePositive": true };
+			return { "mustBeNonNegative": true };
 		} else if (value > this.availableChips()) {
 			return { "insufficientChips": true };
 		}

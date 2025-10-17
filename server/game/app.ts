@@ -13,7 +13,6 @@ import { JOIN_SPECTATOR_PATH, JoinSpectatorRequestSchema, type JoinSpectatorResp
 import { type GameNotification } from "../../shared/game/notifications.js";
 import { SUBMIT_BET_PATH, SubmitBetRequestSchema } from "../../shared/game/submit-bet.js";
 import { SUBMIT_GUESS_PATH, SubmitGuessRequestSchema } from "../../shared/game/submit-guess.js";
-import { WITHDRAW_BET_PATH, WithdrawBetRequestSchema } from "../../shared/game/withdraw-bet.js";
 import type { PrivateId } from "../../shared/player.js";
 
 
@@ -146,16 +145,6 @@ export class GameApp {
 		res.end();
 	}
 	
-	private withdrawBet(req: Request, res: Response): void {
-		const { gameId, requester, target } = verifyRequest(
-			req.body, WithdrawBetRequestSchema, `Invalid WithdrawBetRequest: ${JSON.stringify(req.body)}`);
-		
-		const { game } = this.getAnyGame(gameId);
-		game.withdrawBet(requester, target);
-		
-		res.end();
-	}
-	
 	private endPhase(req: Request, res: Response): void {
 		const { gameId, requester } = verifyRequest(
 			req.body, EndPhaseRequestSchema, `Invalid WithdrawBetRequest: ${JSON.stringify(req.body)}`);
@@ -198,7 +187,6 @@ export class GameApp {
 			.post(JOIN_SPECTATOR_PATH, (req, res) => this.joinGame(req, res))
 			.post(SUBMIT_GUESS_PATH, (req, res) => this.submitGuess(req, res))
 			.post(SUBMIT_BET_PATH, (req, res) => this.submitBet(req, res))
-			.post(WITHDRAW_BET_PATH, (req, res) => this.withdrawBet(req, res))
 			.post(END_PHASE_PATH, (req, res) => this.endPhase(req, res))
 			.ws(SUBSCRIBE_PATH, ws => this.subscribe(ws));
 	}
