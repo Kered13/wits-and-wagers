@@ -27,6 +27,12 @@ export class ChipValidator {
 }
 
 
+export type WagerDialogData = {
+	availableChips: number;
+	existingWager?: number;
+};
+
+
 @Component({
 	selector: "app-wager-dialog",
 	imports: [
@@ -44,10 +50,16 @@ export class WagerDialog {
 	wager: string = ""
 	
 	constructor(
-		private readonly dialogRef: MatDialogRef<WagerDialog>,
-		@Inject(MAT_DIALOG_DATA) readonly availableChips: number) {}
+			private readonly dialogRef: MatDialogRef<WagerDialog>,
+			@Inject(MAT_DIALOG_DATA) readonly data: WagerDialogData) {
+		dialogRef.updateSize("355px", "235px");
+	}
 	
 	getWager(): number | undefined {
 		return parseIntSafe(this.wager);
+	}
+	
+	getAvailableChips(): number {
+		return this.data.availableChips + (this.data.existingWager ?? 0);
 	}
 }

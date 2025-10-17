@@ -296,12 +296,19 @@ export class GameComponent implements OnDestroy {
 	}
 	
 	public onWagerBoxClick(target: BetTarget): void {
+		const phase = this.game().phase;
+		if (!this.isBettingPhase(phase)) {
+			return;
+		}
+		// TODO: This does not handle normalized bets.
+		const existingBet = phase.bets.find(bet => bet.player === this.thisParticipant().publicId && bet.target === target);
 		// TODO: Close dialog if timer runs out.
 		this.dialog
 			.open(WagerDialog, { 
-				width: "280px",
-				height: "235px",
-				data: this.availableChips(),
+				data: {
+					availableChips: this.availableChips(),
+					existingWager: existingBet ? existingBet.wager : undefined,
+				},
 			})
 			.afterClosed()
 			.subscribe(wager => {
