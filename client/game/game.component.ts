@@ -117,6 +117,7 @@ export class GameComponent implements OnDestroy {
 	private readonly subs: Subscription[] = [];
 	private readonly instanceSub: Subscription;
 	private intermissionDialog: MatDialogRef<RoundEndDialogComponent> | undefined = undefined;
+	private wagerDialog: MatDialogRef<WagerDialog> | undefined = undefined;
 	
 	readonly game: Signal<GameState>;
 	readonly tempGameString: Signal<string>;
@@ -230,11 +231,14 @@ export class GameComponent implements OnDestroy {
 				},
 				disableClose: true,
 			});
-		} else {
-			if (this.intermissionDialog) {
-				this.intermissionDialog.close();
-				this.intermissionDialog = undefined;
-			}
+		} else if (this.intermissionDialog) {
+			this.intermissionDialog.close();
+			this.intermissionDialog = undefined;
+		}
+		
+		if (!this.isBettingPhase(state.phase) && this.wagerDialog) {
+			this.wagerDialog.close();
+			this.wagerDialog = undefined;
 		}
 	}
 	
@@ -261,6 +265,15 @@ export class GameComponent implements OnDestroy {
 		service.release();
 		this.subs.forEach(sub => sub.unsubscribe());
 		this.subs.length = 0;
+		
+		if (this.intermissionDialog) {
+			this.intermissionDialog.close();
+			this.intermissionDialog = undefined;
+		}
+		if (this.wagerDialog) {
+			this.wagerDialog.close();
+			this.wagerDialog = undefined;
+		}
 	}
 	
 	public ngOnDestroy(): void {
@@ -302,17 +315,14 @@ export class GameComponent implements OnDestroy {
 		}
 		// TODO: This does not handle normalized bets.
 		const existingBet = phase.bets.find(bet => bet.player === this.thisParticipant().publicId && bet.target === target);
-		// TODO: Close dialog if timer runs out.
-		this.dialog
+		this.wagerDialog = this.dialog
 			.open(WagerDialog, { 
 				data: {
 					availableChips: this.availableChips(),
 					existingWager: existingBet ? existingBet.wager : undefined,
 				},
-			})
-			.afterClosed()
-			.subscribe(wager => {
-				// TODO: Target is incorrect.
+			});
+		this.wagerDialog.afterClosed().subscribe(wager => {
 				if (wager !== undefined) {
 					this.gameService().get().submitBet(target as BetTarget, wager).subscribe();
 				}
