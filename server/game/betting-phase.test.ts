@@ -216,10 +216,10 @@ describe("BettingPhase", () => {
 			phase: "betting",
 			question: "What is the question?",
 			guesses: [
-				{ player: "public-Alice", guess: 42 },
-				{ player: "public-Bob", guess: 13 },
-				{ player: "public-Charlie", guess: 7 },
-				{ player: "public-Derek", guess: 60 }
+				{ player: "public-Alice", target: 4, guess: 42 },
+				{ player: "public-Bob", target: 2, guess: 13 },
+				{ player: "public-Charlie", target: 1, guess: 7 },
+				{ player: "public-Derek", target: 5, guess: 60 }
 			],
 			bets: [
 				{ player: "public-Alice", target: "AllTooHigh", wager: 37 },
@@ -253,7 +253,7 @@ describe("BettingPhase", () => {
 			phase: "betting",
 			question: "What is the question?",
 			guesses: [
-				{ player: "public-Alice", guess: 42 },
+				{ player: "public-Alice", target: 3, guess: 42 },
 			],
 			bets: [],
 			roundDuration: 60_000,

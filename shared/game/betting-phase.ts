@@ -3,20 +3,7 @@ import { array, integer, literal, nonEmpty, number, optional, pipe, strictObject
 import { PublicIdSchema } from "../player.js";
 
 
-// Guesses that were submitted during the QuestionPhase.
-export const GuessSchema = strictObject({
-	player: PublicIdSchema,
-	guess: pipe(number(), integer()),
-});
-export type Guess = InferOutput<typeof GuessSchema>;
-
-
-// Possible bets that can be placed.
-export const BetTargetSchema = union([
-	literal("AllTooHigh"),
-	literal("Red"),
-	literal("Black"),
-	literal(0),
+const GuessTargetSchema = union([literal(0),
 	literal(1),
 	literal(2),
 	literal(3),
@@ -24,7 +11,26 @@ export const BetTargetSchema = union([
 	literal(5),
 	literal(6),
 ]);
+export type GuessTarget = InferOutput<typeof GuessTargetSchema>;
+
+
+// Possible bets that can be placed.
+export const BetTargetSchema = union([
+	literal("AllTooHigh"),
+	literal("Red"),
+	literal("Black"),
+	GuessTargetSchema,
+]);
 export type BetTarget = InferOutput<typeof BetTargetSchema>;
+
+
+// Guesses that were submitted during the QuestionPhase.
+export const GuessSchema = strictObject({
+	player: PublicIdSchema,
+	target: BetTargetSchema,
+	guess: pipe(number(), integer()),
+});
+export type Guess = InferOutput<typeof GuessSchema>;
 
 
 // A single bet placed during the BettingPhase.

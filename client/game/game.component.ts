@@ -343,6 +343,21 @@ export class GameComponent implements OnDestroy {
 			}));
 	}
 	
+	getGuessForTarget(target: BetTarget): { value: number; color: string } | undefined {
+		const game = this.game();
+		const phase = game.phase;
+		if (!this.isBettingPhase(phase)) {
+			return undefined;
+		}
+		
+		return phase.guesses
+			.filter(guess => guess.target === target)
+			.map(guess => ({
+				value: guess.guess,
+				color: this.colorForPlayer(game, guess.player),
+			}))[0];
+	}
+	
 	colorForPlayer(game: GameState, publicId: PublicId): string {
 		return game.players.find(player => player.publicId === publicId)!.color;
 	}

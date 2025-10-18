@@ -4,7 +4,7 @@ import { type Phase } from "./phase.js";
 import { Participant, Spectator, type Player } from "../player/player.js";
 import { type PlayerManager } from "../player/player-manager.js";
 import { HttpError } from "../utils/httperror.js";
-import { type Bet, type BetTarget, type BettingPhaseState, type Guess as GuessJson } from "../../shared/game/betting-phase.js";
+import { type Bet, type BetTarget, type BettingPhaseState, type Guess as GuessJson, type GuessTarget } from "../../shared/game/betting-phase.js";
 import { type PrivateId, type PublicId } from "../../shared/player.js";
 import { type BettingConclusion } from "../../shared/game/intermission-phase.js";
 
@@ -48,38 +48,23 @@ export class BettingPhase implements Phase {
 			private readonly round: number,
 			guesses: Map<Player, number>,
 			private readonly options: BettingPhaseOptions) {
-		// Payouts, by number of players in the game.
-		const payoutMultipliers = [
-			[],  // 0 guesses should never happen.
-			[2],
-			[3, 3],
-			[3, 2, 3],
-			[4, 3, 3, 4],
-			[4, 3, 2, 3, 4],
-			[5, 4, 3, 3, 4, 5],
-			[5, 4, 3, 2, 3, 4, 5]
-		][guesses.size]!;
-		
-		// Colors assigned to each guess, by number of players in the game.
-		const targetColors = [
-			[],
-			[N],
-			[R, B],
-			[R, N, B],
-			[R, R, B, B],
-			[R, R, N, B, B],
-			[R, R, R, B, B, B],
-			[R, R, R, N, B, B, B]
-		][guesses.size]!;
+		// Payouts for each target.
+		const payoutMultipliers = [5, 4, 3, 2, 3, 4, 5];
+		// Colors assigned to each target.
+		const targetColors = [R, R, R, N, B, B, B];
 		
 		this.guesses = Array.from(guesses)
 			.sort((first, second) => first[1] - second[1])
-			.map(([player, guess], i): Guess => ({
-				player: player.publicId,
-				guess: guess,
-				payout: payoutMultipliers[i]!,
-				color: targetColors[i]!
-			}));
+			.map(([player, guess], i): Guess => {
+				const target = BettingPhase.guessToTarget(guesses.size, i);
+				return {
+					player: player.publicId,
+					target: target,
+					guess: guess,
+					payout: payoutMultipliers[target]!,
+					color: targetColors[target]!,
+				};
+			});
 		
 		if (options.bettingPhaseDuration) {
 			// Add a small fudge factor to the round duration. This is just to
@@ -90,7 +75,7 @@ export class BettingPhase implements Phase {
 		}
 	}
 	
-	public targetToGuess(target: BetTarget): Guess | undefined {
+	private targetToGuess(target: GuessTarget): Guess | undefined {
 		const U = undefined;
 		const guessMap = [
 			[U, U, U, U, U, U, U],
@@ -103,10 +88,6 @@ export class BettingPhase implements Phase {
 			[0, 1, 2, 3, 4, 5, 6],
 		];
 		
-		if (typeof(target) !== "number") {
-			return undefined;
-		}
-		
 		const guessIdx = guessMap[this.guesses.length]![target];
 		if (guessIdx === undefined) {
 			return undefined;
@@ -114,8 +95,8 @@ export class BettingPhase implements Phase {
 		return this.guesses[guessIdx];
 	}
 	
-	public guessToTarget(guessIdx: number): BetTarget {
-		const targetMap: BetTarget[][] = [
+	private static guessToTarget(numPlayers: number, guessIdx: number): GuessTarget {
+		const targetMap: GuessTarget[][] = [
 			[                   ],
 			[         3         ],
 			[      2,    4      ],
@@ -125,7 +106,11 @@ export class BettingPhase implements Phase {
 			[0, 1, 2,    4, 5, 6],
 			[0, 1, 2, 3, 4, 5, 6],
 		];
-		return targetMap[this.guesses.length]![guessIdx]!;
+		return targetMap[numPlayers]![guessIdx]!;
+	}
+	
+	private guessToTarget(guessIdx: number): GuessTarget {
+		return BettingPhase.guessToTarget(this.guesses.length, guessIdx);
 	}
 	
 	public submitBet(playerId: PrivateId, target: BetTarget, wager: number): void {
@@ -228,6 +213,7 @@ export class BettingPhase implements Phase {
 			question: this.question,
 			guesses: this.guesses.map(guess => ({
 				player: guess.player,
+				target: guess.target,
 				guess: guess.guess
 			})),
 			bets: this.bets,
