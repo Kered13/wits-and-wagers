@@ -21,7 +21,7 @@ import { RoundEndDialogComponent } from "../round-end-dialog/round-end-dialog.co
 import { GameRoute, TypedRouteFor } from "../routes/routes.js";
 import { RoutingService } from "../routes/routing.service.js";
 import { RefCounted } from "../utils/refcounted.js";
-import { PrivatePlayer } from "../../shared/player.js";
+import { PrivatePlayer, PublicId } from "../../shared/player.js";
 import { BetTarget, BettingPhaseState } from "../../shared/game/betting-phase.js";
 import { GameOverPhaseState, GamePlayer, GameState } from "../../shared/game/game.js";
 import { QuestionPhaseState } from "../../shared/game/question-phase.js";
@@ -313,7 +313,6 @@ export class GameComponent implements OnDestroy {
 		if (!this.isBettingPhase(phase)) {
 			return;
 		}
-		// TODO: This does not handle normalized bets.
 		const existingBet = phase.bets.find(bet => bet.player === this.thisParticipant().publicId && bet.target === target);
 		this.wagerDialog = this.dialog
 			.open(WagerDialog, { 
@@ -329,8 +328,27 @@ export class GameComponent implements OnDestroy {
 			});
 	}
 	
+	getBetsOnTarget(target: BetTarget): { value: number; color: string }[] {
+		const game = this.game();
+		const phase = game.phase;
+		if (!this.isBettingPhase(phase)) {
+			return [];
+		}
+		
+		return phase.bets
+			.filter(bet => bet.target === target)
+			.map(bet => ({
+				value: bet.wager,
+				color: this.colorForPlayer(game, bet.player),
+			}));
+	}
+	
+	colorForPlayer(game: GameState, publicId: PublicId): string {
+		return game.players.find(player => player.publicId === publicId)!.color;
+	}
+	
 	// TODO: Temporary
-	public testGuess(): { value: number; color: string } {
+	testGuess(): { value: number; color: string } {
 		return {
 			value: 42,
 			color: "gold",
@@ -338,7 +356,7 @@ export class GameComponent implements OnDestroy {
 	}
 	
 	// TODO: Temporary
-	public testBets(): { value: number; color: string }[] {
+	testBets(): { value: number; color: string }[] {
 		return [
 			{ value: 1, color: RED },
 			{ value: 5, color: BLACK },

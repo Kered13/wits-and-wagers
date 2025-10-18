@@ -6,58 +6,64 @@
 		color="var(--green-space)"
 		[disabled]="!isBettingPhase(phase)"
 		(onClick)="onWagerBoxClick('AllTooHigh')"
-		[bets]="testBets()" />
+		[bets]="getBetsOnTarget('AllTooHigh')" />
 	<betting-box
 		payoff="5"
 		color="var(--red-space)"
 		[disabled]="!isBettingPhase(phase)"
-		(onClick)="onWagerBoxClick(0)" />
+		(onClick)="onWagerBoxClick(0)"
+		[bets]="getBetsOnTarget(0)" />
 	<betting-box
 		payoff="4"
 		color="var(--red-space)"
 		[disabled]="!isBettingPhase(phase)"
-		(onClick)="onWagerBoxClick(1)" />
+		(onClick)="onWagerBoxClick(1)"
+		[bets]="getBetsOnTarget(1)" />
 	<betting-box
 		payoff="3"
 		color="var(--red-space)"
 		[disabled]="!isBettingPhase(phase)"
-		(onClick)="onWagerBoxClick(2)" />
+		(onClick)="onWagerBoxClick(2)"
+		[bets]="getBetsOnTarget(2)" />
 	<betting-box
 		payoff="2"
 		color="var(--green-space)"
 		[disabled]="!isBettingPhase(phase)"
 		(onClick)="onWagerBoxClick(3)"
 		[guess]="testGuess()"
-		[bets]="testBets()" />
+		[bets]="getBetsOnTarget(3)" />
 	<betting-box
 		payoff="3"
 		color="var(--black-space)"
 		[disabled]="!isBettingPhase(phase)"
 		(onClick)="onWagerBoxClick(4)"
-		[bets]="testBets()" />
+		[bets]="getBetsOnTarget(4)" />
 	<betting-box
 		payoff="4"
 		color="var(--black-space)"
 		[disabled]="!isBettingPhase(phase)"
-		(onClick)="onWagerBoxClick(5)" />
+		(onClick)="onWagerBoxClick(5)"
+		[bets]="getBetsOnTarget(5)" />
 	<betting-box
 		payoff="5"
 		color="var(--black-space)"
 		[disabled]="!isBettingPhase(phase)"
-		(onClick)="onWagerBoxClick(6)" />
+		(onClick)="onWagerBoxClick(6)"
+		[bets]="getBetsOnTarget(6)" />
 	<color-wager-box
 		class="red-bet"
 		payoff="1"
 		color="var(--red-space)"
 		[disabled]="!isBettingPhase(phase)"
 		(onClick)="onWagerBoxClick('Red')"
-		[bets]="testBets()" />
+		[bets]="getBetsOnTarget('Red')" />
 	<color-wager-box
 		class="black-bet"
 		payoff="1"
 		color="var(--black-space)"
 		[disabled]="!isBettingPhase(phase)"
-		(onClick)="onWagerBoxClick('Black')" />
+		(onClick)="onWagerBoxClick('Black')"
+		[bets]="getBetsOnTarget('Black')" />
 </div>
 <div style="display: flex; justify-content: center">
 	<mat-card style="max-width: 400px;">
