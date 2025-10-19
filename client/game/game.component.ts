@@ -231,14 +231,12 @@ export class GameComponent implements OnDestroy {
 				},
 				disableClose: true,
 			});
-		} else if (this.intermissionDialog) {
-			this.intermissionDialog.close();
-			this.intermissionDialog = undefined;
+		} else {
+			this.closeIntermissionDialog();
 		}
 		
-		if (!this.isBettingPhase(state.phase) && this.wagerDialog) {
-			this.wagerDialog.close();
-			this.wagerDialog = undefined;
+		if (!this.isBettingPhase(state.phase)) {
+			this.closeWagerDialog();
 		}
 	}
 	
@@ -262,14 +260,21 @@ export class GameComponent implements OnDestroy {
 	}
 	
 	private closeGameService(service: RefCounted<GameInstanceService>): void {
+		this.closeIntermissionDialog();
+		this.closeWagerDialog();
 		service.release();
 		this.subs.forEach(sub => sub.unsubscribe());
 		this.subs.length = 0;
-		
+	}
+	
+	private closeIntermissionDialog(): void {
 		if (this.intermissionDialog) {
 			this.intermissionDialog.close();
 			this.intermissionDialog = undefined;
 		}
+	}
+	
+	private closeWagerDialog(): void {
 		if (this.wagerDialog) {
 			this.wagerDialog.close();
 			this.wagerDialog = undefined;
