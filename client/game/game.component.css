@@ -26,6 +26,19 @@
 	background: var(--green-space);
 }
 
+.all-too-high-text {
+	writing-mode: sideways-lr;
+	color: white;
+	font-size: 22px;
+	user-select: none;
+	
+	text-shadow:
+		1px 1px black,
+		1px -1px black,
+		-1px 1px black,
+		-1px -1px black;
+}
+
 .red-bet {
 	grid-column: 2 / 5;
 }
@@ -42,4 +55,25 @@
 	white-space: preserve nowrap;
 	text-align: start;
 	overflow-x: scroll;
+}
+
+.payoff {
+	font-size: 18pt;
+	color: white;
+	white-space: preserve;
+	user-select: none;
+	
+	display: flex;
+	align-items: center;
+	
+	text-shadow:
+		1px 1px black,
+		1px -1px black,
+		-1px 1px black,
+		-1px -1px black;
+}
+
+.payoff-to {
+	font-size: 14pt;
+	font-variant: petite-caps;
 }

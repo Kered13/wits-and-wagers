@@ -2,74 +2,87 @@
 
 <div class="board">
 	<all-too-high-box
-		payoff="6"
-		color="var(--green-space)"
-		[disabled]="!isBettingPhase(phase)"
-		(onClick)="onWagerBoxClick('AllTooHigh')"
-		[bets]="getBetsOnTarget('AllTooHigh')" />
+			color="var(--green-space)"
+			[disabled]="!isBettingPhase(phase)"
+			(onClick)="onWagerBoxClick('AllTooHigh')"
+			[bets]="getBetsOnTarget('AllTooHigh')">
+		<wager-box-bg-text class="all-too-high-text">
+			ALL GUESSES TOO HIGH
+		</wager-box-bg-text>
+		<wager-box-bottom-text class="payoff">6 <span class="payoff-to">to</span> 1</wager-box-bottom-text>
+	</all-too-high-box>
 	<betting-box
-		payoff="5"
-		color="var(--red-space)"
-		[disabled]="!isBettingPhase(phase)"
-		(onClick)="onWagerBoxClick(0)"
-		[guess]="getGuessForTarget(0)"
-		[bets]="getBetsOnTarget(0)" />
+			color="var(--red-space)"
+			[disabled]="!isBettingPhase(phase)"
+			(onClick)="onWagerBoxClick(0)"
+			[guess]="getGuessForTarget(0)"
+			[bets]="getBetsOnTarget(0)">
+		<wager-box-bottom-text class="payoff">5 <span class="payoff-to">to</span> 1</wager-box-bottom-text>
+	</betting-box>
 	<betting-box
-		payoff="4"
-		color="var(--red-space)"
-		[disabled]="!isBettingPhase(phase)"
-		(onClick)="onWagerBoxClick(1)"
-		[guess]="getGuessForTarget(1)"
-		[bets]="getBetsOnTarget(1)" />
+			color="var(--red-space)"
+			[disabled]="!isBettingPhase(phase)"
+			(onClick)="onWagerBoxClick(1)"
+			[guess]="getGuessForTarget(1)"
+			[bets]="getBetsOnTarget(1)">
+		<wager-box-bottom-text class="payoff">5 <span class="payoff-to">to</span> 1</wager-box-bottom-text>
+	</betting-box>
 	<betting-box
-		payoff="3"
-		color="var(--red-space)"
-		[disabled]="!isBettingPhase(phase)"
-		(onClick)="onWagerBoxClick(2)"
-		[guess]="getGuessForTarget(2)"
-		[bets]="getBetsOnTarget(2)" />
+			color="var(--red-space)"
+			[disabled]="!isBettingPhase(phase)"
+			(onClick)="onWagerBoxClick(2)"
+			[guess]="getGuessForTarget(2)"
+			[bets]="getBetsOnTarget(2)">
+		<wager-box-bottom-text class="payoff">5 <span class="payoff-to">to</span> 1</wager-box-bottom-text>
+	</betting-box>
 	<betting-box
-		payoff="2"
-		color="var(--green-space)"
-		[disabled]="!isBettingPhase(phase)"
-		(onClick)="onWagerBoxClick(3)"
-		[guess]="getGuessForTarget(3)"
-		[bets]="getBetsOnTarget(3)" />
+			color="var(--green-space)"
+			[disabled]="!isBettingPhase(phase)"
+			(onClick)="onWagerBoxClick(3)"
+			[guess]="getGuessForTarget(3)"
+			[bets]="getBetsOnTarget(3)">
+		<wager-box-bottom-text class="payoff">5 <span class="payoff-to">to</span> 1</wager-box-bottom-text>
+	</betting-box>
 	<betting-box
-		payoff="3"
-		color="var(--black-space)"
-		[disabled]="!isBettingPhase(phase)"
-		(onClick)="onWagerBoxClick(4)"
-		[guess]="getGuessForTarget(4)"
-		[bets]="getBetsOnTarget(4)" />
+			color="var(--black-space)"
+			[disabled]="!isBettingPhase(phase)"
+			(onClick)="onWagerBoxClick(4)"
+			[guess]="getGuessForTarget(4)"
+			[bets]="getBetsOnTarget(4)">
+		<wager-box-bottom-text class="payoff">5 <span class="payoff-to">to</span> 1</wager-box-bottom-text>
+	</betting-box>
 	<betting-box
-		payoff="4"
-		color="var(--black-space)"
-		[disabled]="!isBettingPhase(phase)"
-		(onClick)="onWagerBoxClick(5)"
-		[guess]="getGuessForTarget(5)"
-		[bets]="getBetsOnTarget(5)" />
+			color="var(--black-space)"
+			[disabled]="!isBettingPhase(phase)"
+			(onClick)="onWagerBoxClick(5)"
+			[guess]="getGuessForTarget(5)"
+			[bets]="getBetsOnTarget(5)">
+		<wager-box-bottom-text class="payoff">5 <span class="payoff-to">to</span> 1</wager-box-bottom-text>
+	</betting-box>
 	<betting-box
-		payoff="5"
-		color="var(--black-space)"
-		[disabled]="!isBettingPhase(phase)"
-		(onClick)="onWagerBoxClick(6)"
-		[guess]="getGuessForTarget(6)"
-		[bets]="getBetsOnTarget(6)" />
+			color="var(--black-space)"
+			[disabled]="!isBettingPhase(phase)"
+			(onClick)="onWagerBoxClick(6)"
+			[guess]="getGuessForTarget(6)"
+			[bets]="getBetsOnTarget(6)">
+		<wager-box-bottom-text class="payoff">5 <span class="payoff-to">to</span> 1</wager-box-bottom-text>
+	</betting-box>
 	<color-wager-box
-		class="red-bet"
-		payoff="1"
-		color="var(--red-space)"
-		[disabled]="!isBettingPhase(phase)"
-		(onClick)="onWagerBoxClick('Red')"
-		[bets]="getBetsOnTarget('Red')" />
+			class="red-bet"
+			color="var(--red-space)"
+			[disabled]="!isBettingPhase(phase)"
+			(onClick)="onWagerBoxClick('Red')"
+			[bets]="getBetsOnTarget('Red')">
+		<wager-box-bg-text class="payoff">RED 5 <span class="payoff-to">to</span> 1</wager-box-bg-text>
+	</color-wager-box>
 	<color-wager-box
-		class="black-bet"
-		payoff="1"
-		color="var(--black-space)"
-		[disabled]="!isBettingPhase(phase)"
-		(onClick)="onWagerBoxClick('Black')"
-		[bets]="getBetsOnTarget('Black')" />
+			class="black-bet"
+			color="var(--black-space)"
+			[disabled]="!isBettingPhase(phase)"
+			(onClick)="onWagerBoxClick('Black')"
+			[bets]="getBetsOnTarget('Black')">
+		<wager-box-bg-text class="payoff">BLACK 5 <span class="payoff-to">to</span> 1</wager-box-bg-text>
+	</color-wager-box>
 </div>
 <div style="display: flex; justify-content: center">
 	<mat-card style="max-width: 400px;">

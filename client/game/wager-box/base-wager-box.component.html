@@ -3,6 +3,7 @@
 	[style.--background-color]="color()"
 	[class.enabled]="!isDisabled()"
 	(click)="click()">
+	<ng-content select="wager-box-bg-text" />
 	@if (guessVal !== undefined) {
 		<div class="guess-card" [style.border-color]="guessVal.color">
 			<span class="guess-value" [fittext]="true" [modelToWatch]="guessVal">
@@ -13,5 +14,7 @@
 	@for (bet of bets(); track bet.color) {
 		<betting-chip [value]="bet.value" [color]="bet.color" [style.inset]="chipPositions()[$index]" />
 	}
-	<span class="payoff">{{ payoff() }} <span class="payoff-to">to</span> 1</span>
+	<span class="bottom-text">
+		<ng-content select="wager-box-bottom-text" />
+	</span>
 </div>

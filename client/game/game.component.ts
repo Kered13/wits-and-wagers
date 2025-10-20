@@ -13,6 +13,7 @@ import { combineLatest, concat, delay, map, type Observable, of, pairwise, start
 import { AllTooHighBox } from "./wager-box/all-too-high-box.component.js";
 import { BettingBox } from "./wager-box/wager-box.component.js";
 import { ColorWagerBox } from "./wager-box/color-wager-box.component.js";
+import { WagerBoxBgText, WagerBoxBottomText } from "./wager-box/wager-box-content.component.js";
 import { WagerDialog } from "./wager-dialog/wager-dialog.component.js";
 import { GameInstanceService, GameService } from "./game.service.js";
 import { GameEndDialogComponent } from "../game-end-dialog/game-end-dialog.component.js";
@@ -107,6 +108,8 @@ type PhaseState = QuestionPhaseState
 		AllTooHighBox,
 		BettingBox,
 		ColorWagerBox,
+		WagerBoxBgText,
+		WagerBoxBottomText,
 	],
 	templateUrl: "./game.component.html",
 	styleUrl: "./game.component.css",

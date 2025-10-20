@@ -1,4 +1,4 @@
-import { Directive, HostListener, input, output } from "@angular/core";
+import { Component, Directive, HostListener, input, output } from "@angular/core";
 
 
 type Guess = {
@@ -18,7 +18,6 @@ export abstract class BaseWagerBox {
 	readonly color = input.required<string>();
 	readonly guess = input<Guess | undefined>();
 	readonly bets = input<Bet[]>([]);
-	readonly payoff = input.required<string>();
 	readonly disabled = input<boolean>(false);
 	
 	readonly onClick = output<void>();

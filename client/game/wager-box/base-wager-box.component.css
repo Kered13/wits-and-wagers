@@ -4,13 +4,17 @@
 	height: calc(100% - 10px);
 	z-index: 0;
 	
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	
 	border: 5px solid white;
 	border-radius: 9px;
 	outline: 3px solid black;
 	margin: 5px;
 	
 	--bg-color: var(--background-color);
-	background-image: linear-gradient(160deg, lch(from var(--bg-color) calc(l + 15) c h), var(--bg-color));
+	background-image: linear-gradient(160deg, lch(from var(--bg-color) calc(l + 10) c h), lch(from var(--bg-color) calc(l - 10) c h));
 }
 
 .wager-box.enabled {
@@ -40,7 +44,7 @@
 	user-select: none;
 }
 
-.payoff {
+.bottom-text {
 	position: absolute;
 	bottom: 1%;
 	left: 0%;
@@ -48,17 +52,7 @@
 	vertical-align: middle;
 	z-index: -1;
 	
-	font-size: 18pt;
-	color: white;
-	white-space: preserve;
-	user-select: none;
-	
 	display: flex;
 	align-items: center;
 	justify-content: center;
-}
-
-.payoff-to {
-	font-size: 14pt;
-	font-variant: petite-caps;
 }
