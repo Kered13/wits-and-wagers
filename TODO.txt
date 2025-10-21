@@ -1,4 +1,5 @@
 * Implement game.
+  * Add source and date to questions.
   * Allow withdrawing guesses? (Currently, new guesses override old.)
   * Garbage collect inactive games.
   * Support mixing question sets?

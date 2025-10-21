@@ -1,0 +1,22 @@
+.content {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
+.question {
+	flex: 0 0 auto;
+	font-size: 20px;
+	color: black;
+}
+
+.source {
+	flex: 1 0 auto;
+	font-size: 14px;
+	color: gray
+}
+
+.guess {
+	flex: 0 0 auto;
+	width: 50%;
+}

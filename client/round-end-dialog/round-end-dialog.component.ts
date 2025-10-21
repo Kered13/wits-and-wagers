@@ -13,7 +13,7 @@ import { type PublicId } from "../../shared/player.js";
 	templateUrl: "./round-end-dialog.component.html",
 	styleUrl: "./round-end-dialog.component.css"
 })
-export class RoundEndDialogComponent {
+export class RoundEndDialog {
 	readonly intermission: IntermissionPhaseState;
 	readonly players: GamePlayer[];
 	

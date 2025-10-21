@@ -1,0 +1,21 @@
+<h1 mat-dialog-title>Question:</h1>
+<div mat-dialog-content class="content">
+	<span class="question">{{ data.question }}</span>
+	<span class="source" [style.content-visibility]="data.source ? 'visible' : 'hidden'">
+		Source: {{ data.source || "" }}
+	</span>
+	<mat-form-field class="guess">
+		<input matInput
+			#guessField="ngModel"
+			placeholder="Guess"
+			inputmode="numeric"
+			guessValidator
+			[(ngModel)]="guess" />
+		@if (guessField.hasError("notANumber")) {
+			<mat-error>Guess must be a number.</mat-error>
+		}
+	</mat-form-field>
+</div>
+<div mat-dialog-actions>
+	<button mat-raised-button [mat-dialog-close]="getGuess()!" [disabled]="!guessField.valid">Submit</button>
+</div>

@@ -34,7 +34,7 @@ export type WagerDialogData = {
 
 
 @Component({
-	selector: "app-wager-dialog",
+	selector: "wager-dialog",
 	imports: [
 		ChipValidator,
 		FormsModule,

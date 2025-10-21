@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, Directive, effect, Inject, input, Input, OnDestroy, Signal, viewChild } from "@angular/core";
+import { ChangeDetectionStrategy, Component, computed, Directive, effect, ElementRef, Inject, input, Input, OnDestroy, Signal, viewChild } from "@angular/core";
 import { toSignal } from "@angular/core/rxjs-interop";
 import { AbstractControl, FormsModule, NG_VALIDATORS, NgModel, ValidationErrors, Validator } from "@angular/forms";
 import { MatButton } from "@angular/material/button";
@@ -10,6 +10,7 @@ import { ActivatedRoute } from "@angular/router";
 import { parseIntSafe } from "complete-common";
 import { combineLatest, concat, delay, map, type Observable, of, pairwise, startWith, Subscription, switchMap, take } from "rxjs";
 
+import { GuessDialog } from "./guess-dialog/guess-dialog.component.js";
 import { AllTooHighBox } from "./wager-box/all-too-high-box.component.js";
 import { BettingBox } from "./wager-box/wager-box.component.js";
 import { ColorWagerBox } from "./wager-box/color-wager-box.component.js";
@@ -18,7 +19,7 @@ import { WagerDialog } from "./wager-dialog/wager-dialog.component.js";
 import { GameInstanceService, GameService } from "./game.service.js";
 import { GameEndDialogComponent } from "../game-end-dialog/game-end-dialog.component.js";
 import { GlobalErrorHandler } from "../error-dialog/error-handler.js";
-import { RoundEndDialogComponent } from "../round-end-dialog/round-end-dialog.component.js";
+import { RoundEndDialog } from "../round-end-dialog/round-end-dialog.component.js";
 import { GameRoute, TypedRouteFor } from "../routes/routes.js";
 import { RoutingService } from "../routes/routing.service.js";
 import { RefCounted } from "../utils/refcounted.js";
@@ -119,8 +120,9 @@ export class GameComponent implements OnDestroy {
 	private readonly gameService: Signal<RefCounted<GameInstanceService>>;
 	private readonly subs: Subscription[] = [];
 	private readonly instanceSub: Subscription;
-	private intermissionDialog: MatDialogRef<RoundEndDialogComponent> | undefined = undefined;
+	private guessDialog: MatDialogRef<GuessDialog> | undefined = undefined;
 	private wagerDialog: MatDialogRef<WagerDialog> | undefined = undefined;
+	private intermissionDialog: MatDialogRef<RoundEndDialog> | undefined = undefined;
 	
 	readonly game: Signal<GameState>;
 	readonly tempGameString: Signal<string>;
@@ -139,6 +141,7 @@ export class GameComponent implements OnDestroy {
 			private readonly errorHandler: GlobalErrorHandler,
 			private readonly routing: RoutingService,
 			private readonly dialog: MatDialog,
+			private readonly hostElement: ElementRef,
 			gameService: GameService,
 			titleService: Title,
 			@Inject(ActivatedRoute) route: TypedRouteFor<GameRoute>) {
@@ -166,6 +169,7 @@ export class GameComponent implements OnDestroy {
 				}
 			}
 		});
+		
 		this.availableChips = computed(() => {
 			const player = this.game().players.find(player => player.publicId === this.thisParticipant().publicId) ||
 				this.game().spectators.find(spectator => spectator.publicId === this.thisParticipant().publicId);
@@ -226,8 +230,14 @@ export class GameComponent implements OnDestroy {
 	}
 	
 	private onGameUpdate(state: GameState): void {
+		if (this.isQuestionPhase(state.phase)) {
+			this.openGuessDialog(state.phase.question);
+		} else {
+			this.closeGuessDialog();
+		}
+		
 		if (this.isIntermissionPhase(state.phase)) {
-			this.intermissionDialog = this.dialog.open(RoundEndDialogComponent, {
+			this.intermissionDialog = this.dialog.open(RoundEndDialog, {
 				data: {
 					intermission: state.phase,
 					players: this.game().players
@@ -263,24 +273,70 @@ export class GameComponent implements OnDestroy {
 	}
 	
 	private closeGameService(service: RefCounted<GameInstanceService>): void {
-		this.closeIntermissionDialog();
+		this.closeGuessDialog();
 		this.closeWagerDialog();
+		this.closeIntermissionDialog();
 		service.release();
 		this.subs.forEach(sub => sub.unsubscribe());
 		this.subs.length = 0;
 	}
 	
-	private closeIntermissionDialog(): void {
-		if (this.intermissionDialog) {
-			this.intermissionDialog.close();
-			this.intermissionDialog = undefined;
+	private openGuessDialog(question: string): void {
+		const rect = this.hostElement.nativeElement.querySelector(".board").getBoundingClientRect();
+		const top = rect.top + rect.height / 2 - 300 / 2;
+		console.log(rect);
+		console.log(top);
+		
+		this.guessDialog = this.dialog.open(GuessDialog, {
+			data: { question: question },
+			minHeight: "300px",
+			maxHeight: "450px",
+			width: "600px",
+			disableClose: true,
+			hasBackdrop: false,
+			position: { top: top + "px" },
+		});
+		this.guessDialog.afterClosed().subscribe(guess => {
+			if (guess !== undefined) {
+				this.gameService().get().submitGuess(guess).subscribe();
+			}
+		});
+	}
+	
+	private closeGuessDialog(): void {
+		if (this.guessDialog) {
+			this.guessDialog.close();
+			this.guessDialog = undefined;
 		}
+	}
+	
+	private openWagerDialog(phase: BettingPhaseState, target: BetTarget): void {
+		const existingBet = phase.bets.find(bet => bet.player === this.thisParticipant().publicId && bet.target === target);
+		this.wagerDialog = this.dialog
+			.open(WagerDialog, {
+				data: {
+					availableChips: this.availableChips(),
+					existingWager: existingBet ? existingBet.wager : undefined,
+				},
+			});
+		this.wagerDialog.afterClosed().subscribe(wager => {
+			if (wager !== undefined) {
+				this.gameService().get().submitBet(target as BetTarget, wager).subscribe();
+			}
+		});
 	}
 	
 	private closeWagerDialog(): void {
 		if (this.wagerDialog) {
 			this.wagerDialog.close();
 			this.wagerDialog = undefined;
+		}
+	}
+	
+	private closeIntermissionDialog(): void {
+		if (this.intermissionDialog) {
+			this.intermissionDialog.close();
+			this.intermissionDialog = undefined;
 		}
 	}
 	
@@ -321,19 +377,7 @@ export class GameComponent implements OnDestroy {
 		if (!this.isBettingPhase(phase)) {
 			return;
 		}
-		const existingBet = phase.bets.find(bet => bet.player === this.thisParticipant().publicId && bet.target === target);
-		this.wagerDialog = this.dialog
-			.open(WagerDialog, { 
-				data: {
-					availableChips: this.availableChips(),
-					existingWager: existingBet ? existingBet.wager : undefined,
-				},
-			});
-		this.wagerDialog.afterClosed().subscribe(wager => {
-				if (wager !== undefined) {
-					this.gameService().get().submitBet(target as BetTarget, wager).subscribe();
-				}
-			});
+		this.openWagerDialog(phase, target);
 	}
 	
 	getBetsOnTarget(target: BetTarget): { value: number; color: string }[] {
