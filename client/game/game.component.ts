@@ -4,6 +4,7 @@ import { AbstractControl, FormsModule, NG_VALIDATORS, NgModel, ValidationErrors,
 import { MatButton } from "@angular/material/button";
 import { MatCardModule } from "@angular/material/card";
 import { MatDialog, MatDialogRef } from "@angular/material/dialog";
+import { MatIcon } from "@angular/material/icon";
 import { MatError, MatInputModule } from "@angular/material/input";
 import { Title } from "@angular/platform-browser";
 import { ActivatedRoute } from "@angular/router";
@@ -104,6 +105,7 @@ type PhaseState = QuestionPhaseState
 		MatButton,
 		MatCardModule,
 		MatError,
+		MatIcon,
 		MatInputModule,
 		TargetValidator,
 		AllTooHighBox,
@@ -412,6 +414,11 @@ export class GameComponent implements OnDestroy {
 	
 	colorForPlayer(game: GameState, publicId: PublicId): string {
 		return game.players.find(player => player.publicId === publicId)!.color;
+	}
+	
+	getRound() {
+		const round = this.game().round;
+		return round > 7 ? "Game Over" : ("Round " + round);
 	}
 	
 	// TODO: Temporary

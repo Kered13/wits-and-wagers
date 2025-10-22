@@ -1,6 +1,14 @@
 @let phase = game().phase;
 
 <div class="board">
+	<div class="header">
+		<span class="round">{{ getRound() }}</span>
+		<span class="timer"
+				[style.visibility]="roundTimer() !== undefined ? 'visible' : 'hidden'">
+			<mat-icon class="timer-icon">timer</mat-icon>
+			<span class="timer-text">{{ roundTimer() || "" }}</span>
+		</span>
+	</div>
 	<all-too-high-box
 			color="var(--green-space)"
 			[disabled]="!isBettingPhase(phase)"
@@ -25,7 +33,7 @@
 			(onClick)="onWagerBoxClick(1)"
 			[guess]="getGuessForTarget(1)"
 			[bets]="getBetsOnTarget(1)">
-		<wager-box-bottom-text class="payoff">5 <span class="payoff-to">to</span> 1</wager-box-bottom-text>
+		<wager-box-bottom-text class="payoff">4 <span class="payoff-to">to</span> 1</wager-box-bottom-text>
 	</betting-box>
 	<betting-box
 			color="var(--red-space)"
@@ -33,7 +41,7 @@
 			(onClick)="onWagerBoxClick(2)"
 			[guess]="getGuessForTarget(2)"
 			[bets]="getBetsOnTarget(2)">
-		<wager-box-bottom-text class="payoff">5 <span class="payoff-to">to</span> 1</wager-box-bottom-text>
+		<wager-box-bottom-text class="payoff">3 <span class="payoff-to">to</span> 1</wager-box-bottom-text>
 	</betting-box>
 	<betting-box
 			color="var(--green-space)"
@@ -41,7 +49,7 @@
 			(onClick)="onWagerBoxClick(3)"
 			[guess]="getGuessForTarget(3)"
 			[bets]="getBetsOnTarget(3)">
-		<wager-box-bottom-text class="payoff">5 <span class="payoff-to">to</span> 1</wager-box-bottom-text>
+		<wager-box-bottom-text class="payoff">2 <span class="payoff-to">to</span> 1</wager-box-bottom-text>
 	</betting-box>
 	<betting-box
 			color="var(--black-space)"
@@ -49,7 +57,7 @@
 			(onClick)="onWagerBoxClick(4)"
 			[guess]="getGuessForTarget(4)"
 			[bets]="getBetsOnTarget(4)">
-		<wager-box-bottom-text class="payoff">5 <span class="payoff-to">to</span> 1</wager-box-bottom-text>
+		<wager-box-bottom-text class="payoff">3 <span class="payoff-to">to</span> 1</wager-box-bottom-text>
 	</betting-box>
 	<betting-box
 			color="var(--black-space)"
@@ -57,7 +65,7 @@
 			(onClick)="onWagerBoxClick(5)"
 			[guess]="getGuessForTarget(5)"
 			[bets]="getBetsOnTarget(5)">
-		<wager-box-bottom-text class="payoff">5 <span class="payoff-to">to</span> 1</wager-box-bottom-text>
+		<wager-box-bottom-text class="payoff">4 <span class="payoff-to">to</span> 1</wager-box-bottom-text>
 	</betting-box>
 	<betting-box
 			color="var(--black-space)"
@@ -73,7 +81,7 @@
 			[disabled]="!isBettingPhase(phase)"
 			(onClick)="onWagerBoxClick('Red')"
 			[bets]="getBetsOnTarget('Red')">
-		<wager-box-bg-text class="payoff">RED 5 <span class="payoff-to">to</span> 1</wager-box-bg-text>
+		<wager-box-bg-text class="payoff">RED 1 <span class="payoff-to">to</span> 1</wager-box-bg-text>
 	</color-wager-box>
 	<color-wager-box
 			class="black-bet"
@@ -81,7 +89,7 @@
 			[disabled]="!isBettingPhase(phase)"
 			(onClick)="onWagerBoxClick('Black')"
 			[bets]="getBetsOnTarget('Black')">
-		<wager-box-bg-text class="payoff">BLACK 5 <span class="payoff-to">to</span> 1</wager-box-bg-text>
+		<wager-box-bg-text class="payoff">BLACK 1 <span class="payoff-to">to</span> 1</wager-box-bg-text>
 	</color-wager-box>
 </div>
 <div style="display: flex; justify-content: center">

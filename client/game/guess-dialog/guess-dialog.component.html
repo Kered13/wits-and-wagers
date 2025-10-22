@@ -1,7 +1,7 @@
 <h1 mat-dialog-title>Question:</h1>
 <div mat-dialog-content class="content">
 	<span class="question">{{ data.question }}</span>
-	<span class="source" [style.content-visibility]="data.source ? 'visible' : 'hidden'">
+	<span class="source" [style.visibility]="data.source ? 'visible' : 'hidden'">
 		Source: {{ data.source || "" }}
 	</span>
 	<mat-form-field class="guess">
