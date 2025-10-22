@@ -18,7 +18,7 @@ import { ColorWagerBox } from "./wager-box/color-wager-box.component.js";
 import { WagerBoxBgText, WagerBoxBottomText } from "./wager-box/wager-box-content.component.js";
 import { WagerDialog, WagerDialogData } from "./wager-dialog/wager-dialog.component.js";
 import { GameInstanceService, GameService } from "./game.service.js";
-import { GameEndDialogComponent } from "./game-end-dialog/game-end-dialog.component.js";
+import { GameEndDialog } from "./game-end-dialog/game-end-dialog.component.js";
 import { GlobalErrorHandler } from "../error-dialog/error-handler.js";
 import { RoundEndDialog, RoundEndDialogData } from "./round-end-dialog/round-end-dialog.component.js";
 import { GameRoute, TypedRouteFor } from "../routes/routes.js";
@@ -225,9 +225,7 @@ export class GameComponent implements OnDestroy {
 				},
 				complete: () => {
 					this.dialog.afterAllClosed.pipe(take(1)).subscribe(() => 
-						this.dialog.open<GameEndDialogComponent, GameState>(
-							GameEndDialogComponent,
-							{ data: this.game() }));
+						this.dialog.open<GameEndDialog, GameState>(GameEndDialog, { data: this.game() }));
 				}
 			}),
 			newService.get().onError().subscribe(err => {

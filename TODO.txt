@@ -1,5 +1,4 @@
 * Implement game.
-  * Rename GameEndDialogComponent.
   * Refactor signals in GameComponent that could be functions.
   * Allow withdrawing guesses? (Currently, new guesses override old.)
   * Garbage collect inactive games.

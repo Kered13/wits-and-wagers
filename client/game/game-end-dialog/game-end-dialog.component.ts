@@ -11,7 +11,7 @@ import { GameState } from "../../../shared/game/game.js";
 	templateUrl: "./game-end-dialog.component.html",
 	styleUrl: "./game-end-dialog.component.css"
 })
-export class GameEndDialogComponent {
+export class GameEndDialog {
 	constructor(@Inject(MAT_DIALOG_DATA) readonly game: GameState) {}
 	
 	rankedPlayersStr(): string {
