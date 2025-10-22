@@ -40,13 +40,11 @@ function makeBettingPhase(
 		}): BettingPhase {
 	const guesses = obj.guesses;
 	const spectators = obj.spectators ?? [];
-	const question = obj.question ?? "What is the answer?";
-	const answer = obj.answer ?? 42;
+	const question = { question: obj.question ?? "What is the answer?", answer: obj.answer ?? 7 };
 	const round = obj.round ?? 1;
 	const options = Object.assign({}, bettingPhaseDefaultOptions, obj.options);
 	return new BettingPhase(
 		question,
-		answer,
 		new PlayerManager(guesses.map(([player, guess]) => player)),
 		new PlayerManager(spectators),
 		round,
@@ -56,8 +54,8 @@ function makeBettingPhase(
 
 
 function expectBettingPhaseStateEqual(actual: BettingPhaseState, expected: BettingPhaseState): void {
-	expect(expected.phase).to.equal(actual.phase);
-	expect(expected.question).to.equal(actual.question);
+	expect(expected.phase).to.deep.equal(actual.phase);
+	expect(expected.questionInfo).to.deep.equal(actual.questionInfo);
 	expect(expected.guesses).to.have.deep.members(actual.guesses);
 	expect(expected.bets).to.have.deep.members(actual.bets);
 }
@@ -214,7 +212,9 @@ describe("BettingPhase", () => {
 		
 		const expected: BettingPhaseState = {
 			phase: "betting",
-			question: "What is the question?",
+			questionInfo: {
+				question: "What is the question?",
+			},
 			guesses: [
 				{ player: "public-Alice", target: 4, guess: 42 },
 				{ player: "public-Bob", target: 2, guess: 13 },
@@ -251,7 +251,9 @@ describe("BettingPhase", () => {
 		
 		expect(phase.toJson(alice.privateId)).to.deep.equal({
 			phase: "betting",
-			question: "What is the question?",
+			questionInfo: {
+				question: "What is the question?",
+			},
 			guesses: [
 				{ player: "public-Alice", target: 3, guess: 42 },
 			],

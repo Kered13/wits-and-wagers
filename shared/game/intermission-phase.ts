@@ -1,6 +1,7 @@
-import { array, integer, literal, nonEmpty, number, pipe, record, strictObject, string, variant, type InferOutput } from "valibot";
+import { array, integer, literal,  number, pipe, record, strictObject, variant, type InferOutput } from "valibot";
 
 import { PublicIdSchema } from "../player.js";
+import { QuestionAnswerInfoSchema } from "./question.js";
 
 
 
@@ -23,8 +24,7 @@ export type BettingConclusion = InferOutput<typeof BettingConclusionSchema>;
 // and each player submits a guess.
 export const IntermissionPhaseStateSchema = strictObject({
 	phase: literal("intermission"),
-	question: pipe(string(), nonEmpty()),
-	answer: pipe(number(), integer()),
+	questionInfo: QuestionAnswerInfoSchema,
 	outcome: variant("type", [SkippedBettingPhaseSchema, BettingConclusionSchema])
 });
 export type IntermissionPhaseState = InferOutput<typeof IntermissionPhaseStateSchema>;

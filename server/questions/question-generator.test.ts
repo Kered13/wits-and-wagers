@@ -1,11 +1,11 @@
 import { describe, expect, test } from "vitest";
 
-import { type Question } from "./question.js";
 import { QuestionGenerator } from "./question-generator.js";
 import { HttpError } from "../utils/httperror";
+import { QuestionAnswerInfo } from "../../shared/game/question.js";
 
 
-function makeQuestion(): Question {
+function makeQuestion(): QuestionAnswerInfo {
 	return {
 		question: "Guess a number?",
 		answer: 7

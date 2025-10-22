@@ -4,6 +4,7 @@ import { MatButtonModule } from "@angular/material/button";
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from "@angular/material/dialog";
 import { MatError, MatInputModule } from "@angular/material/input";
 import { parseFloatSafe } from "complete-common";
+import { QuestionInfo } from "../../../shared/game/question";
 
 
 @Directive({
@@ -22,7 +23,7 @@ export class GuessValidator {
 
 
 export type GuessDialogData = {
-	question: string;
+	questionInfo: QuestionInfo;
 	source: string | undefined;
 };
 
@@ -42,14 +43,25 @@ export type GuessDialogData = {
 })
 export class GuessDialog {
 	guess: string = "";
+	question: string;
+	source: string | undefined;
+	date: string | undefined;
+	
 	
 	constructor(
-		private readonly dialogRef: MatDialogRef<GuessDialog>,
-			@Inject(MAT_DIALOG_DATA) readonly data: GuessDialogData) {
+			private readonly dialogRef: MatDialogRef<GuessDialog>,
+			@Inject(MAT_DIALOG_DATA) data: GuessDialogData) {
+		this.question = data.questionInfo.question;
+		this.source = data.questionInfo.source;
+		this.date = data.questionInfo.date;
 		dialogRef.updateSize("600px");
 	}
 	
 	getGuess(): number | undefined {
 		return parseFloatSafe(this.guess);
+	}
+	
+	getSource(): string {
+		return this.source + (this.date ? ` (${this.date})` : "");
 	}
 }

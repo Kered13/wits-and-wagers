@@ -1,4 +1,4 @@
-import { array, integer, literal, nonEmpty, number, pipe, record, strictObject, string, variant, type InferOutput } from "valibot";
+import { array, integer, literal, nonEmpty, number,  pipe, strictObject, string, variant, type InferOutput } from "valibot";
 
 import { BettingPhaseStateSchema } from "./betting-phase.js";
 import { IntermissionPhaseStateSchema } from "./intermission-phase.js";

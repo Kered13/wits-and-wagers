@@ -1,9 +1,11 @@
+import { Subject, type Observable } from "rxjs";
+
 import { type Phase } from "./phase.js";
 import { type Player } from "../player/player.js";
+import { type PlayerManager } from "../player/player-manager.js";
 import { type QuestionPhaseState } from "../../shared/game/question-phase.js";
 import { type PrivateId } from "../../shared/player.js";
-import { Subject, type Observable } from "rxjs";
-import { type PlayerManager } from "../player/player-manager.js";
+import { stripAnswer, type QuestionAnswerInfo } from "../../shared/game/question.js";
 
 
 export type QuestionPhaseOptions = {
@@ -27,7 +29,7 @@ export class QuestionPhase implements Phase {
 	private readonly endTime: number | undefined;
 	
 	constructor(
-			private readonly question: string,
+			private readonly questionInfo: QuestionAnswerInfo,
 			private readonly players: PlayerManager<Player>,
 			private readonly options: QuestionPhaseOptions) {
 		if (options.questionPhaseDuration) {
@@ -62,7 +64,7 @@ export class QuestionPhase implements Phase {
 	public toJson(forPlayer: PrivateId): QuestionPhaseState {
 		return {
 			phase: "question",
-			question: this.question,
+			questionInfo: stripAnswer(this.questionInfo),
 			guesses: Object.fromEntries(
 				this.players.getAll().map(player => {
 					const guess = this.guesses.get(player);

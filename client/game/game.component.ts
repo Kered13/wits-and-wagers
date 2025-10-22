@@ -30,6 +30,7 @@ import { GameOverPhaseState, GamePlayer, GameState } from "../../shared/game/gam
 import { QuestionPhaseState } from "../../shared/game/question-phase.js";
 import { IntermissionPhaseState } from "../../shared/game/intermission-phase.js";
 import { BLACK, GRAY, GREEN, ORANGE, PURPLE, RED, YELLOW } from "../../shared/color.js";
+import { QuestionInfo } from "../../shared/game/question.js";
 
 
 @Directive({
@@ -166,9 +167,11 @@ export class GameComponent implements OnDestroy {
 				round: 0,
 				phase: {
 					phase: "question",
-					question: "",
-					guesses: {}
-				}
+					questionInfo: {
+						question: "",
+					},
+					guesses: {},
+				},
 			}
 		});
 		
@@ -233,7 +236,7 @@ export class GameComponent implements OnDestroy {
 	
 	private onGameUpdate(state: GameState): void {
 		if (this.isQuestionPhase(state.phase)) {
-			this.openGuessDialog(state.phase.question);
+			this.openGuessDialog(state.phase.questionInfo);
 		} else {
 			this.closeGuessDialog();
 		}
@@ -283,14 +286,14 @@ export class GameComponent implements OnDestroy {
 		this.subs.length = 0;
 	}
 	
-	private openGuessDialog(question: string): void {
+	private openGuessDialog(questionInfo: QuestionInfo): void {
 		const rect = this.hostElement.nativeElement.querySelector(".board").getBoundingClientRect();
 		const top = rect.top + rect.height / 2 - 300 / 2;
 		console.log(rect);
 		console.log(top);
 		
 		this.guessDialog = this.dialog.open(GuessDialog, {
-			data: { question: question },
+			data: { questionInfo: questionInfo },
 			minHeight: "300px",
 			maxHeight: "450px",
 			width: "600px",

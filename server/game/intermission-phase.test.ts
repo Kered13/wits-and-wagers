@@ -6,8 +6,7 @@ import { BettingConclusion, SkippedBettingPhase } from "../../shared/game/interm
 
 function makeIntermissionPhase(outcome: SkippedBettingPhase | BettingConclusion, options?: Partial<IntermissionPhaseOptions>): IntermissionPhase {
 	return new IntermissionPhase(
-		"What is the answer?",
-		42,
+		{ question: "What is the answer?", answer: 42 },
 		outcome,
 		Object.assign({}, intermissionPhaseDefaultOptions, options));
 }
@@ -19,8 +18,10 @@ describe("IntermissionPhase", () => {
 		
 		expect(phase.toJson("")).to.deep.equal({
 			phase: "intermission",
-			question: "What is the answer?",
-			answer: 42,
+			questionInfo: {
+				question: "What is the answer?",
+				answer: 42,
+			},
 			outcome: {
 				type: "skipped"
 			}
@@ -40,8 +41,10 @@ describe("IntermissionPhase", () => {
 
 		expect(phase.toJson("")).to.deep.equal({
 			phase: "intermission",
-			question: "What is the answer?",
-			answer: 42,
+			questionInfo: {
+				question: "What is the answer?",
+				answer: 42,
+			},
 			outcome: {
 				type: "conclusion",
 				winners: ["public-Alice"],

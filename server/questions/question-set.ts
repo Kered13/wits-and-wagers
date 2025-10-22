@@ -1,8 +1,8 @@
-import { type Question } from "./question.js";
+import { type QuestionAnswerInfo } from "../../shared/game/question.js";
 
 
 export type QuestionSet = {
 	fileName: string;
 	id: number;
-	questions: Question[];
+	questions: QuestionAnswerInfo[];
 }

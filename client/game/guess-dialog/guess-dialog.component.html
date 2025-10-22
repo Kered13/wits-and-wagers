@@ -1,8 +1,8 @@
 <h1 mat-dialog-title>Question:</h1>
 <div mat-dialog-content class="content">
-	<span class="question">{{ data.question }}</span>
-	<span class="source" [style.visibility]="data.source ? 'visible' : 'hidden'">
-		Source: {{ data.source || "" }}
+	<span class="question">{{ question }}</span>
+	<span class="source" [style.visibility]="source ? 'visible' : 'hidden'">
+		Source: {{ getSource() }}
 	</span>
 	<mat-form-field class="guess">
 		<input matInput

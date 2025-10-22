@@ -72,7 +72,9 @@ describe("Game", () => {
 				round: 1,
 				phase: {
 					phase: "question",
-					question: "Guess a number?",
+					questionInfo: {
+						question: "Guess a number?"
+					},
 					guesses: {
 						"public-Alice": false
 					}
@@ -109,7 +111,9 @@ describe("Game", () => {
 				round: 1,
 				phase: {
 					phase: "question",
-					question: "Guess a number?",
+					questionInfo: {
+						question: "Guess a number?"
+					},
 					guesses: {
 						"public-Alice": 42,
 						"public-Bob": true
@@ -446,7 +450,9 @@ describe("Game", () => {
 			round: 1,
 			phase: {
 				phase: "question",
-				question: "Guess a number?",
+				questionInfo: {
+					question: "Guess a number?"
+				},
 				guesses: {
 					"public-Alice": false
 				}

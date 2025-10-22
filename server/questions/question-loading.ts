@@ -4,12 +4,12 @@ import { opendir, readFile } from "fs/promises";
 import path from "path";
 import * as valibot from "valibot";
 
-import { QuestionSchema, type Question } from "./question.js";
 import { QuestionError, QuestionLoadingError } from "./question-loading-error.js";
+import { QuestionAnswerInfoSchema, type QuestionAnswerInfo } from "../../shared/game/question.js";
 
 
-export async function findQuestionSetsOnFilesystem(dir: string): Promise<Map<string, Question[]>> {
-	const questionSets = new Map<string, Question[]>();
+export async function findQuestionSetsOnFilesystem(dir: string): Promise<Map<string, QuestionAnswerInfo[]>> {
+	const questionSets = new Map<string, QuestionAnswerInfo[]>();
 	for await (const file of await opendir(dir, { recursive: true })) {
 		if (!file.isFile()) {
 			continue;
@@ -39,7 +39,7 @@ export async function findQuestionSetsOnFilesystem(dir: string): Promise<Map<str
 
 
 // Throws QuestionLoadingError if the input file is invalid.
-export async function loadQuestionsFromJson(file: string): Promise<Question[]> {
+export async function loadQuestionsFromJson(file: string): Promise<QuestionAnswerInfo[]> {
 	try {
 		return parseJson(await read(file));
 	} catch (err) {
@@ -52,24 +52,24 @@ export async function loadQuestionsFromJson(file: string): Promise<Question[]> {
 
 
 // Throws QuestionLoadingError if the input file is invalid.
-export async function loadQuestionsFromCsv(file: string): Promise<Question[]> {
+export async function loadQuestionsFromCsv(file: string): Promise<QuestionAnswerInfo[]> {
 	return loadFromCsv(file, ",");
 }
 
 
 // Throws QuestionLoadingError if the input file is invalid.
-export async function loadQuestionsFromTsv(file: string): Promise<Question[]> {
+export async function loadQuestionsFromTsv(file: string): Promise<QuestionAnswerInfo[]> {
 	return loadFromCsv(file, "\t");
 }
 
 
-async function loadFromCsv(file: string, delimiter: string): Promise<Question[]> {
+async function loadFromCsv(file: string, delimiter: string): Promise<QuestionAnswerInfo[]> {
 	try {
 		const questionsOrErrors = parseCsv(await read(file), delimiter);
 		if (questionsOrErrors[0]! instanceof QuestionError) {
 			throw new QuestionLoadingError(file, questionsOrErrors as QuestionError[]);
 		}
-		return questionsOrErrors as Question[];
+		return questionsOrErrors as QuestionAnswerInfo[];
 	} catch (err) {
 		if (err instanceof CsvError) {
 			throw new QuestionLoadingError(file, err);
@@ -85,14 +85,14 @@ async function read(file: string): Promise<string> {
 
 
 // Exported for testing purposes.
-export function parseJson(jsonStr: string): Question[] {
+export function parseJson(jsonStr: string): QuestionAnswerInfo[] {
 	const questions = JSON.parse(jsonStr);
-	return valibot.parse(valibot.array(QuestionSchema), questions);
+	return valibot.parse(valibot.array(QuestionAnswerInfoSchema), questions);
 }
 
 
 // Exported for testing purposes.
-export function parseCsv(csvStr: string, delimiter: string): Question[] | QuestionError[] {
+export function parseCsv(csvStr: string, delimiter: string): QuestionAnswerInfo[] | QuestionError[] {
 	const errors: QuestionError[] = [];
 	
 	// Attempts to parse the given value. If parsing fails, the resulting error
@@ -107,7 +107,7 @@ export function parseCsv(csvStr: string, delimiter: string): Question[] | Questi
 		return valueOrError;
 	};
 	
-	const questions: Partial<Question>[] = parse(
+	const questions: Partial<QuestionAnswerInfo>[] = parse(
 		csvStr,
 		{
 			delimiter: delimiter,
@@ -115,7 +115,7 @@ export function parseCsv(csvStr: string, delimiter: string): Question[] | Questi
 			trim: true,
 			relaxColumnCount: true,
 			relaxQuotes: true,
-			onRecord: (record, context): Partial<Question> => {
+			onRecord: (record, context): Partial<QuestionAnswerInfo> => {
 				// Validate that the question and answer are present and
 				// properly formatted, and that no unexpected data is present.
 				const question = cast(parseQuestion, record[0], context);
@@ -124,17 +124,24 @@ export function parseCsv(csvStr: string, delimiter: string): Question[] | Questi
 					return { question };
 				}
 				const answer = cast(parseAnswer, record[1], context);
-				for (let i = 2; i < context.index; i++) {
+				const source = record[2];
+				const date = record[3];
+				for (let i = 4; i < context.index; i++) {
 					errors.push(new QuestionError(`Unexpected column ${i} with value "${record[i]}".`, context.lines));
 				}
-				return { question, answer };
+				return {
+					question,
+					answer,
+					...(source && { source }),
+					...(date && { date }),
+				};
 			}
 		});
 	
 	if (errors.length > 0) {
 		return errors;
 	}
-	return valibot.parse(valibot.array(QuestionSchema), questions);
+	return valibot.parse(valibot.array(QuestionAnswerInfoSchema), questions);
 }
 
 

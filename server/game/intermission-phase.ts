@@ -2,7 +2,8 @@ import { Subject, type Observable } from "rxjs";
 
 import { type Phase } from "./phase.js";
 import { type PrivateId } from "../../shared/player.js";
-import type { BettingConclusion, IntermissionPhaseState, SkippedBettingPhase } from "../../shared/game/intermission-phase.js";
+import { type BettingConclusion, type IntermissionPhaseState, type SkippedBettingPhase } from "../../shared/game/intermission-phase.js";
+import { type QuestionAnswerInfo } from "../../shared/game/question.js";
 
 
 export type IntermissionPhaseOptions = {
@@ -20,8 +21,7 @@ export class IntermissionPhase implements Phase {
 	private readonly timeout: NodeJS.Timeout;
 	
 	constructor(
-			private readonly question: string,
-			private readonly answer: number,
+			private readonly questionInfo: QuestionAnswerInfo,
 			private readonly outcome: SkippedBettingPhase | BettingConclusion,
 			options: IntermissionPhaseOptions) {
 		this.timeout = setTimeout(() => this.endPhase(), options.intermissionPhaseDuration);
@@ -40,8 +40,7 @@ export class IntermissionPhase implements Phase {
 	toJson(forPlayer: PrivateId): IntermissionPhaseState {
 		return {
 			phase: "intermission",
-			question: this.question,
-			answer: this.answer,
+			questionInfo: this.questionInfo,
 			outcome: this.outcome
 		};
 	}

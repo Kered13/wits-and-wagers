@@ -7,6 +7,7 @@ import { HttpError } from "../utils/httperror.js";
 import { type Bet, type BetTarget, type BettingPhaseState, type Guess as GuessJson, type GuessTarget } from "../../shared/game/betting-phase.js";
 import { type PrivateId, type PublicId } from "../../shared/player.js";
 import { type BettingConclusion } from "../../shared/game/intermission-phase.js";
+import { stripAnswer, type QuestionAnswerInfo } from "../../shared/game/question.js";
 
 
 // Indicates whether each guess is Red or Black, by number of players in
@@ -41,8 +42,7 @@ export class BettingPhase implements Phase {
 	private readonly endTime: number | undefined;
 	
 	constructor(
-			private readonly question: string,
-			private readonly answer: number,
+			private readonly questionInfo: QuestionAnswerInfo,
 			private readonly players: PlayerManager<Player>,
 			private readonly spectators: PlayerManager<Spectator>,
 			private readonly round: number,
@@ -162,7 +162,7 @@ export class BettingPhase implements Phase {
 		
 		let winningGuessIdx = -1;
 		for (const guess of this.guesses) {
-			if (guess.guess > this.answer) {
+			if (guess.guess > this.questionInfo.answer) {
 				break;
 			}
 			winningGuessIdx++;
@@ -210,7 +210,7 @@ export class BettingPhase implements Phase {
 	public toJson(forPlayer: PrivateId): BettingPhaseState {
 		return {
 			phase: "betting",
-			question: this.question,
+			questionInfo: stripAnswer(this.questionInfo),
 			guesses: this.guesses.map(guess => ({
 				player: guess.player,
 				target: guess.target,

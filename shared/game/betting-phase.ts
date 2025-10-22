@@ -1,6 +1,7 @@
 import { array, integer, literal, nonEmpty, number, optional, pipe, strictObject, string, union, type InferOutput } from "valibot";
 
 import { PublicIdSchema } from "../player.js";
+import { QuestionInfoSchema } from "./question.js";
 
 
 const GuessTargetSchema = union([literal(0),
@@ -46,7 +47,7 @@ export type Bet = InferOutput<typeof BetSchema>;
 // were submitted during the QuestionPhase.
 export const BettingPhaseStateSchema = strictObject({
 	phase: literal("betting"),
-	question: pipe(string(), nonEmpty()),
+	questionInfo: QuestionInfoSchema,
 	guesses: array(GuessSchema),
 	bets: array(BetSchema),
 	// Round duration, in milliseconds.

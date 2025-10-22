@@ -3,6 +3,7 @@ import { describe, expect, test, vi } from "vitest";
 import { QuestionPhase, questionPhaseDefaultOptions, QuestionPhaseOptions } from "./question-phase.js";
 import { Player } from "../player/player.js";
 import { PlayerManager } from "../player/player-manager.js";
+import { QuestionAnswerInfo } from "../../shared/game/question.js";
 
 
 function makePlayer(name: string): Player {
@@ -18,11 +19,13 @@ function makePlayer(name: string): Player {
 function makeQuestionPhase(
 		obj: {
 			players: Player[],
-			question?: string,
+			qa?: QuestionAnswerInfo | string,
 			options?: Partial<QuestionPhaseOptions>
 		}): QuestionPhase {
 	const players = new PlayerManager(obj.players);
-	const question = obj.question ?? "What is the answer?";
+	const question = typeof(obj.qa) !== "object" ?
+		{ question: obj.qa ?? "What is the answer?", answer: 7 } :
+		obj.qa;
 	const options = Object.assign({},
 		questionPhaseDefaultOptions,
 		{ endQuestionPhaseWhenAllGuessesSubmitted: false },
@@ -38,13 +41,15 @@ describe("QuestionPhase", () => {
 		const charlie = makePlayer("Charlie");
 		
 		const phase = makeQuestionPhase({
-			question: "What is the answer?",
+			qa: "What is the answer?",
 			players: [alice, bob, charlie]
 		});
 		
 		expect(phase.toJson(alice.privateId)).to.deep.equal({
 			phase: "question",
-			question: "What is the answer?",
+			questionInfo: {
+				question: "What is the answer?",
+			},
 			guesses: {
 				"public-Alice": false,
 				"public-Bob": false,
@@ -53,7 +58,9 @@ describe("QuestionPhase", () => {
 		});
 		expect(phase.toJson(bob.privateId)).to.deep.equal({
 			phase: "question",
-			question: "What is the answer?",
+			questionInfo: {
+				question: "What is the answer?",
+			},
 			guesses: {
 				"public-Alice": false,
 				"public-Bob": false,
@@ -62,7 +69,9 @@ describe("QuestionPhase", () => {
 		});
 		expect(phase.toJson(charlie.privateId)).to.deep.equal({
 			phase: "question",
-			question: "What is the answer?",
+			questionInfo: {
+				question: "What is the answer?",
+			},
 			guesses: {
 				"public-Alice": false,
 				"public-Bob": false,
@@ -74,7 +83,9 @@ describe("QuestionPhase", () => {
 		
 		expect(phase.toJson(alice.privateId)).to.deep.equal({
 			phase: "question",
-			question: "What is the answer?",
+			questionInfo: {
+				question: "What is the answer?",
+			},
 			guesses: {
 				"public-Alice": 42,
 				"public-Bob": false,
@@ -83,7 +94,9 @@ describe("QuestionPhase", () => {
 		});
 		expect(phase.toJson(bob.privateId)).to.deep.equal({
 			phase: "question",
-			question: "What is the answer?",
+			questionInfo: {
+				question: "What is the answer?",
+			},
 			guesses: {
 				"public-Alice": true,
 				"public-Bob": false,
@@ -92,7 +105,9 @@ describe("QuestionPhase", () => {
 		});
 		expect(phase.toJson(charlie.privateId)).to.deep.equal({
 			phase: "question",
-			question: "What is the answer?",
+			questionInfo: {
+				question: "What is the answer?",
+			},
 			guesses: {
 				"public-Alice": true,
 				"public-Bob": false,
@@ -104,7 +119,9 @@ describe("QuestionPhase", () => {
 		
 		expect(phase.toJson(alice.privateId)).to.deep.equal({
 			phase: "question",
-			question: "What is the answer?",
+			questionInfo: {
+				question: "What is the answer?",
+			},
 			guesses: {
 				"public-Alice": 42,
 				"public-Bob": false,
@@ -113,7 +130,9 @@ describe("QuestionPhase", () => {
 		});
 		expect(phase.toJson(bob.privateId)).to.deep.equal({
 			phase: "question",
-			question: "What is the answer?",
+			questionInfo: {
+				question: "What is the answer?",
+			},
 			guesses: {
 				"public-Alice": true,
 				"public-Bob": false,
@@ -122,7 +141,9 @@ describe("QuestionPhase", () => {
 		});
 		expect(phase.toJson(charlie.privateId)).to.deep.equal({
 			phase: "question",
-			question: "What is the answer?",
+			questionInfo: {
+				question: "What is the answer?",
+			},
 			guesses: {
 				"public-Alice": true,
 				"public-Bob": false,
@@ -138,19 +159,51 @@ describe("QuestionPhase", () => {
 		const alice = makePlayer("Alice");
 		
 		const phase = makeQuestionPhase({
-			question: "What is the answer?",
+			qa: "What is the answer?",
 			players: [alice],
 			options: { questionPhaseDuration: 60_000 },
 		});
 		
 		expect(phase.toJson(alice.privateId)).to.deep.equal({
 			phase: "question",
-			question: "What is the answer?",
+			questionInfo: {
+				question: "What is the answer?",
+			},
 			guesses: {
 				"public-Alice": false,
 			},
 			roundDuration: 60_000,
 			roundEnd: 1_060_300
+		});
+	});
+	
+	test("toJson does not show answer", () => {
+		const alice = makePlayer("Alice");
+		const bob = makePlayer("Bob");
+		const charlie = makePlayer("Charlie");
+		
+		const phase = makeQuestionPhase({
+			qa: {
+				question: "What is the answer?",
+				answer: 7,
+				source: "Wikipedia",
+				date: "2020",
+			},
+			players: [alice, bob, charlie]
+		});
+		
+		expect(phase.toJson(alice.privateId)).to.deep.equal({
+			phase: "question",
+			questionInfo: {
+				question: "What is the answer?",
+				source: "Wikipedia",
+				date: "2020",
+			},
+			guesses: {
+				"public-Alice": false,
+				"public-Bob": false,
+				"public-Charlie": false
+			}
 		});
 	});
 	

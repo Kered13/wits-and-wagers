@@ -14,6 +14,7 @@ import { type GameId, type GameState } from "../../shared/game/game.js";
 import { type PrivateId } from "../../shared/player.js";
 import { type GameUpdate } from "../../shared/game/notifications.js";
 import { type BettingConclusion, type SkippedBettingPhase } from "../../shared/game/intermission-phase.js";
+import { type QuestionAnswerInfo } from "../../shared/game/question.js";
 
 
 export type GameOptions = QuestionPhaseOptions & BettingPhaseOptions & IntermissionPhaseOptions &{
@@ -36,8 +37,7 @@ export class Game {
 	private readonly updates = new Subject<void>();
 	
 	private round: number = 1;
-	private question: string;
-	private answer: number;
+	private question: QuestionAnswerInfo;
 	private phase: Phase;
 	
 	constructor(
@@ -51,14 +51,10 @@ export class Game {
 			options?: Partial<GameOptions>) {
 		this.players = new PlayerManager(players.map(player => new Player(player)));
 		this.spectators = new PlayerManager(spectators.map(player => new Spectator(player)));
-		
-		const {question, answer} = this.questionGenerator.nextQuestion();
-		this.question = question;
-		this.answer = answer;
-		
+		this.question = this.questionGenerator.nextQuestion();
 		this.options = Object.assign({}, defaultOptions, options);
 		
-		this.phase = new QuestionPhase(question, this.players, this.options);
+		this.phase = new QuestionPhase(this.question, this.players, this.options);
 		this.startPhase(this.phase);
 	}
 	
@@ -144,9 +140,7 @@ export class Game {
 	}
 	
 	private startQuestionPhase(): void {
-		const {question, answer} = this.questionGenerator.nextQuestion();
-		this.question = question;
-		this.answer = answer;
+		this.question = this.questionGenerator.nextQuestion();
 		this.startPhase(new QuestionPhase(this.question, this.players, this.options));
 	}
 	
@@ -154,7 +148,6 @@ export class Game {
 		this.startPhase(
 			new BettingPhase(
 				this.question,
-				this.answer,
 				this.players,
 				this.spectators,
 				this.round,
@@ -166,7 +159,6 @@ export class Game {
 		this.startPhase(
 			new IntermissionPhase(
 				this.question,
-				this.answer,
 				outcome,
 				this.options));
 	}

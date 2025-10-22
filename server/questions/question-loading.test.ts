@@ -10,11 +10,13 @@ describe("parse JSON", () => {
 		const questions = [
 			{
 				question: "The first question.",
-				answer: 42
+				answer: 42,
 			},
 			{
 				question: "The second question.",
-				answer: 7
+				answer: 7,
+				source: "Wikipedia",
+				date: "2020",
 			}
 		];
 		
@@ -44,12 +46,14 @@ test("load JSON", async () => {
 		.to.have.deep.members([
 			{
 				question: "The first question.",
-				answer: 42
+				answer: 42,
 			},
 			{
 				question: "The second question.",
-				answer: 7
-			}
+				answer: 7,
+				source: "Wikipedia",
+				date: "2020",
+			},
 		]);
 });
 
@@ -58,21 +62,23 @@ describe("parseCsv", () => {
 	test("CSV succeeds", () => {
 		const csv = `
 			The first question.,42
-			"The second question, yes?", 7
+			"The second question, yes?", 7, Wikipedia, 2020
 			"The ""third"" question.", 10`;
 		
 		expect(parseCsv(csv, ",")).to.have.deep.members([
 			{
 				question: "The first question.",
-				answer: 42
+				answer: 42,
 			},
 			{
 				question: "The second question, yes?",
-				answer: 7
+				answer: 7,
+				source: "Wikipedia",
+				date: "2020",
 			},
 			{
 				question: "The \"third\" question.",
-				answer: 10
+				answer: 10,
 			}
 		]);
 	});
@@ -80,21 +86,23 @@ describe("parseCsv", () => {
 	test("TSV succeeds", () => {
 		const csv = `
 The first question.	42
-"The second question, yes?"	7
+"The second question, yes?"	7	Wikipedia	2020
 "The ""third"" question."	10`;
 		
 		expect(parseCsv(csv, "\t")).to.have.deep.members([
 			{
 				question: "The first question.",
-				answer: 42
+				answer: 42,
 			},
 			{
 				question: "The second question, yes?",
-				answer: 7
+				answer: 7,
+				source: "Wikipedia",
+				date: "2020",
 			},
 			{
 				question: "The \"third\" question.",
-				answer: 10
+				answer: 10,
 			}
 		]);
 	});
@@ -103,14 +111,14 @@ The first question.	42
 		const csv = `
 			,42
 			Answer not a number, nan
-			Answer is not positive, 0, what's this?
+			Answer is not positive, 0, Wikipedia, 2020, what's this?
 			Missing an answer`;
 		
 		expect(parseCsv(csv, ",")).to.have.deep.members([
 			new QuestionError("Question may not be empty.", 2),
 			new QuestionError("Could not parse \"nan\" as an integer.", 3),
 			new QuestionError("Answer 0 is not strictly positive.", 4),
-			new QuestionError("Unexpected column 2 with value \"what's this?\".", 4),
+			new QuestionError("Unexpected column 4 with value \"what's this?\".", 4),
 			new QuestionError("Missing answer for question \"Missing an answer\".", 5)
 		]);
 	});
@@ -123,15 +131,17 @@ describe("load CSV", () => {
 			.to.have.deep.members([
 				{
 					question: "The first question.",
-					answer: 42
+					answer: 42,
 				},
 				{
 					question: "The second question, yes?",
-					answer: 7
+					answer: 7,
+					source: "Wikipedia",
+					date: "2020",
 				},
 				{
 					question: "The \"third\" question.",
-					answer: 10
+					answer: 10,
 				}
 			]);
 	});
@@ -149,15 +159,17 @@ describe("load TSV", () => {
 			.to.have.deep.members([
 				{
 					question: "The first question.",
-					answer: 42
+					answer: 42,
 				},
 				{
 					question: "The second question, yes?",
-					answer: 7
+					answer: 7,
+					source: "Wikipedia",
+					date: "2020",
 				},
 				{
 					question: "The \"third\" question.",
-					answer: 10
+					answer: 10,
 				}
 			]);
 	});
