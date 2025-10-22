@@ -3,7 +3,12 @@
   * Garbage collect inactive games.
   * Support mixing question sets?
 * Implement desktop UI.
-  * Clear selections when a new round begins.
+  * Add button for changing guess.
+  * FIX UI FOR SPECTATORS
+    * Can submit guesses.
+    * Cannot distinguish spectator bets.
+  * Display question on board.
+  * Show player names, colors, chips.
 * Implement mobile UI.
 * Implement game/lobby expiration.
 * Deploy app.

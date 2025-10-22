@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, computed, Directive, effect, ElementRef, Inject, input, Input, OnDestroy, Signal, viewChild } from "@angular/core";
+import { Overlay } from "@angular/cdk/overlay";
+import { ChangeDetectionStrategy, Component, Directive, effect, ElementRef, Inject, input, Input, OnDestroy, Signal, viewChild } from "@angular/core";
 import { toSignal } from "@angular/core/rxjs-interop";
 import { AbstractControl, FormsModule, NG_VALIDATORS, NgModel, ValidationErrors, Validator } from "@angular/forms";
 import { MatButton } from "@angular/material/button";
@@ -141,6 +142,7 @@ export class GameComponent implements OnDestroy {
 			private readonly errorHandler: GlobalErrorHandler,
 			private readonly routing: RoutingService,
 			private readonly dialog: MatDialog,
+			private readonly overlay: Overlay,
 			private readonly hostElement: ElementRef,
 			gameService: GameService,
 			titleService: Title,
@@ -213,8 +215,11 @@ export class GameComponent implements OnDestroy {
 					this.onGameUpdate(state);
 				},
 				complete: () => {
-					this.dialog.afterAllClosed.pipe(take(1)).subscribe(() => 
-						this.dialog.open<GameEndDialog, GameState>(GameEndDialog, { data: this.game() }));
+					this.dialog.afterAllClosed.pipe(take(1)).subscribe(() =>
+						this.dialog.open<GameEndDialog, GameState>(GameEndDialog, {
+							data: this.game(),
+							scrollStrategy: this.overlay.scrollStrategies.noop(),
+						}));
 				}
 			}),
 			newService.get().onError().subscribe(err => {
@@ -231,14 +236,7 @@ export class GameComponent implements OnDestroy {
 		}
 		
 		if (this.isIntermissionPhase(state.phase)) {
-			this.intermissionDialog = this.dialog
-				.open<RoundEndDialog, RoundEndDialogData>(RoundEndDialog, {
-					data: {
-						intermission: state.phase,
-						players: this.game().players
-					},
-					disableClose: true,
-				});
+			this.openIntermissionDialog(state.phase);
 		} else {
 			this.closeIntermissionDialog();
 		}
@@ -279,24 +277,26 @@ export class GameComponent implements OnDestroy {
 	private openGuessDialog(questionInfo: QuestionInfo): void {
 		const rect = this.hostElement.nativeElement.querySelector(".board").getBoundingClientRect();
 		const top = rect.top + rect.height / 2 - 300 / 2;
-		console.log(rect);
-		console.log(top);
-		
 		this.guessDialog = this.dialog
 			.open<GuessDialog, GuessDialogData>(GuessDialog, {
-				data: { questionInfo: questionInfo },
+				data: { questionInfo: questionInfo, initialPosition: top },
 				minHeight: "300px",
 				maxHeight: "450px",
 				width: "600px",
 				disableClose: true,
 				hasBackdrop: false,
-				position: { top: top + "px" },
+				panelClass: "my-panel-class",
+				scrollStrategy: this.overlay.scrollStrategies.noop(),
 			});
 		this.guessDialog.afterClosed().subscribe(guess => {
+			console.log("Closing guess dialog");
 			if (guess !== undefined) {
+				console.log("Closed guess dialog");
 				this.gameService().get().submitGuess(guess).subscribe();
 			}
 		});
+		console.log("Opened guess dialog");
+		console.log(this.guessDialog);
 	}
 	
 	private closeGuessDialog(): void {
@@ -315,6 +315,7 @@ export class GameComponent implements OnDestroy {
 					availableChips: this.availableChips(),
 					existingWager: existingBet?.wager,
 				},
+				scrollStrategy: this.overlay.scrollStrategies.noop(),
 			});
 		this.wagerDialog.afterClosed().subscribe(wager => {
 			if (wager !== undefined) {
@@ -328,6 +329,18 @@ export class GameComponent implements OnDestroy {
 			this.wagerDialog.close();
 			this.wagerDialog = undefined;
 		}
+	}
+	
+	private openIntermissionDialog(phase: IntermissionPhaseState): void {
+		this.intermissionDialog = this.dialog
+			.open<RoundEndDialog, RoundEndDialogData>(RoundEndDialog, {
+				data: {
+					intermission: phase,
+					players: this.game().players
+				},
+				disableClose: true,
+				scrollStrategy: this.overlay.scrollStrategies.noop(),
+			});
 	}
 	
 	private closeIntermissionDialog(): void {
