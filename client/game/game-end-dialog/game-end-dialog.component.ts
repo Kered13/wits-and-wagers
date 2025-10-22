@@ -2,7 +2,7 @@ import { Component, Inject } from "@angular/core";
 import { MatButtonModule } from "@angular/material/button";
 import { MAT_DIALOG_DATA, MatDialogModule } from "@angular/material/dialog";
 
-import { GameState } from "../../shared/game/game.js";
+import { GameState } from "../../../shared/game/game.js";
 
 
 @Component({
