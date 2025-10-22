@@ -7,6 +7,12 @@ import { type BettingConclusion, type IntermissionPhaseState } from "../../../sh
 import { type PublicId } from "../../../shared/player.js";
 
 
+export type RoundEndDialogData = {
+	intermission: IntermissionPhaseState,
+	players: GamePlayer[],
+};
+
+
 @Component({
 	selector: "round-end-dialog",
 	imports: [MatButtonModule, MatDialogModule],
@@ -17,7 +23,7 @@ export class RoundEndDialog {
 	readonly intermission: IntermissionPhaseState;
 	readonly players: GamePlayer[];
 	
-	constructor(@Inject(MAT_DIALOG_DATA) data: { intermission: IntermissionPhaseState, players: GamePlayer[] }) {
+	constructor(@Inject(MAT_DIALOG_DATA) data: RoundEndDialogData) {
 		this.intermission = data.intermission;
 		this.players = data.players;
 	}

@@ -24,7 +24,7 @@ export class GuessValidator {
 
 export type GuessDialogData = {
 	questionInfo: QuestionInfo;
-	source: string | undefined;
+	source?: string;
 };
 
 

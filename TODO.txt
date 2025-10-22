@@ -1,5 +1,6 @@
 * Implement game.
-  * Add source and date to questions.
+  * Rename GameEndDialogComponent.
+  * Refactor signals in GameComponent that could be functions.
   * Allow withdrawing guesses? (Currently, new guesses override old.)
   * Garbage collect inactive games.
   * Support mixing question sets?

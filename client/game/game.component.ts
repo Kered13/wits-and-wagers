@@ -11,16 +11,16 @@ import { ActivatedRoute } from "@angular/router";
 import { parseIntSafe } from "complete-common";
 import { combineLatest, concat, delay, map, type Observable, of, pairwise, startWith, Subscription, switchMap, take } from "rxjs";
 
-import { GuessDialog } from "./guess-dialog/guess-dialog.component.js";
+import { GuessDialog, GuessDialogData } from "./guess-dialog/guess-dialog.component.js";
 import { AllTooHighBox } from "./wager-box/all-too-high-box.component.js";
 import { BettingBox } from "./wager-box/wager-box.component.js";
 import { ColorWagerBox } from "./wager-box/color-wager-box.component.js";
 import { WagerBoxBgText, WagerBoxBottomText } from "./wager-box/wager-box-content.component.js";
-import { WagerDialog } from "./wager-dialog/wager-dialog.component.js";
+import { WagerDialog, WagerDialogData } from "./wager-dialog/wager-dialog.component.js";
 import { GameInstanceService, GameService } from "./game.service.js";
 import { GameEndDialogComponent } from "./game-end-dialog/game-end-dialog.component.js";
 import { GlobalErrorHandler } from "../error-dialog/error-handler.js";
-import { RoundEndDialog } from "./round-end-dialog/round-end-dialog.component.js";
+import { RoundEndDialog, RoundEndDialogData } from "./round-end-dialog/round-end-dialog.component.js";
 import { GameRoute, TypedRouteFor } from "../routes/routes.js";
 import { RoutingService } from "../routes/routing.service.js";
 import { RefCounted } from "../utils/refcounted.js";
@@ -225,7 +225,9 @@ export class GameComponent implements OnDestroy {
 				},
 				complete: () => {
 					this.dialog.afterAllClosed.pipe(take(1)).subscribe(() => 
-						this.dialog.open(GameEndDialogComponent, { data: this.game() }));
+						this.dialog.open<GameEndDialogComponent, GameState>(
+							GameEndDialogComponent,
+							{ data: this.game() }));
 				}
 			}),
 			newService.get().onError().subscribe(err => {
@@ -242,13 +244,14 @@ export class GameComponent implements OnDestroy {
 		}
 		
 		if (this.isIntermissionPhase(state.phase)) {
-			this.intermissionDialog = this.dialog.open(RoundEndDialog, {
-				data: {
-					intermission: state.phase,
-					players: this.game().players
-				},
-				disableClose: true,
-			});
+			this.intermissionDialog = this.dialog
+				.open<RoundEndDialog, RoundEndDialogData>(RoundEndDialog, {
+					data: {
+						intermission: state.phase,
+						players: this.game().players
+					},
+					disableClose: true,
+				});
 		} else {
 			this.closeIntermissionDialog();
 		}
@@ -292,15 +295,16 @@ export class GameComponent implements OnDestroy {
 		console.log(rect);
 		console.log(top);
 		
-		this.guessDialog = this.dialog.open(GuessDialog, {
-			data: { questionInfo: questionInfo },
-			minHeight: "300px",
-			maxHeight: "450px",
-			width: "600px",
-			disableClose: true,
-			hasBackdrop: false,
-			position: { top: top + "px" },
-		});
+		this.guessDialog = this.dialog
+			.open<GuessDialog, GuessDialogData>(GuessDialog, {
+				data: { questionInfo: questionInfo },
+				minHeight: "300px",
+				maxHeight: "450px",
+				width: "600px",
+				disableClose: true,
+				hasBackdrop: false,
+				position: { top: top + "px" },
+			});
 		this.guessDialog.afterClosed().subscribe(guess => {
 			if (guess !== undefined) {
 				this.gameService().get().submitGuess(guess).subscribe();
@@ -316,12 +320,13 @@ export class GameComponent implements OnDestroy {
 	}
 	
 	private openWagerDialog(phase: BettingPhaseState, target: BetTarget): void {
-		const existingBet = phase.bets.find(bet => bet.player === this.thisParticipant().publicId && bet.target === target);
+		const existingBet = phase.bets.find(
+			bet => bet.player === this.thisParticipant().publicId && bet.target === target);
 		this.wagerDialog = this.dialog
-			.open(WagerDialog, {
+			.open<WagerDialog, WagerDialogData>(WagerDialog, {
 				data: {
 					availableChips: this.availableChips(),
-					existingWager: existingBet ? existingBet.wager : undefined,
+					existingWager: existingBet?.wager,
 				},
 			});
 		this.wagerDialog.afterClosed().subscribe(wager => {
@@ -385,6 +390,31 @@ export class GameComponent implements OnDestroy {
 		this.openWagerDialog(phase, target);
 	}
 	
+	enableBetTarget(target: BetTarget): boolean {
+		// Only enabled during BettingPhase.
+		const phase = this.game().phase;
+		if (!this.isBettingPhase(phase)) {
+			return false;
+		}
+		
+		// Disable target if there are no available chips, unless this target
+		// already has a bet on it.
+		const existingBetOnTarget = phase.bets.find(
+			bet => bet.player === this.thisParticipant().publicId && bet.target === target);
+		if (this.availableChips() <= 0 && !existingBetOnTarget) {
+			return false;
+		}
+		
+		// Disable target if there are already two bets on other targets.
+		const existingOtherBets = phase.bets.filter(
+			bet => bet.player === this.thisParticipant().publicId && bet.target !== target);
+		if (existingOtherBets.length >= 2) {
+			return false;
+		}
+		
+		return true;
+	}
+	
 	getBetsOnTarget(target: BetTarget): { value: number; color: string }[] {
 		const game = this.game();
 		const phase = game.phase;
@@ -422,26 +452,5 @@ export class GameComponent implements OnDestroy {
 	getRound() {
 		const round = this.game().round;
 		return round > 7 ? "Game Over" : ("Round " + round);
-	}
-	
-	// TODO: Temporary
-	testGuess(): { value: number; color: string } {
-		return {
-			value: 42,
-			color: "gold",
-		};
-	}
-	
-	// TODO: Temporary
-	testBets(): { value: number; color: string }[] {
-		return [
-			{ value: 1, color: RED },
-			{ value: 5, color: BLACK },
-			{ value: 20, color: GREEN },
-			{ value: 100, color: YELLOW },
-			{ value: 1000, color: ORANGE },
-			{ value: 10000, color: PURPLE },
-			{ value: 100000, color: GRAY },
-		];
 	}
 }

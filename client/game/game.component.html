@@ -11,7 +11,7 @@
 	</div>
 	<all-too-high-box
 			color="var(--green-space)"
-			[disabled]="!isBettingPhase(phase)"
+			[disabled]="!enableBetTarget('AllTooHigh')"
 			(onClick)="onWagerBoxClick('AllTooHigh')"
 			[bets]="getBetsOnTarget('AllTooHigh')">
 		<wager-box-bg-text class="all-too-high-text">
@@ -21,7 +21,7 @@
 	</all-too-high-box>
 	<betting-box
 			color="var(--red-space)"
-			[disabled]="!isBettingPhase(phase)"
+			[disabled]="!enableBetTarget(0)"
 			(onClick)="onWagerBoxClick(0)"
 			[guess]="getGuessForTarget(0)"
 			[bets]="getBetsOnTarget(0)">
@@ -29,7 +29,7 @@
 	</betting-box>
 	<betting-box
 			color="var(--red-space)"
-			[disabled]="!isBettingPhase(phase)"
+			[disabled]="!enableBetTarget(1)"
 			(onClick)="onWagerBoxClick(1)"
 			[guess]="getGuessForTarget(1)"
 			[bets]="getBetsOnTarget(1)">
@@ -37,7 +37,7 @@
 	</betting-box>
 	<betting-box
 			color="var(--red-space)"
-			[disabled]="!isBettingPhase(phase)"
+			[disabled]="!enableBetTarget(2)"
 			(onClick)="onWagerBoxClick(2)"
 			[guess]="getGuessForTarget(2)"
 			[bets]="getBetsOnTarget(2)">
@@ -45,7 +45,7 @@
 	</betting-box>
 	<betting-box
 			color="var(--green-space)"
-			[disabled]="!isBettingPhase(phase)"
+			[disabled]="!enableBetTarget(3)"
 			(onClick)="onWagerBoxClick(3)"
 			[guess]="getGuessForTarget(3)"
 			[bets]="getBetsOnTarget(3)">
@@ -53,7 +53,7 @@
 	</betting-box>
 	<betting-box
 			color="var(--black-space)"
-			[disabled]="!isBettingPhase(phase)"
+			[disabled]="!enableBetTarget(4)"
 			(onClick)="onWagerBoxClick(4)"
 			[guess]="getGuessForTarget(4)"
 			[bets]="getBetsOnTarget(4)">
@@ -61,7 +61,7 @@
 	</betting-box>
 	<betting-box
 			color="var(--black-space)"
-			[disabled]="!isBettingPhase(phase)"
+			[disabled]="!enableBetTarget(5)"
 			(onClick)="onWagerBoxClick(5)"
 			[guess]="getGuessForTarget(5)"
 			[bets]="getBetsOnTarget(5)">
@@ -69,7 +69,7 @@
 	</betting-box>
 	<betting-box
 			color="var(--black-space)"
-			[disabled]="!isBettingPhase(phase)"
+			[disabled]="!enableBetTarget(6)"
 			(onClick)="onWagerBoxClick(6)"
 			[guess]="getGuessForTarget(6)"
 			[bets]="getBetsOnTarget(6)">
@@ -78,7 +78,7 @@
 	<color-wager-box
 			class="red-bet"
 			color="var(--red-space)"
-			[disabled]="!isBettingPhase(phase)"
+			[disabled]="!enableBetTarget('Red')"
 			(onClick)="onWagerBoxClick('Red')"
 			[bets]="getBetsOnTarget('Red')">
 		<wager-box-bg-text class="payoff">RED 1 <span class="payoff-to">to</span> 1</wager-box-bg-text>
@@ -86,7 +86,7 @@
 	<color-wager-box
 			class="black-bet"
 			color="var(--black-space)"
-			[disabled]="!isBettingPhase(phase)"
+			[disabled]="!enableBetTarget('Black')"
 			(onClick)="onWagerBoxClick('Black')"
 			[bets]="getBetsOnTarget('Black')">
 		<wager-box-bg-text class="payoff">BLACK 1 <span class="payoff-to">to</span> 1</wager-box-bg-text>
