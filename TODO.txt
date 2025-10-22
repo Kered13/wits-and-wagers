@@ -1,11 +1,9 @@
 * Implement game.
-  * Refactor signals in GameComponent that could be functions.
   * Allow withdrawing guesses? (Currently, new guesses override old.)
   * Garbage collect inactive games.
   * Support mixing question sets?
 * Implement desktop UI.
   * Clear selections when a new round begins.
-  * Improve error handling in game to ensure only valid actions are taken.
 * Implement mobile UI.
 * Implement game/lobby expiration.
 * Deploy app.

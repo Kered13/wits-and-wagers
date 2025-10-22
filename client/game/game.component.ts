@@ -29,7 +29,6 @@ import { BetTarget, BettingPhaseState } from "../../shared/game/betting-phase.js
 import { GameOverPhaseState, GamePlayer, GameState } from "../../shared/game/game.js";
 import { QuestionPhaseState } from "../../shared/game/question-phase.js";
 import { IntermissionPhaseState } from "../../shared/game/intermission-phase.js";
-import { BLACK, GRAY, GREEN, ORANGE, PURPLE, RED, YELLOW } from "../../shared/color.js";
 import { QuestionInfo } from "../../shared/game/question.js";
 
 
@@ -128,9 +127,7 @@ export class GameComponent implements OnDestroy {
 	private intermissionDialog: MatDialogRef<RoundEndDialog> | undefined = undefined;
 	
 	readonly game: Signal<GameState>;
-	readonly tempGameString: Signal<string>;
 	readonly thisParticipant: Signal<PrivatePlayer>;
-	readonly availableChips: Signal<number>;
 	readonly roundTimer: Signal<number | undefined>;
 	readonly guessField: Signal<NgModel | undefined> = viewChild("guessField");
 	readonly targetField: Signal<NgModel | undefined> = viewChild("targetField");
@@ -175,17 +172,9 @@ export class GameComponent implements OnDestroy {
 			}
 		});
 		
-		this.availableChips = computed(() => {
-			const player = this.game().players.find(player => player.publicId === this.thisParticipant().publicId) ||
-				this.game().spectators.find(spectator => spectator.publicId === this.thisParticipant().publicId);
-			return player?.chips ?? 0;
-		});
-		
 		this.roundTimer = toSignal(
 			gameObs.pipe(switchMap(game => this.startRoundTimer(game.phase))),
 			{ initialValue: undefined });
-		
-		this.tempGameString = computed(() => JSON.stringify(this.game(), null, 2));
 		
 		effect(() => titleService.setTitle(route.routeConfig!.title! + " - " + this.game().title));
 	}
@@ -388,6 +377,12 @@ export class GameComponent implements OnDestroy {
 		this.openWagerDialog(phase, target);
 	}
 	
+	availableChips(): number {
+		const player = this.game().players.find(player => player.publicId === this.thisParticipant().publicId) ||
+			this.game().spectators.find(spectator => spectator.publicId === this.thisParticipant().publicId);
+		return player?.chips ?? 0;
+	}
+	
 	enableBetTarget(target: BetTarget): boolean {
 		// Only enabled during BettingPhase.
 		const phase = this.game().phase;
@@ -450,5 +445,10 @@ export class GameComponent implements OnDestroy {
 	getRound() {
 		const round = this.game().round;
 		return round > 7 ? "Game Over" : ("Round " + round);
+	}
+	
+	// TODO: Remove once dev UI is deleted.
+	tempGameString(): string {
+		return JSON.stringify(this.game(), null, 2)
 	}
 }
