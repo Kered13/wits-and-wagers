@@ -9,6 +9,9 @@ import { QuestionInfoSchema } from "./question.js";
 export const QuestionPhaseStateSchema = strictObject({
 	phase: literal("question"),
 	questionInfo: QuestionInfoSchema,
+	// For each player in the game, if that player has submitted a guess, holds
+	// that guess if this update is for that player, true if this update is for
+	// another player. Holds false if that player has not submitted a guess.
 	guesses: record(PublicIdSchema, union([boolean(), pipe(number(), integer())])),
 	// Round duration, in milliseconds.
 	roundDuration: optional(number()),

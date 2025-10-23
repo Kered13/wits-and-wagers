@@ -1,4 +1,5 @@
 * Implement game.
+  * Don't leak Game player ID to spectators.
   * Generate random lobby/game names.
   * Allow withdrawing guesses? (Currently, new guesses override old.)
   * Garbage collect inactive games.
@@ -9,6 +10,7 @@
     * Can submit guesses.
     * Cannot distinguish spectator bets.
   * Show player names, colors, chips.
+  * Handle bet normalization.
 * Implement mobile UI.
 * Implement game/lobby expiration.
 * Deploy app.

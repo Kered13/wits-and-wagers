@@ -15,7 +15,7 @@
 	</div>
 	<all-too-high-box
 			color="var(--green-space)"
-			[disabled]="!enableBetTarget('AllTooHigh')"
+			[disabled]="!shouldEnableBetTarget('AllTooHigh')"
 			(onClick)="onWagerBoxClick('AllTooHigh')"
 			[bets]="getBetsOnTarget('AllTooHigh')">
 		<wager-box-bg-text class="all-too-high-text">
@@ -25,7 +25,7 @@
 	</all-too-high-box>
 	<betting-box
 			color="var(--red-space)"
-			[disabled]="!enableBetTarget(0)"
+			[disabled]="!shouldEnableBetTarget(0)"
 			(onClick)="onWagerBoxClick(0)"
 			[guess]="getGuessForTarget(0)"
 			[bets]="getBetsOnTarget(0)">
@@ -33,7 +33,7 @@
 	</betting-box>
 	<betting-box
 			color="var(--red-space)"
-			[disabled]="!enableBetTarget(1)"
+			[disabled]="!shouldEnableBetTarget(1)"
 			(onClick)="onWagerBoxClick(1)"
 			[guess]="getGuessForTarget(1)"
 			[bets]="getBetsOnTarget(1)">
@@ -41,7 +41,7 @@
 	</betting-box>
 	<betting-box
 			color="var(--red-space)"
-			[disabled]="!enableBetTarget(2)"
+			[disabled]="!shouldEnableBetTarget(2)"
 			(onClick)="onWagerBoxClick(2)"
 			[guess]="getGuessForTarget(2)"
 			[bets]="getBetsOnTarget(2)">
@@ -49,7 +49,7 @@
 	</betting-box>
 	<betting-box
 			color="var(--green-space)"
-			[disabled]="!enableBetTarget(3)"
+			[disabled]="!shouldEnableBetTarget(3)"
 			(onClick)="onWagerBoxClick(3)"
 			[guess]="getGuessForTarget(3)"
 			[bets]="getBetsOnTarget(3)">
@@ -57,7 +57,7 @@
 	</betting-box>
 	<betting-box
 			color="var(--black-space)"
-			[disabled]="!enableBetTarget(4)"
+			[disabled]="!shouldEnableBetTarget(4)"
 			(onClick)="onWagerBoxClick(4)"
 			[guess]="getGuessForTarget(4)"
 			[bets]="getBetsOnTarget(4)">
@@ -65,7 +65,7 @@
 	</betting-box>
 	<betting-box
 			color="var(--black-space)"
-			[disabled]="!enableBetTarget(5)"
+			[disabled]="!shouldEnableBetTarget(5)"
 			(onClick)="onWagerBoxClick(5)"
 			[guess]="getGuessForTarget(5)"
 			[bets]="getBetsOnTarget(5)">
@@ -73,7 +73,7 @@
 	</betting-box>
 	<betting-box
 			color="var(--black-space)"
-			[disabled]="!enableBetTarget(6)"
+			[disabled]="!shouldEnableBetTarget(6)"
 			(onClick)="onWagerBoxClick(6)"
 			[guess]="getGuessForTarget(6)"
 			[bets]="getBetsOnTarget(6)">
@@ -82,7 +82,7 @@
 	<color-wager-box
 			class="red-bet"
 			color="var(--red-space)"
-			[disabled]="!enableBetTarget('Red')"
+			[disabled]="!shouldEnableBetTarget('Red')"
 			(onClick)="onWagerBoxClick('Red')"
 			[bets]="getBetsOnTarget('Red')">
 		<wager-box-bg-text class="payoff">RED 1 <span class="payoff-to">to</span> 1</wager-box-bg-text>
@@ -90,7 +90,7 @@
 	<color-wager-box
 			class="black-bet"
 			color="var(--black-space)"
-			[disabled]="!enableBetTarget('Black')"
+			[disabled]="!shouldEnableBetTarget('Black')"
 			(onClick)="onWagerBoxClick('Black')"
 			[bets]="getBetsOnTarget('Black')">
 		<wager-box-bg-text class="payoff">BLACK 1 <span class="payoff-to">to</span> 1</wager-box-bg-text>
@@ -106,7 +106,7 @@
 				<p>Round time: {{ roundTimer() }}</p>
 			}
 			<p class="game-state">Game state: {{ tempGameString() }}</p>
-			@if (isQuestionPhase(phase) && isParticipantPlayer(game().players, thisParticipant())) {
+			@if (isQuestionPhase(phase) && isPlayer()) {
 				<mat-form-field hidden="!isQuestionPhase(phase)">
 					<mat-label>Guess:</mat-label>
 					<input matInput
@@ -147,7 +147,7 @@
 			}
 		</mat-card-content>
 		<mat-card-actions>
-			@if (isQuestionPhase(phase) && isParticipantPlayer(game().players, thisParticipant())) {
+			@if (isQuestionPhase(phase) && isPlayer()) {
 				<button mat-raised-button
 						(click)="onSubmitGuess()"
 						[disabled]="!guessField()?.valid"

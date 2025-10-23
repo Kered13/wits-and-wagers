@@ -97,6 +97,109 @@ type PhaseState = QuestionPhaseState
 	| GameOverPhaseState;
 
 
+function isQuestionPhase(phase: PhaseState): phase is QuestionPhaseState {
+	return phase.phase === "question";
+}
+
+
+function isBettingPhase(phase: PhaseState): phase is BettingPhaseState {
+	return phase.phase === "betting";
+}
+
+
+function isIntermissionPhase(phase: PhaseState): phase is IntermissionPhaseState {
+	return phase.phase === "intermission";
+}
+
+
+function isGameOverPhase(phase: PhaseState): phase is GameOverPhaseState {
+	return phase.phase === "game-over";
+}
+
+
+function availableChips(game: GameState, publicId: PublicId): number {
+	const player = game.players.find(player => player.publicId === publicId) ||
+		game.spectators.find(spectator => spectator.publicId === publicId);
+	return player?.chips ?? 0;
+}
+
+
+function isPlayer(game: GameState, participant: PublicId): boolean {
+	const b = game.players.some(player => player.publicId === participant);
+	console.log(b);
+	return b;
+}
+
+
+function shouldEnableBetTarget(target: BetTarget, game: GameState, publicId: PublicId): boolean {
+	const phase = game.phase;
+	if (!isBettingPhase(phase)) {
+		return false;
+	}
+	
+	// Disable target if there are no available chips, unless this target
+	// already has a bet on it.
+	const existingBetOnTarget = phase.bets.find(
+		bet => bet.player === publicId && bet.target === target);
+	if (availableChips(game, publicId) <= 0 && !existingBetOnTarget) {
+		return false;
+	}
+	
+	// Disable target if there are already two bets on other targets.
+	const existingOtherBets = phase.bets.filter(
+		bet => bet.player === publicId && bet.target !== target);
+	if (existingOtherBets.length >= 2) {
+		return false;
+	}
+	
+	return true;
+}
+
+
+function getBetsOnTarget(target: BetTarget, game: GameState): { value: number; color: string; } [] {
+	const phase = game.phase;
+	if (!isBettingPhase(phase)) {
+		return [];
+	}
+
+	return phase.bets
+		.filter(bet => bet.target === target)
+		.map(bet => ({
+			value: bet.wager,
+			color: colorForPlayer(game, bet.player),
+		}));
+}
+
+
+function getGuessForTarget(target: BetTarget, game: GameState): { value: number; color: string; } | undefined {
+	const phase = game.phase;
+	if (!isBettingPhase(phase)) {
+		return undefined;
+	}
+
+	return phase.guesses
+		.filter(guess => guess.target === target)
+		.map(guess => ({
+			value: guess.guess,
+			color: colorForPlayer(game, guess.player),
+		}))[0];
+}
+
+
+function playerHasGuess(publicId: PublicId, game: GameState): boolean {
+	const phase = game.phase;
+	if (!isQuestionPhase(phase)) {
+		return false;
+	}
+	return phase.guesses[publicId] !== false;
+}
+
+
+function colorForPlayer(game: GameState, publicId: PublicId): string {
+	return game.players.find(player => player.publicId === publicId)!.color;
+}
+
+
 @Component({
 	selector: "app-game",
 	imports: [
@@ -121,7 +224,6 @@ type PhaseState = QuestionPhaseState
 })
 export class GameComponent implements OnDestroy {
 	private readonly gameService: Signal<RefCounted<GameInstanceService>>;
-	private readonly subs: Subscription[] = [];
 	private readonly instanceSub: Subscription;
 	private guessDialog: MatDialogRef<GuessDialog> | undefined = undefined;
 	private wagerDialog: MatDialogRef<WagerDialog> | undefined = undefined;
@@ -152,27 +254,45 @@ export class GameComponent implements OnDestroy {
 		const instanceService = combineLatest([route.params, route.data]).pipe(
 			map(([params, data]) => gameService.getGameInstanceService(params.gameId, data.player.privateId)));
 		this.instanceSub = instanceService.pipe(startWith(undefined), pairwise())
-			.subscribe(([oldService, newService]) => this.onNewGame(newService!, oldService));
+			.subscribe(([oldService, newService]) => this.onNewGame(oldService, newService!));
 		
+		const initialState: GameState = {
+			title: "",
+			host: "",
+			players: [],
+			spectators: [],
+			round: 0,
+			phase: {
+				phase: "question",
+				questionInfo: {
+					question: "",
+				},
+				guesses: {},
+			},
+		};
 		const gameObs = instanceService.pipe(switchMap(service => service.get().onGameUpdate()));
+		gameObs.subscribe({
+			next: (state) => {
+				this.onGameUpdate(state);
+			},
+			complete: () => {
+				// TODO: Would this be simpler if we react to GameOverPhase?
+				this.dialog.afterAllClosed.pipe(take(1)).subscribe(() =>
+					this.dialog.open<GameEndDialog, GameState>(GameEndDialog, {
+						data: this.game(),
+						scrollStrategy: this.overlay.scrollStrategies.noop(),
+					}));
+			}
+		}),
+		
+		instanceService.pipe(switchMap(service => service.get().onError()))
+			.subscribe(err => {
+				this.errorHandler.handleError(err)
+					.subscribe(_ => this.routing.toHome());
+			});
 		
 		this.gameService = toSignal(instanceService, { requireSync: true });
-		this.game = toSignal(gameObs, {
-			initialValue: {
-				title: "",
-				host: "",
-				players: [],
-				spectators: [],
-				round: 0,
-				phase: {
-					phase: "question",
-					questionInfo: {
-						question: "",
-					},
-					guesses: {},
-				},
-			}
-		});
+		this.game = toSignal(gameObs, { initialValue: initialState });
 		
 		this.roundTimer = toSignal(
 			gameObs.pipe(switchMap(game => this.startRoundTimer(game.phase))),
@@ -181,62 +301,46 @@ export class GameComponent implements OnDestroy {
 		effect(() => titleService.setTitle(route.routeConfig!.title! + " - " + this.game().title));
 	}
 	
-	public isQuestionPhase(phase: PhaseState): phase is QuestionPhaseState {
-		return phase.phase === "question";
+	isQuestionPhase(phase: PhaseState): phase is QuestionPhaseState {
+		return isQuestionPhase(phase);
 	}
 	
-	public isBettingPhase(phase: PhaseState): phase is BettingPhaseState {
-		return phase.phase === "betting";
+	isBettingPhase(phase: PhaseState): phase is BettingPhaseState {
+		return isBettingPhase(phase);
 	}
 	
-	public isIntermissionPhase(phase: PhaseState): phase is IntermissionPhaseState {
-		return phase.phase === "intermission";
+	isIntermissionPhase(phase: PhaseState): phase is IntermissionPhaseState {
+		return isIntermissionPhase(phase);
 	}
 	
-	public isGameOverPhase(phase: PhaseState): phase is GameOverPhaseState {
-		return phase.phase === "game-over";
+	isGameOverPhase(phase: PhaseState): phase is GameOverPhaseState {
+		return isGameOverPhase(phase);
 	}
 	
-	public isParticipantPlayer(players: GamePlayer[], participant: PrivatePlayer): boolean {
-		return players.some(player => player.publicId === participant.publicId);
+	isPlayer(): boolean {
+		return isPlayer(this.game(), this.thisParticipant().publicId);
 	}
 	
-	private onNewGame(newService: RefCounted<GameInstanceService>, oldService?: RefCounted<GameInstanceService>): void {
+	private onNewGame(oldService: RefCounted<GameInstanceService> | undefined, newService: RefCounted<GameInstanceService>): void {
 		if (oldService) {
 			this.closeGameService(oldService);
 		}
-		
 		newService.acquire();
-		
-		// Set up the handlers for game update, game end, and errors.
-		this.subs.push(
-			newService.get().onGameUpdate().subscribe({
-				next: state => {
-					this.onGameUpdate(state);
-				},
-				complete: () => {
-					this.dialog.afterAllClosed.pipe(take(1)).subscribe(() =>
-						this.dialog.open<GameEndDialog, GameState>(GameEndDialog, {
-							data: this.game(),
-							scrollStrategy: this.overlay.scrollStrategies.noop(),
-						}));
-				}
-			}),
-			newService.get().onError().subscribe(err => {
-				this.errorHandler.handleError(err)
-					.subscribe(_ => this.routing.toHome());
-			}));
 	}
 	
 	private onGameUpdate(state: GameState): void {
 		if (this.isQuestionPhase(state.phase)) {
-			this.openGuessDialog(state.phase.questionInfo);
+			if (this.shouldOpenGuessDialog(state, this.thisParticipant().publicId)) {
+				this.openGuessDialog(state.phase.questionInfo);
+			}
 		} else {
 			this.closeGuessDialog();
 		}
 		
+		// There is only one update during intermission, so we don't have to
+		// check for re-opening the dialog here.
 		if (this.isIntermissionPhase(state.phase)) {
-			this.openIntermissionDialog(state.phase);
+			this.openIntermissionDialog(state.phase, state.players);
 		} else {
 			this.closeIntermissionDialog();
 		}
@@ -270,8 +374,13 @@ export class GameComponent implements OnDestroy {
 		this.closeWagerDialog();
 		this.closeIntermissionDialog();
 		service.release();
-		this.subs.forEach(sub => sub.unsubscribe());
-		this.subs.length = 0;
+	}
+	
+	// Ensure that we do not open multiple guess dialogs.
+	private shouldOpenGuessDialog(game: GameState, publicId: PublicId): boolean {
+		return !this.guessDialog &&
+			isPlayer(game, publicId) &&
+			!playerHasGuess(publicId, game);
 	}
 	
 	private openGuessDialog(questionInfo: QuestionInfo): void {
@@ -303,13 +412,13 @@ export class GameComponent implements OnDestroy {
 		}
 	}
 	
-	private openWagerDialog(phase: BettingPhaseState, target: BetTarget): void {
+	private openWagerDialog(game: GameState, phase: BettingPhaseState, target: BetTarget): void {
 		const existingBet = phase.bets.find(
 			bet => bet.player === this.thisParticipant().publicId && bet.target === target);
 		this.wagerDialog = this.dialog
 			.open<WagerDialog, WagerDialogData>(WagerDialog, {
 				data: {
-					availableChips: this.availableChips(),
+					availableChips: availableChips(game, this.thisParticipant().publicId),
 					existingWager: existingBet?.wager,
 				},
 				scrollStrategy: this.overlay.scrollStrategies.noop(),
@@ -328,12 +437,12 @@ export class GameComponent implements OnDestroy {
 		}
 	}
 	
-	private openIntermissionDialog(phase: IntermissionPhaseState): void {
+	private openIntermissionDialog(phase: IntermissionPhaseState, players: GamePlayer[]): void {
 		this.intermissionDialog = this.dialog
 			.open<RoundEndDialog, RoundEndDialogData>(RoundEndDialog, {
 				data: {
 					intermission: phase,
-					players: this.game().players
+					players: players,
 				},
 				disableClose: true,
 				scrollStrategy: this.overlay.scrollStrategies.noop(),
@@ -380,76 +489,28 @@ export class GameComponent implements OnDestroy {
 	}
 	
 	public onWagerBoxClick(target: BetTarget): void {
-		const phase = this.game().phase;
+		const game = this.game();
+		const phase = game.phase;
 		if (!this.isBettingPhase(phase)) {
 			return;
 		}
-		this.openWagerDialog(phase, target);
+		this.openWagerDialog(game, phase, target);
 	}
 	
 	availableChips(): number {
-		const player = this.game().players.find(player => player.publicId === this.thisParticipant().publicId) ||
-			this.game().spectators.find(spectator => spectator.publicId === this.thisParticipant().publicId);
-		return player?.chips ?? 0;
+		return availableChips(this.game(), this.thisParticipant().publicId);
 	}
 	
-	enableBetTarget(target: BetTarget): boolean {
-		// Only enabled during BettingPhase.
-		const phase = this.game().phase;
-		if (!this.isBettingPhase(phase)) {
-			return false;
-		}
-		
-		// Disable target if there are no available chips, unless this target
-		// already has a bet on it.
-		const existingBetOnTarget = phase.bets.find(
-			bet => bet.player === this.thisParticipant().publicId && bet.target === target);
-		if (this.availableChips() <= 0 && !existingBetOnTarget) {
-			return false;
-		}
-		
-		// Disable target if there are already two bets on other targets.
-		const existingOtherBets = phase.bets.filter(
-			bet => bet.player === this.thisParticipant().publicId && bet.target !== target);
-		if (existingOtherBets.length >= 2) {
-			return false;
-		}
-		
-		return true;
+	shouldEnableBetTarget(target: BetTarget): boolean {
+		return shouldEnableBetTarget(target, this.game(), this.thisParticipant().publicId);
 	}
 	
 	getBetsOnTarget(target: BetTarget): { value: number; color: string }[] {
-		const game = this.game();
-		const phase = game.phase;
-		if (!this.isBettingPhase(phase)) {
-			return [];
-		}
-		
-		return phase.bets
-			.filter(bet => bet.target === target)
-			.map(bet => ({
-				value: bet.wager,
-				color: this.colorForPlayer(game, bet.player),
-			}));
+		return getBetsOnTarget(target, this.game());
 	}
 	
 	getGuessForTarget(target: BetTarget): { value: number; color: string } | undefined {
-		const game = this.game();
-		const phase = game.phase;
-		if (!this.isBettingPhase(phase)) {
-			return undefined;
-		}
-		
-		return phase.guesses
-			.filter(guess => guess.target === target)
-			.map(guess => ({
-				value: guess.guess,
-				color: this.colorForPlayer(game, guess.player),
-			}))[0];
-	}
-	
-	colorForPlayer(game: GameState, publicId: PublicId): string {
-		return game.players.find(player => player.publicId === publicId)!.color;
+		return getGuessForTarget(target, this.game());
 	}
 	
 	getRound() {
@@ -458,14 +519,14 @@ export class GameComponent implements OnDestroy {
 	}
 	
 	getQuestion(phase: PhaseState): string {
-		if (this.isGameOverPhase(phase)) {
+		if (isGameOverPhase(phase)) {
 			return "";
 		}
 		return phase.questionInfo.question;
 	}
 	
 	getSource(phase: PhaseState): string {
-		if (this.isGameOverPhase(phase)) {
+		if (isGameOverPhase(phase)) {
 			return "";
 		}
 		const { source, date } = phase.questionInfo;
