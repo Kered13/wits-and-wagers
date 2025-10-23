@@ -1,4 +1,3 @@
-* Delete default README.
 * Implement game.
   * Allow withdrawing guesses? (Currently, new guesses override old.)
   * Garbage collect inactive games.
