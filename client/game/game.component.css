@@ -1,19 +1,21 @@
 :host {
+	--board-primary: #266e26;
+	--board-secondary: darkgreen;
 	--black-space: #222;
 	--red-space: red;
 	--green-space: darkgreen;
 }
 
 .board {
-	border: 15px solid darkgreen;
-	height: 500px;
+	border: 15px solid var(--board-secondary);
+	height: 560px;
 	width: 950px;
-	background: #266e26;
+	background: var(--board-primary);
 	border-radius: 20px;
 	display: grid;
 	grid-template-columns: 3fr repeat(7, 5fr);
-	grid-template-rows: 40px 5fr 1fr;
-	padding: 20px;
+	grid-template-rows: 30px 70px 5fr 1fr;
+	padding: 0 20px 20px 20px;
 	gap: 10px;
 	zoom: 100%;
 }
@@ -52,6 +54,28 @@
 .timer-text {
 	width: 80%;
 	text-align: left;
+}
+
+.question-box {
+	grid-column: 1 / 9;
+	
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	
+	background: var(--board-secondary);
+	border-radius: 9px;
+}
+
+.question {
+	font-size: 20px;
+	color: white;
+}
+
+.source {
+	font-size: 14px;
+	color: gray
 }
 
 .all-too-high {

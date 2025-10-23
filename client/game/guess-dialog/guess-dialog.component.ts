@@ -1,7 +1,7 @@
 import { Component, Directive, DOCUMENT, Inject } from "@angular/core";
 import { AbstractControl, FormsModule, NG_VALIDATORS, ValidationErrors } from "@angular/forms";
 import { MatButtonModule } from "@angular/material/button";
-import { DialogPosition, MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from "@angular/material/dialog";
+import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from "@angular/material/dialog";
 import { MatError, MatInputModule } from "@angular/material/input";
 import { parseFloatSafe } from "complete-common";
 import { QuestionInfo } from "../../../shared/game/question";
@@ -91,9 +91,5 @@ export class GuessDialog {
 	
 	getGuess(): number | undefined {
 		return parseFloatSafe(this.guess);
-	}
-	
-	getSource(): string {
-		return this.source + (this.date ? ` (${this.date})` : "");
 	}
 }

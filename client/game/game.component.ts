@@ -276,13 +276,10 @@ export class GameComponent implements OnDestroy {
 	
 	private openGuessDialog(questionInfo: QuestionInfo): void {
 		const rect = this.hostElement.nativeElement.querySelector(".board").getBoundingClientRect();
-		const top = rect.top + rect.height / 2 - 300 / 2;
+		const top = rect.top + rect.height / 2 - 180 / 2;
 		this.guessDialog = this.dialog
 			.open<GuessDialog, GuessDialogData>(GuessDialog, {
 				data: { questionInfo: questionInfo, initialPosition: top },
-				minHeight: "300px",
-				maxHeight: "450px",
-				width: "600px",
 				disableClose: true,
 				hasBackdrop: false,
 				panelClass: "my-panel-class",
@@ -458,6 +455,21 @@ export class GameComponent implements OnDestroy {
 	getRound() {
 		const round = this.game().round;
 		return round > 7 ? "Game Over" : ("Round " + round);
+	}
+	
+	getQuestion(phase: PhaseState): string {
+		if (this.isGameOverPhase(phase)) {
+			return "";
+		}
+		return phase.questionInfo.question;
+	}
+	
+	getSource(phase: PhaseState): string {
+		if (this.isGameOverPhase(phase)) {
+			return "";
+		}
+		const { source, date } = phase.questionInfo;
+		return "Source: " + source + (date ? ` (${date})` : "");
 	}
 	
 	// TODO: Remove once dev UI is deleted.

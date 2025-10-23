@@ -1,9 +1,5 @@
-<h1 mat-dialog-title>Question:</h1>
 <div mat-dialog-content class="content">
-	<span class="question">{{ question }}</span>
-	<span class="source" [style.visibility]="source ? 'visible' : 'hidden'">
-		Source: {{ getSource() }}
-	</span>
+	<span class="instructions">Enter Your Guess:</span>
 	<mat-form-field class="guess">
 		<input matInput
 			#guessField="ngModel"

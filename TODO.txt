@@ -1,3 +1,4 @@
+* Delete default README.
 * Implement game.
   * Allow withdrawing guesses? (Currently, new guesses override old.)
   * Garbage collect inactive games.
@@ -7,7 +8,6 @@
   * FIX UI FOR SPECTATORS
     * Can submit guesses.
     * Cannot distinguish spectator bets.
-  * Display question on board.
   * Show player names, colors, chips.
 * Implement mobile UI.
 * Implement game/lobby expiration.

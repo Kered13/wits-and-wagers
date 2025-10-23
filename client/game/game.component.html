@@ -9,6 +9,10 @@
 			<span class="timer-text">{{ roundTimer() || "" }}</span>
 		</span>
 	</div>
+	<div class="question-box">
+		<span class="question">{{ getQuestion(phase) }}</span>
+		<span class="source">{{ getSource(phase) }}</span>
+	</div>
 	<all-too-high-box
 			color="var(--green-space)"
 			[disabled]="!enableBetTarget('AllTooHigh')"
