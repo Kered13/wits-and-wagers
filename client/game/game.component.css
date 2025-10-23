@@ -107,16 +107,6 @@
 	grid-column: 6 / 9;
 }
 
-.game-state {
-	background: #eee;
-	padding: 1rem;
-	font-family: monospace;
-	word-break: auto-phrase;
-	white-space: preserve nowrap;
-	text-align: start;
-	overflow-x: scroll;
-}
-
 .payoff {
 	font-size: 18pt;
 	color: white;
@@ -136,4 +126,19 @@
 .payoff-to {
 	font-size: 14pt;
 	font-variant: petite-caps;
+}
+
+.guess-card {
+	align-self: center;
+	justify-self: center;
+}
+
+.game-state {
+	background: #eee;
+	padding: 1rem;
+	font-family: monospace;
+	word-break: auto-phrase;
+	white-space: preserve nowrap;
+	text-align: start;
+	overflow-x: scroll;
 }

@@ -23,8 +23,4 @@ export class BettingBox extends BaseWagerBox {
 			"85% 6%",
 		];
 	}
-	
-	override isDisabled(): boolean {
-		return this.disabled() || this.guess() === undefined;
-	}
 };

@@ -12,14 +12,15 @@ import { ActivatedRoute } from "@angular/router";
 import { parseIntSafe } from "complete-common";
 import { combineLatest, concat, delay, map, type Observable, of, pairwise, startWith, Subscription, switchMap, take } from "rxjs";
 
+import { GameInstanceService, GameService } from "./game.service.js";
+import { GameEndDialog } from "./game-end-dialog/game-end-dialog.component.js";
+import { GuessCard } from "./guess-card/guess-card.component.js";
 import { GuessDialog, GuessDialogData } from "./guess-dialog/guess-dialog.component.js";
 import { AllTooHighBox } from "./wager-box/all-too-high-box.component.js";
 import { BettingBox } from "./wager-box/wager-box.component.js";
 import { ColorWagerBox } from "./wager-box/color-wager-box.component.js";
 import { WagerBoxBgText, WagerBoxBottomText } from "./wager-box/wager-box-content.component.js";
 import { WagerDialog, WagerDialogData } from "./wager-dialog/wager-dialog.component.js";
-import { GameInstanceService, GameService } from "./game.service.js";
-import { GameEndDialog } from "./game-end-dialog/game-end-dialog.component.js";
 import { GlobalErrorHandler } from "../error-dialog/error-handler.js";
 import { RoundEndDialog, RoundEndDialogData } from "./round-end-dialog/round-end-dialog.component.js";
 import { GameRoute, TypedRouteFor } from "../routes/routes.js";
@@ -215,6 +216,7 @@ function colorForPlayer(game: GameState, publicId: PublicId): string {
 		AllTooHighBox,
 		BettingBox,
 		ColorWagerBox,
+		GuessCard,
 		WagerBoxBgText,
 		WagerBoxBottomText,
 	],

@@ -27,56 +27,70 @@
 			color="var(--red-space)"
 			[disabled]="!shouldEnableBetTarget(0)"
 			(onClick)="onWagerBoxClick(0)"
-			[guess]="getGuessForTarget(0)"
 			[bets]="getBetsOnTarget(0)">
+		@if (getGuessForTarget(0); as guess) {
+			<guess-card class="guess-card" [guess]="guess" />
+		}
 		<wager-box-bottom-text class="payoff">5 <span class="payoff-to">to</span> 1</wager-box-bottom-text>
 	</betting-box>
 	<betting-box
 			color="var(--red-space)"
 			[disabled]="!shouldEnableBetTarget(1)"
 			(onClick)="onWagerBoxClick(1)"
-			[guess]="getGuessForTarget(1)"
 			[bets]="getBetsOnTarget(1)">
+		@if (getGuessForTarget(1); as guess) {
+			<guess-card class="guess-card" [guess]="guess" />
+		}
 		<wager-box-bottom-text class="payoff">4 <span class="payoff-to">to</span> 1</wager-box-bottom-text>
 	</betting-box>
 	<betting-box
 			color="var(--red-space)"
 			[disabled]="!shouldEnableBetTarget(2)"
 			(onClick)="onWagerBoxClick(2)"
-			[guess]="getGuessForTarget(2)"
 			[bets]="getBetsOnTarget(2)">
+		@if (getGuessForTarget(2); as guess) {
+			<guess-card class="guess-card" [guess]="guess" />
+		}
 		<wager-box-bottom-text class="payoff">3 <span class="payoff-to">to</span> 1</wager-box-bottom-text>
 	</betting-box>
 	<betting-box
 			color="var(--green-space)"
 			[disabled]="!shouldEnableBetTarget(3)"
 			(onClick)="onWagerBoxClick(3)"
-			[guess]="getGuessForTarget(3)"
 			[bets]="getBetsOnTarget(3)">
+		@if (getGuessForTarget(3); as guess) {
+			<guess-card class="guess-card" [guess]="guess" />
+		}
 		<wager-box-bottom-text class="payoff">2 <span class="payoff-to">to</span> 1</wager-box-bottom-text>
 	</betting-box>
 	<betting-box
 			color="var(--black-space)"
 			[disabled]="!shouldEnableBetTarget(4)"
 			(onClick)="onWagerBoxClick(4)"
-			[guess]="getGuessForTarget(4)"
 			[bets]="getBetsOnTarget(4)">
+		@if (getGuessForTarget(4); as guess) {
+			<guess-card class="guess-card" [guess]="guess" />
+		}
 		<wager-box-bottom-text class="payoff">3 <span class="payoff-to">to</span> 1</wager-box-bottom-text>
 	</betting-box>
 	<betting-box
 			color="var(--black-space)"
 			[disabled]="!shouldEnableBetTarget(5)"
 			(onClick)="onWagerBoxClick(5)"
-			[guess]="getGuessForTarget(5)"
 			[bets]="getBetsOnTarget(5)">
+		@if (getGuessForTarget(5); as guess) {
+			<guess-card class="guess-card" [guess]="guess" />
+		}
 		<wager-box-bottom-text class="payoff">4 <span class="payoff-to">to</span> 1</wager-box-bottom-text>
 	</betting-box>
 	<betting-box
 			color="var(--black-space)"
 			[disabled]="!shouldEnableBetTarget(6)"
 			(onClick)="onWagerBoxClick(6)"
-			[guess]="getGuessForTarget(6)"
 			[bets]="getBetsOnTarget(6)">
+		@if (getGuessForTarget(6); as guess) {
+			<guess-card class="guess-card" [guess]="guess" />
+		}
 		<wager-box-bottom-text class="payoff">5 <span class="payoff-to">to</span> 1</wager-box-bottom-text>
 	</betting-box>
 	<color-wager-box
