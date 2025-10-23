@@ -530,6 +530,9 @@ export class GameComponent implements OnDestroy {
 			return "";
 		}
 		const { source, date } = phase.questionInfo;
+		if (!source) {
+			return "";
+		}
 		return "Source: " + source + (date ? ` (${date})` : "");
 	}
 	
