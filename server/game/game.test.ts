@@ -38,7 +38,6 @@ function makeGame(id: string, title: string, players: Player[], spectators?: Spe
 	// Do not automatically end the question phase. This makes testing easier.
 	return new Game(
 		id,
-		id,
 		title,
 		players[0],
 		players,
@@ -460,5 +459,14 @@ describe("Game", () => {
 		});
 		
 		expect(callback).toHaveBeenCalled();
+	});
+	
+	test("tryGetPrivatePlayer", () => {
+		const alice = makePlayer("Alice");
+		const bob = makeSpectator("Bob");
+		const game = makeGame("id", "Game", [alice], [bob]);
+		
+		expect(game.tryGetPrivatePlayer(alice.privateId)).to.deep.equal(alice);
+		expect(game.tryGetPrivatePlayer(bob.privateId)).to.be.undefined;
 	});
 });

@@ -105,75 +105,54 @@ export class LobbyApp {
 		const { lobbyId, name, privateId } = verifyRequest(
 			req.body, JoinLobbyRequestSchema, `Invalid JoinLobbyRequest: ${JSON.stringify(req.body)}`);
 		
-		if (!this.tryJoinLobby(lobbyId, name, privateId, res) &&
-				!this.tryJoinSpectatorLobby(lobbyId, name, privateId, res) &&
-				!this.tryJoinGame(lobbyId, privateId, res) &&
-				!this.tryJoinSpectatorGame(lobbyId, name, privateId, res)) {
+		const response = this.tryJoinLobby(lobbyId, name, privateId) ??
+			this.tryJoinSpectatorLobby(lobbyId, name, privateId) ??
+			this.tryJoinGame(lobbyId);
+		if (!response) {
 			throw new HttpError(404, `LobbyId ${lobbyId} not found.`);
 		}
+		res.send(response);
 	}
 	
-	private tryJoinLobby(lobbyId: LobbyId, name: string, privateId: PrivateId | undefined, res: Response): boolean {
+	private tryJoinLobby(lobbyId: LobbyId, name: string, privateId: PrivateId | undefined): JoinLobbyResponse | undefined {
 		const data = LobbyApp.tryGetLobby(this.lobbies, lobbyId);
 		if (!data) {
-			return false;
+			return undefined;
 		}
 		
 		const { lobby, notifier } = data;
 		const player = lobby.addPlayer(name, privateId);
 		
-		res.send({
-			player: player.toPrivateJson()
-		} satisfies JoinLobbyResponse);
-		
 		notifier.notifyClients(lobby.makeUpdate());
-		return true;
+		return {
+			player: player.toPrivateJson()
+		};
 	}
 	
-	private tryJoinSpectatorLobby(lobbyId: LobbyId, name: string, privateId: PrivateId | undefined, res: Response): boolean {
+	private tryJoinSpectatorLobby(lobbyId: LobbyId, name: string, privateId: PrivateId | undefined): JoinLobbyResponse | undefined {
 		const data = LobbyApp.tryGetLobby(this.spectatorLobbies, lobbyId);
 		if (!data) {
-			return false;
+			return undefined;
 		}
 		
 		const { lobby, notifier } = data;
 		const player = lobby.addSpectator(name, privateId);
 		
-		res.send({
-			player: player.toPrivateJson()
-		} satisfies JoinLobbyResponse);
-		
 		notifier.notifyClients(lobby.makeUpdate());
-		return true;
+		return {
+			player: player.toPrivateJson()
+		};
 	}
 	
-	private tryJoinGame(lobbyId: LobbyId, privateId: PrivateId | undefined, res: Response): boolean {
-		// Check if the lobby has become a game, and if this player is part
-		// of that game. Then redirect them to the game.
-		const gameData = this.gameApp.tryGetGame(Lobby.gameIdFromLobbyId(lobbyId));
-		if (!gameData || !privateId || !gameData.game.getPlayers().some(player => player.privateId === privateId)) {
-			return false;
-		}
-		res.send({
-			gameId: gameData.game.getId()
-		} satisfies JoinLobbyResponse);
-		
-		return true;
-	}
-	
-	private tryJoinSpectatorGame(lobbyId: LobbyId, name: string, privateId: PrivateId | undefined, res: Response): boolean {
+	private tryJoinGame(lobbyId: LobbyId): JoinLobbyResponse | undefined {
 		// Check if the lobby has become a game, then redirect them to the game.
-		// Spectators can join in the middle of a game, so we do not need to
-		// check if they are already part of the game.
-		const gameData = this.gameApp.tryGetSpectatorGame(Lobby.gameIdFromLobbyId(lobbyId));
+		const gameData = this.gameApp.tryGetGame(Lobby.gameIdFromLobbyId(lobbyId));
 		if (!gameData) {
-			return false;
+			return undefined;
 		}
-		res.send({
-			gameId: gameData.game.getSpectatorId()
-		} satisfies JoinLobbyResponse);
-		
-		return true;
+		return {
+			gameId: gameData.game.getId()
+		};
 	}
 	
 	private kickPlayer(req: Request, res: Response): void {
@@ -192,7 +171,6 @@ export class LobbyApp {
 		
 		const privateId = lobby.getParticipant(player).privateId;
 		lobby.removeParticipant(privateId);
-		res.end();
 		
 		notifier
 			.notifyPlayer(privateId, { type: "kicked" })
@@ -227,7 +205,6 @@ export class LobbyApp {
 			lobby.addSpectator("", player);
 		}
 		
-		res.end();
 		notifier.notifyClients(data.lobby.makeUpdate());
 	}
 	
@@ -244,7 +221,6 @@ export class LobbyApp {
 		
 		lobby.setPlayerColor(player, color);
 		
-		res.end();
 		notifier.notifyClients(data.lobby.makeUpdate());
 	}
 	
@@ -259,7 +235,6 @@ export class LobbyApp {
 		const [game, beginGame] = lobby.beginGame();
 		this.gameApp.addGame(game);
 		
-		res.end();
 		notifier
 			.notifyClients(beginGame)
 			.close();
@@ -274,7 +249,6 @@ export class LobbyApp {
 		
 		this.removeLobby(lobby);
 		
-		res.end();
 		notifier
 			.notifyClients(lobby.makeCancel())
 			.close();

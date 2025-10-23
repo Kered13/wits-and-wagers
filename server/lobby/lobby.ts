@@ -177,7 +177,6 @@ export class Lobby {
 	public beginGame(): [Game, LobbyBeginGame] {
 		const game = new Game(
 			Lobby.gameIdFromLobbyId(this.id),
-			Lobby.gameIdFromLobbyId(this.spectatorId),
 			this.title,
 			this.host,
 			this.players,

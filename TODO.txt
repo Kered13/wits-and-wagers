@@ -1,8 +1,8 @@
 * Implement game.
-  * Don't leak Game player ID to spectators.
   * Generate random lobby/game names.
   * Allow withdrawing guesses? (Currently, new guesses override old.)
   * Garbage collect inactive games.
+  * Make game ID distinct from lobby ID?
   * Support mixing question sets?
 * Implement desktop UI.
   * Add button for changing guess.
@@ -10,6 +10,7 @@
     * Can submit guesses.
     * Cannot distinguish spectator bets.
   * Show player names, colors, chips.
+  * Show "Waiting for Guesses" to spectators.
   * Handle bet normalization.
 * Implement mobile UI.
 * Implement game/lobby expiration.

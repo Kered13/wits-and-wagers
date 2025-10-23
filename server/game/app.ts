@@ -27,36 +27,15 @@ type GameData = {
 
 export class GameApp {
 	private readonly games: Map<GameId, GameData> = new Map();
-	private readonly spectatorGames: Map<GameId, GameData> = new Map();
 	
 	constructor() {}
 	
-	private static tryGetGame(games: Map<GameId, GameData>, id: GameId): GameData | undefined {
-		return games.get(id);
-	}
-	
-	private static getGame(games: Map<GameId, GameData>, id: GameId): GameData {
-		const data = this.tryGetGame(games, id);
-		if (!data) {
-			throw new HttpError(404, `GameId ${id} not found.`);
-		}
-		return data;
-	}
-	
 	public tryGetGame(id: GameId): GameData | undefined {
-		return GameApp.tryGetGame(this.games, id);
+		return this.games.get(id);
 	}
 	
-	public tryGetSpectatorGame(id: GameId): GameData | undefined {
-		return GameApp.tryGetGame(this.spectatorGames, id);
-	}
-	
-	public tryGetAnyGame(id: GameId): GameData | undefined {
-		return this.tryGetGame(id) || this.tryGetSpectatorGame(id);
-	}
-	
-	public getAnyGame(id: GameId): GameData {
-		const data = this.tryGetAnyGame(id);
+	public getGame(id: GameId): GameData {
+		const data = this.tryGetGame(id);
 		if (!data) {
 			throw new HttpError(404, `GameId ${id} not found.`);
 		}
@@ -66,7 +45,6 @@ export class GameApp {
 	public addGame(game: Game): void {
 		const notifier = new GameNotifier();
 		this.games.set(game.getId(), { game, notifier });
-		this.spectatorGames.set(game.getSpectatorId(), { game, notifier });
 		
 		game.onUpdates().subscribe({
 			next: () => {
@@ -85,74 +63,57 @@ export class GameApp {
 		const { gameId, name, privateId } = verifyRequest(
 			req.body, JoinSpectatorRequestSchema, `Invalid JoinSpectatorRequest: ${JSON.stringify(req.body)}`);
 		
-		if (!this.tryJoinPlayer(gameId, privateId, res) &&
-				!this.tryJoinSpectator(gameId, name, privateId, res)) {
+		const game = this.tryGetGame(gameId)?.game;
+		if (!game) {
 			throw new HttpError(404, `GameId ${gameId} not found.`);
 		}
+		
+		res.send(this.tryJoinPlayer(game, privateId) ??
+			this.joinSpectator(game, name, privateId));
 	}
 	
-	private tryJoinPlayer(gameId: GameId, privateId: PrivateId | undefined, res: Response): boolean {
-		const data = this.tryGetGame(gameId);
-		if (!data) {
-			return false;
+	private tryJoinPlayer(game: Game, privateId: PrivateId | undefined): JoinSpectatorResponse | undefined {
+		if (!privateId) {
+			return undefined;
 		}
-		
-		const player = data.game.getPlayers().find(p => p.privateId === privateId);
+		const player = game.tryGetPrivatePlayer(privateId);
 		if (!player) {
-			return false;
+			return undefined;
 		}
 		
-		res.send({
+		return {
 			player: player.toPrivateJson()
-		} satisfies JoinSpectatorResponse);
-		res.end();
-		return true;
+		};
 	}
 	
-	private tryJoinSpectator(gameId: GameId, name: string, privateId: PrivateId | undefined, res: Response): boolean {
-		const data = this.tryGetSpectatorGame(gameId);
-		if (!data) {
-			return false;
-		}
-		
-		const spectator = data.game.addSpectator(name, privateId);
-		res.send({
-			player: spectator.toPrivateJson()
-		} satisfies JoinSpectatorResponse);
-		
-		console.log(`Sending joinSpectator respond.`);
-		res.end();
-		return true;
+	private joinSpectator(game: Game, name: string, privateId: PrivateId | undefined): JoinSpectatorResponse {
+		return {
+			player: game.addSpectator(name, privateId).toPrivateJson()
+		};
 	}
 	
 	private submitGuess(req: Request, res: Response): void {
 		const { gameId, requester, guess } = verifyRequest(
 			req.body, SubmitGuessRequestSchema, `Invalid SubmitGuessRequest: ${JSON.stringify(req.body)}`);
 		
-		const { game } = this.getAnyGame(gameId);
+		const { game } = this.getGame(gameId);
 		game.submitGuess(requester, guess);
-		
-		res.end();
 	}
 	
 	private submitBet(req: Request, res: Response): void {
 		const { gameId, requester, target, wager } = verifyRequest(
 			req.body, SubmitBetRequestSchema, `Invalid SubmitBetRequest: ${JSON.stringify(req.body)}`);
 		
-		const { game } = this.getAnyGame(gameId);
+		const { game } = this.getGame(gameId);
 		game.submitBet(requester, target, wager);
-		
-		res.end();
 	}
 	
 	private endPhase(req: Request, res: Response): void {
 		const { gameId, requester } = verifyRequest(
 			req.body, EndPhaseRequestSchema, `Invalid WithdrawBetRequest: ${JSON.stringify(req.body)}`);
 		
-		const { game } = this.getAnyGame(gameId);
+		const { game } = this.getGame(gameId);
 		game.endPhase(requester);
-		
-		res.end();
 	}
 	
 	private subscribe(webSocket: WebSocket) {
@@ -165,7 +126,7 @@ export class GameApp {
 					msg, SubscribeRequestSchema, `Invalid SubscribeRequest: ${JSON.stringify(msg)}`);
 				
 				// TODO: Verify that player is in game.
-				const { game, notifier } = this.getAnyGame(gameId);
+				const { game, notifier } = this.getGame(gameId);
 				notifier.addClient(privateId, ws);
 				notifier.notifyClient(ws, game.makeUpdate(privateId));
 				

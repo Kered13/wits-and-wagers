@@ -42,7 +42,6 @@ export class Game {
 	
 	constructor(
 			private readonly id: GameId,
-			private readonly spectatorId: GameId,
 			private readonly title: string,
 			private readonly host: ParticipantParams,
 			players: PlayerParams[],
@@ -60,10 +59,6 @@ export class Game {
 	
 	public getId(): GameId {
 		return this.id;
-	}
-	
-	public getSpectatorId(): GameId {
-		return this.spectatorId;
 	}
 	
 	public addSpectator(name: string, id?: PrivateId): Spectator {
@@ -198,16 +193,12 @@ export class Game {
 		};
 	}
 	
-	public getPlayers(): Player[] {
-		return this.players.getAll();
-	}
-	
-	public getSpectators(): Spectator[] {
-		return this.spectators.getAll();
-	}
-	
 	public getParticipants(): (Player | Spectator)[] {
-		return [...this.getPlayers(), ...this.getSpectators()];
+		return [...this.players.getAll(), ...this.spectators.getAll()];
+	}
+	
+	public tryGetPrivatePlayer(privateId: PrivateId): Player | undefined {
+		return this.players.getAll().find(p => p.privateId === privateId);
 	}
 	
 	public getRound(): number {
