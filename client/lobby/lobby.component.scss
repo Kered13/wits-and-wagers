@@ -1,6 +1,24 @@
 @use "color-box.scss";
 
 
+.lobby {
+	width: 400px;
+}
+
+.contents {
+	display: flex;
+	gap: 20px;
+}
+
+.player-column {
+	flex: 1;
+}
+
+.player {
+	display: flex;
+	align-items: center;
+}
+
 .host-action-button {
 	margin: 5px 5px 5px 0;
 }

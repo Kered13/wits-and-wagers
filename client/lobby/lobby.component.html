@@ -1,48 +1,48 @@
-<mat-card style="max-width: 400px;">
+<mat-card class="lobby">
 	<mat-card-header>
 		<h1>{{ lobby().title }}</h1>
 	</mat-card-header>
 	<mat-card-content>
-		<div style="display: flex">
-			<div style="flex: 1">
+		<div class="contents">
+			<div class="player-column">
 				<h3>Players</h3>
 				@for (player of lobby().players; track player.publicId) {
-					<div style="display: flex; align-items: center">
+					<div class="player">
 						@if (isThisPlayerHost()) {
 							<button
-								class="host-action-button"
-								#tooltip="matTooltip"
-								matTooltip="Kick from lobby"
-								mat-mini-fab
-								(click)="kickPlayer(player.publicId)">
+									class="host-action-button"
+									#tooltip="matTooltip"
+									matTooltip="Kick from lobby"
+									mat-mini-fab
+									(click)="kickPlayer(player.publicId)">
 								<mat-icon>close</mat-icon>
 							</button>
 							<button
-								class="host-action-button"
-								#tooltip="matTooltip"
-								matTooltip="Move to spectators"
-								mat-mini-fab
-								(click)="moveToSpectators(player.publicId)">
+									class="host-action-button"
+									#tooltip="matTooltip"
+									matTooltip="Move to spectators"
+									mat-mini-fab
+									(click)="moveToSpectators(player.publicId)">
 								<mat-icon>visibility</mat-icon>
 							</button>
 						}
 						@if (isThisPlayerHost() || player.publicId === thisParticipant().publicId) {
 							<button
-								class="host-action-button"
-								#tooltip="matTooltip"
-								matTooltip="Change color"
-								(click)="openColorPickers()[player.publicId] = !openColorPickers()[player.publicId]"
-								cdkOverlayOrigin
-								#trigger="cdkOverlayOrigin"
-								mat-mini-fab>
+									class="host-action-button"
+									#tooltip="matTooltip"
+									matTooltip="Change color"
+									(click)="openColorPickers()[player.publicId] = !openColorPickers()[player.publicId]"
+									cdkOverlayOrigin
+									#trigger="cdkOverlayOrigin"
+									mat-mini-fab>
 								<div class="color-box" [style.background-color]="player.color"></div>
 							</button>
 							<ng-template
-								cdkConnectedOverlay
-								[cdkConnectedOverlayOrigin]="trigger"
-								[cdkConnectedOverlayOpen]="openColorPickers()[player.publicId]"
-								(overlayOutsideClick)="openColorPickers()[player.publicId] = false"
-								(detach)="openColorPickers()[player.publicId] = false">
+									cdkConnectedOverlay
+									[cdkConnectedOverlayOrigin]="trigger"
+									[cdkConnectedOverlayOpen]="openColorPickers()[player.publicId]"
+									(overlayOutsideClick)="openColorPickers()[player.publicId] = false"
+									(detach)="openColorPickers()[player.publicId] = false">
 								<div class="color-picker">
 									@for (color of COLORS; track $index) {
 										<color-button
@@ -56,33 +56,33 @@
 						} @else {
 							<div class="color-box" [style.background-color]="player.color"></div>
 						}
-						<p>{{ player.name + (player.publicId === lobby().host ? " (host)" : "") }}</p>
+						<span>{{ player.name + (player.publicId === lobby().host ? " (host)" : "") }}</span>
 					</div>
 				}
 			</div>
 			@if (lobby().spectators.length > 0) {
-				<div style="flex: 1">
+				<div class="player-column">
 					<h3>Spectators</h3>
 					@for (spectator of lobby().spectators; track spectator.publicId) {
-						<div style="display: flex; align-items: center">
+						<div class="player">
 							@if (isThisPlayerHost()) {
 								<button
-									class="host-action-button"
-									#tooltip="matTooltip"
-									matTooltip="Kick from lobby"
-									mat-mini-fab
-									(click)="kickPlayer(spectator.publicId)">
+										class="host-action-button"
+										#tooltip="matTooltip"
+										matTooltip="Kick from lobby"
+										mat-mini-fab
+										(click)="kickPlayer(spectator.publicId)">
 									<mat-icon>close</mat-icon>
 								</button>
 								<button
-									class="host-action-button"
-									matTooltip="Move to players"
-									mat-mini-fab
-									(click)="moveToPlayers(spectator.publicId)">
+										class="host-action-button"
+										matTooltip="Move to players"
+										mat-mini-fab
+										(click)="moveToPlayers(spectator.publicId)">
 									<mat-icon>person</mat-icon>
 								</button>
 							}
-						<p>{{ spectator.name + (spectator.publicId === lobby().host ? " (host)" : "") }}</p>
+						<span>{{ spectator.name + (spectator.publicId === lobby().host ? " (host)" : "") }}</span>
 						</div>
 					}
 				</div>

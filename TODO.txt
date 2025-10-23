@@ -1,4 +1,5 @@
 * Implement game.
+  * Generate random lobby/game names.
   * Allow withdrawing guesses? (Currently, new guesses override old.)
   * Garbage collect inactive games.
   * Support mixing question sets?
