@@ -126,9 +126,7 @@ function availableChips(game: GameState, publicId: PublicId): number {
 
 
 function isPlayer(game: GameState, participant: PublicId): boolean {
-	const b = game.players.some(player => player.publicId === participant);
-	console.log(b);
-	return b;
+	return game.players.some(player => player.publicId === participant);
 }
 
 
@@ -353,7 +351,7 @@ export class GameComponent implements OnDestroy {
 	private onGameUpdate(state: GameState): void {
 		if (this.isQuestionPhase(state.phase)) {
 			if (this.shouldOpenGuessDialog(state, this.thisParticipant().publicId)) {
-				this.openGuessDialog(state.phase.questionInfo);
+				this.openGuessDialog();
 			}
 		} else {
 			this.closeGuessDialog();
@@ -405,26 +403,24 @@ export class GameComponent implements OnDestroy {
 			!playerHasGuess(publicId, game);
 	}
 	
-	private openGuessDialog(questionInfo: QuestionInfo): void {
+	private openGuessDialog(currentGuess?: number): void {
 		const rect = this.hostElement.nativeElement.querySelector(".board").getBoundingClientRect();
 		const top = rect.top + rect.height / 2 - 180 / 2;
 		this.guessDialog = this.dialog
 			.open<GuessDialog, GuessDialogData>(GuessDialog, {
-				data: { questionInfo: questionInfo, initialPosition: top },
-				disableClose: true,
-				hasBackdrop: false,
-				panelClass: "my-panel-class",
+				data: {
+					initialPosition: top,
+					currentGuess: currentGuess,
+				},
+				disableClose: currentGuess === undefined,
+				hasBackdrop: currentGuess !== undefined,
 				scrollStrategy: this.overlay.scrollStrategies.noop(),
 			});
 		this.guessDialog.afterClosed().subscribe(guess => {
-			console.log("Closing guess dialog");
 			if (guess !== undefined) {
-				console.log("Closed guess dialog");
 				this.gameService().get().submitGuess(guess).subscribe();
 			}
 		});
-		console.log("Opened guess dialog");
-		console.log(this.guessDialog);
 	}
 	
 	private closeGuessDialog(): void {
@@ -508,6 +504,18 @@ export class GameComponent implements OnDestroy {
 	
 	public onEndPhase(): void {
 		this.gameService().get().endPhase().subscribe();
+	}
+	
+	public onGuessCardClick(): void {
+		const game = this.game();
+		if (!isQuestionPhase(game.phase)) {
+			return;
+		}
+		const guess = game.phase.guesses[this.thisParticipant().publicId];
+		if (typeof(guess) !== "number") {
+			return;
+		}
+		this.openGuessDialog(guess);
 	}
 	
 	public onWagerBoxClick(target: BetTarget): void {

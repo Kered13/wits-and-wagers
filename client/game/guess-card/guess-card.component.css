@@ -1,3 +1,13 @@
+:host {
+}
+
+:host.enabled {
+	cursor: pointer;
+}
+
+:host.enabled:hover {
+}
+
 .guess-card {
 	/* TODO: Convert to pixels. */
 	width: 88px;

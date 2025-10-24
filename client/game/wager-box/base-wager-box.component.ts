@@ -1,4 +1,4 @@
-import { Component, Directive, HostListener, input, output } from "@angular/core";
+import { Directive, HostBinding, HostListener, input, output } from "@angular/core";
 
 
 type Bet = {
@@ -17,7 +17,18 @@ export abstract class BaseWagerBox {
 	
 	abstract chipPositions(): string[];
 	
-	click(): void {
+	@HostBinding("style.--bg-color")
+	private get bgColor() {
+		return this.color();
+	}
+	
+	@HostBinding("class.enabled")
+	private get enabledClass() {
+		return !this.disabled();
+	}
+	
+	@HostListener("click")
+	private click(): void {
 		if (!this.disabled()) {
 			this.onClick.emit();
 		}

@@ -1,7 +1,4 @@
-<div class="wager-box"
-		[style.--background-color]="color()"
-		[class.enabled]="!disabled()"
-		(click)="click()">
+<div class="wager-box">
 	<ng-content />
 	<ng-content select="wager-box-bg-text" />
 	@for (bet of bets(); track bet.color) {

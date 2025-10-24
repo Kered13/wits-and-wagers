@@ -13,5 +13,8 @@
 	</mat-form-field>
 </div>
 <div mat-dialog-actions>
+	@if (currentGuess !== undefined) {
+		<button mat-raised-button [mat-dialog-close]="undefined">Cancel</button>
+	}
 	<button mat-raised-button [mat-dialog-close]="getGuess()!" [disabled]="!guessField.valid">Submit</button>
 </div>

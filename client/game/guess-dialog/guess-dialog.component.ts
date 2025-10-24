@@ -23,9 +23,8 @@ export class GuessValidator {
 
 
 export type GuessDialogData = {
-	questionInfo: QuestionInfo;
 	initialPosition: number;
-	source?: string;
+	currentGuess?: number;
 };
 
 
@@ -43,10 +42,8 @@ export type GuessDialogData = {
 	styleUrl: "./guess-dialog.component.css"
 })
 export class GuessDialog {
-	guess: string = "";
-	question: string;
-	source: string | undefined;
-	date: string | undefined;
+	currentGuess: number | undefined;
+	guess: string;
 	
 	// The vertical position of this dialog.
 	private position: number = 0;
@@ -58,9 +55,8 @@ export class GuessDialog {
 			private readonly dialogRef: MatDialogRef<GuessDialog>,
 			@Inject(DOCUMENT) private readonly document: Document,
 			@Inject(MAT_DIALOG_DATA) data: GuessDialogData) {
-		this.question = data.questionInfo.question;
-		this.source = data.questionInfo.source;
-		this.date = data.questionInfo.date;
+		this.currentGuess = data.currentGuess;
+		this.guess = this.currentGuess?.toString() ?? "";
 		
 		// Update the position to keep the dialog fixed relative to the
 		// document. This is an unfortunate workaround since MatDialog does not

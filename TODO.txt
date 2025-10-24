@@ -5,8 +5,8 @@
   * Make game ID distinct from lobby ID?
   * Support mixing question sets?
 * Implement desktop UI.
-  * Add button for changing guess.
   * Realign chips.
+  * Disable board interation while wager dialog is up.
   * FIX UI FOR SPECTATORS
     * Cannot distinguish spectator bets.
   * Show player names, colors, chips.
