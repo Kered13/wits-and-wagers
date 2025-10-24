@@ -1,10 +1,10 @@
-import { Component, input } from "@angular/core";
+import { Component, HostBinding, input } from "@angular/core";
 import { Ng2FittextModule } from "ng2-fittext";
 
 
-type Guess = {
-	// If value is not provided, the guess is face-down.
-	value?: number;
+export type GuessCardData = {
+	// If value is not provided, the card is face-down.
+	value: number | boolean;
 	color: string;
 };
 
@@ -16,5 +16,13 @@ type Guess = {
 	styleUrl: "./guess-card.component.css",
 })
 export class GuessCard {
-	readonly guess = input.required<Guess>();
+	readonly data = input.required<GuessCardData>();
+	
+	@HostBinding("style.visibility") get visible() {
+		return this.data().value === false ? "hidden" : "visible";
+	}
+	
+	@HostBinding("style.--card-color") get color() {
+		return this.data().color;
+	}
 };

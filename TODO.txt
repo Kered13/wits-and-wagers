@@ -6,7 +6,7 @@
   * Support mixing question sets?
 * Implement desktop UI.
   * Add button for changing guess.
-  * Show which players have made guesses.
+  * Realign chips.
   * FIX UI FOR SPECTATORS
     * Cannot distinguish spectator bets.
   * Show player names, colors, chips.

@@ -1,8 +1,10 @@
-@let guessVal = guess();
-<div class="guess-card" [style.border-color]="guessVal.color">
-	@if (guessVal.value !== undefined) {
+@let guessVal = data();
+<div class="guess-card">
+	@if (typeof(guessVal.value) === "number") {
 		<span class="guess-value" [fittext]="true" [modelToWatch]="guessVal">
 			{{ guessVal.value }}
 		</span>
+	} @else {
+		<div class="card-back"></div>
 	}
 </div>

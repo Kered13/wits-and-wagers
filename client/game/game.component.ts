@@ -14,7 +14,7 @@ import { combineLatest, concat, delay, map, type Observable, of, pairwise, start
 
 import { GameInstanceService, GameService } from "./game.service.js";
 import { GameEndDialog } from "./game-end-dialog/game-end-dialog.component.js";
-import { GuessCard } from "./guess-card/guess-card.component.js";
+import { GuessCard, GuessCardData } from "./guess-card/guess-card.component.js";
 import { GuessDialog, GuessDialogData } from "./guess-dialog/guess-dialog.component.js";
 import { AllTooHighBox } from "./wager-box/all-too-high-box.component.js";
 import { BettingBox } from "./wager-box/wager-box.component.js";
@@ -138,6 +138,11 @@ function shouldEnableBetTarget(target: BetTarget, game: GameState, publicId: Pub
 		return false;
 	}
 	
+	// Disable if there is no guess on this target.
+	if (typeof(target) === "number" && !getGuessForTarget(target, game)) {
+		return false;
+	}
+	
 	// Disable target if there are no available chips, unless this target
 	// already has a bet on it.
 	const existingBetOnTarget = phase.bets.find(
@@ -198,6 +203,21 @@ function playerHasGuess(publicId: PublicId, game: GameState): boolean {
 
 function colorForPlayer(game: GameState, publicId: PublicId): string {
 	return game.players.find(player => player.publicId === publicId)!.color;
+}
+
+
+function getGuessCards(game: GameState): GuessCardData[] {
+	const phase = game.phase;
+	if (!isQuestionPhase(phase)) {
+		return [];
+	}
+	return game.players.map(player => {
+			const guess = phase.guesses[player.publicId]
+			return {
+				color: colorForPlayer(game, player.publicId),
+				value: guess,
+			};
+		});
 }
 
 
@@ -536,6 +556,22 @@ export class GameComponent implements OnDestroy {
 			return "";
 		}
 		return "Source: " + source + (date ? ` (${date})` : "");
+	}
+	
+	getGuessCards(): GuessCardData[] {
+		return getGuessCards(this.game());
+	}
+	
+	getCardPosition(index: number): string {
+		return [
+			"translate(20px, 5px) rotate(-10deg)",
+			"translate(-130px, 50px) rotate(10deg)",
+			"translate(80px, -100px) rotate(20deg)",
+			"translate(180px, 70px) rotate(-15deg)",
+			"translate(-80px, -130px) rotate(-25deg)",
+			"translate(-190px, -50px) rotate(5deg)",
+			"translate(210px, -35px) rotate(5deg)",
+		][index];
 	}
 	
 	// TODO: Remove once dev UI is deleted.

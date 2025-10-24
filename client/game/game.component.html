@@ -29,7 +29,7 @@
 			(onClick)="onWagerBoxClick(0)"
 			[bets]="getBetsOnTarget(0)">
 		@if (getGuessForTarget(0); as guess) {
-			<guess-card class="guess-card" [guess]="guess" />
+			<guess-card class="guess-card" [data]="guess" />
 		}
 		<wager-box-bottom-text class="payoff">5 <span class="payoff-to">to</span> 1</wager-box-bottom-text>
 	</betting-box>
@@ -39,7 +39,7 @@
 			(onClick)="onWagerBoxClick(1)"
 			[bets]="getBetsOnTarget(1)">
 		@if (getGuessForTarget(1); as guess) {
-			<guess-card class="guess-card" [guess]="guess" />
+			<guess-card class="guess-card" [data]="guess" />
 		}
 		<wager-box-bottom-text class="payoff">4 <span class="payoff-to">to</span> 1</wager-box-bottom-text>
 	</betting-box>
@@ -49,7 +49,7 @@
 			(onClick)="onWagerBoxClick(2)"
 			[bets]="getBetsOnTarget(2)">
 		@if (getGuessForTarget(2); as guess) {
-			<guess-card class="guess-card" [guess]="guess" />
+			<guess-card class="guess-card" [data]="guess" />
 		}
 		<wager-box-bottom-text class="payoff">3 <span class="payoff-to">to</span> 1</wager-box-bottom-text>
 	</betting-box>
@@ -59,7 +59,7 @@
 			(onClick)="onWagerBoxClick(3)"
 			[bets]="getBetsOnTarget(3)">
 		@if (getGuessForTarget(3); as guess) {
-			<guess-card class="guess-card" [guess]="guess" />
+			<guess-card class="guess-card" [data]="guess" />
 		}
 		<wager-box-bottom-text class="payoff">2 <span class="payoff-to">to</span> 1</wager-box-bottom-text>
 	</betting-box>
@@ -69,7 +69,7 @@
 			(onClick)="onWagerBoxClick(4)"
 			[bets]="getBetsOnTarget(4)">
 		@if (getGuessForTarget(4); as guess) {
-			<guess-card class="guess-card" [guess]="guess" />
+			<guess-card class="guess-card" [data]="guess" />
 		}
 		<wager-box-bottom-text class="payoff">3 <span class="payoff-to">to</span> 1</wager-box-bottom-text>
 	</betting-box>
@@ -79,7 +79,7 @@
 			(onClick)="onWagerBoxClick(5)"
 			[bets]="getBetsOnTarget(5)">
 		@if (getGuessForTarget(5); as guess) {
-			<guess-card class="guess-card" [guess]="guess" />
+			<guess-card class="guess-card" [data]="guess" />
 		}
 		<wager-box-bottom-text class="payoff">4 <span class="payoff-to">to</span> 1</wager-box-bottom-text>
 	</betting-box>
@@ -89,7 +89,7 @@
 			(onClick)="onWagerBoxClick(6)"
 			[bets]="getBetsOnTarget(6)">
 		@if (getGuessForTarget(6); as guess) {
-			<guess-card class="guess-card" [guess]="guess" />
+			<guess-card class="guess-card" [data]="guess" />
 		}
 		<wager-box-bottom-text class="payoff">5 <span class="payoff-to">to</span> 1</wager-box-bottom-text>
 	</betting-box>
@@ -109,6 +109,11 @@
 			[bets]="getBetsOnTarget('Black')">
 		<wager-box-bg-text class="payoff">BLACK 1 <span class="payoff-to">to</span> 1</wager-box-bg-text>
 	</color-wager-box>
+	@for (cardData of getGuessCards(); track cardData.color) {
+		<guess-card class="guess-card2"
+			[data]="cardData"
+			[style.transform]="getCardPosition($index)" />
+	}
 </div>
 <div style="display: flex; justify-content: center">
 	<mat-card style="max-width: 400px;">

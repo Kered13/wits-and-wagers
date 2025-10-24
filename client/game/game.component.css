@@ -7,16 +7,19 @@
 }
 
 .board {
-	border: 15px solid var(--board-secondary);
+	position: relative;
 	height: 560px;
 	width: 950px;
-	background: var(--board-primary);
+	border: 15px solid var(--board-secondary);
 	border-radius: 20px;
+	background: var(--board-primary);
+	padding: 0 20px 20px 20px;
+	
 	display: grid;
 	grid-template-columns: 3fr repeat(7, 5fr);
 	grid-template-rows: 30px 70px 5fr 1fr;
-	padding: 0 20px 20px 20px;
 	gap: 10px;
+	
 	zoom: 100%;
 }
 
@@ -131,6 +134,12 @@
 .guess-card {
 	align-self: center;
 	justify-self: center;
+}
+
+.guess-card2 {
+	position: absolute;
+	top: 50%;
+	left: 50%;
 }
 
 .game-state {

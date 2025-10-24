@@ -4,6 +4,7 @@
 	height: 49px;
 	border: 5px solid;
 	border-radius: 8px;
+	border-color: var(--card-color);
 	background-color: white;
 	
 	display: flex;
@@ -13,4 +14,11 @@
 
 .guess-value {
 	user-select: none;
+}
+
+.card-back {
+	width: calc(100% - 7px);
+	height: calc(100% - 7px);
+	border-radius: 1px;
+	background-color: var(--card-color);
 }
