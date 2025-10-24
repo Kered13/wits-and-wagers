@@ -14,13 +14,13 @@ import { BettingChip } from "../betting-chip/betting-chip.component.js";
 export class BettingBox extends BaseWagerBox {
 	override chipPositions() {
 		return [
-			"58% 45%",
-			"67% 4%",
-			"76% 47%",
-			"24% 13%",
-			"13% 45%",
-			"2% 6%",
-			"85% 6%",
+			"60% 45%",
+			"70% 7%",
+			"26% 50%",
+			"80% 50%",
+			"7% 55%",
+			"1% 3%",
+			"17% 10%",
 		];
 	}
 };
