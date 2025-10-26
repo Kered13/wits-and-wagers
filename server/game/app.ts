@@ -110,7 +110,7 @@ export class GameApp {
 	
 	private endPhase(req: Request, res: Response): void {
 		const { gameId, requester } = verifyRequest(
-			req.body, EndPhaseRequestSchema, `Invalid WithdrawBetRequest: ${JSON.stringify(req.body)}`);
+			req.body, EndPhaseRequestSchema, `Invalid endPhaseRequest: ${JSON.stringify(req.body)}`);
 		
 		const { game } = this.getGame(gameId);
 		game.endPhase(requester);

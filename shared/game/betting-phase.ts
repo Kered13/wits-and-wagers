@@ -49,7 +49,10 @@ export const BettingPhaseStateSchema = strictObject({
 	phase: literal("betting"),
 	questionInfo: QuestionInfoSchema,
 	guesses: array(GuessSchema),
+	// Bets placed by players.
 	bets: array(BetSchema),
+	// Bets placed by a spectator. Only reported to that spectator.
+	spectatorBets: array(BetSchema),
 	// Round duration, in milliseconds.
 	roundDuration: optional(number()),
 	// The time when the round will end, as millisecond timestamp.

@@ -3,11 +3,12 @@ import { Ng2FittextModule } from "ng2-fittext";
 
 import { BaseWagerBox } from "./base-wager-box.component.js";
 import { BettingChip } from "../betting-chip/betting-chip.component.js";
+import { SpectatorChip } from "../spectator-chip/spectator-chip.component.js";
 
 
 @Component({
 	selector: "all-too-high-box",
-	imports: [Ng2FittextModule, BettingChip],
+	imports: [Ng2FittextModule, BettingChip, SpectatorChip],
 	templateUrl: "./base-wager-box.component.html",
 	styleUrl: "./base-wager-box.component.css"
 })
@@ -16,11 +17,15 @@ export class AllTooHighBox extends BaseWagerBox {
 		return [
 			"43% 16%",
 			"71% 18%",
-			"15% 20%",
+			"13% 30%",
 			"57% 10%",
-			"29% 7%",
+			"28% 7%",
 			"85% 6%",
-			"1% 5%",
+			"-1% 5%",
 		];
+	}
+	
+	override spectatorChipPosition(): string {
+		return "18% -40%";
 	}
 };

@@ -27,11 +27,11 @@ import { GameRoute, TypedRouteFor } from "../routes/routes.js";
 import { RoutingService } from "../routes/routing.service.js";
 import { RefCounted } from "../utils/refcounted.js";
 import { PrivatePlayer, PublicId } from "../../shared/player.js";
-import { BetTarget, BettingPhaseState } from "../../shared/game/betting-phase.js";
+import { Bet, BetTarget, BettingPhaseState } from "../../shared/game/betting-phase.js";
 import { GameOverPhaseState, GamePlayer, GameState } from "../../shared/game/game.js";
 import { QuestionPhaseState } from "../../shared/game/question-phase.js";
 import { IntermissionPhaseState } from "../../shared/game/intermission-phase.js";
-import { QuestionInfo } from "../../shared/game/question.js";
+import { BetData, SpectatorBetData } from "./wager-box/base-wager-box.component.js";
 
 
 @Directive({
@@ -143,8 +143,7 @@ function shouldEnableBetTarget(target: BetTarget, game: GameState, publicId: Pub
 	
 	// Disable target if there are no available chips, unless this target
 	// already has a bet on it.
-	const existingBetOnTarget = phase.bets.find(
-		bet => bet.player === publicId && bet.target === target);
+	const existingBetOnTarget = getPlayerBetOnTarget(publicId, target, phase);
 	if (availableChips(game, publicId) <= 0 && !existingBetOnTarget) {
 		return false;
 	}
@@ -160,12 +159,12 @@ function shouldEnableBetTarget(target: BetTarget, game: GameState, publicId: Pub
 }
 
 
-function getBetsOnTarget(target: BetTarget, game: GameState): { value: number; color: string; } [] {
+function getBetsOnTarget(target: BetTarget, game: GameState): BetData[] {
 	const phase = game.phase;
 	if (!isBettingPhase(phase)) {
 		return [];
 	}
-
+	
 	return phase.bets
 		.filter(bet => bet.target === target)
 		.map(bet => ({
@@ -175,12 +174,33 @@ function getBetsOnTarget(target: BetTarget, game: GameState): { value: number; c
 }
 
 
-function getGuessForTarget(target: BetTarget, game: GameState): { value: number; color: string; } | undefined {
+function getSpectatorBetOnTarget(target: BetTarget, game: GameState): SpectatorBetData | undefined {
 	const phase = game.phase;
 	if (!isBettingPhase(phase)) {
 		return undefined;
 	}
+	
+	return phase.spectatorBets
+		.filter(bet => bet.target === target)
+		.map(bet => ({
+			value: bet.wager,
+			name: nameForPlayer(game, bet.player),
+		}))[0];
+}
 
+
+function getPlayerBetOnTarget(publicId: PublicId, target: BetTarget, phase: BettingPhaseState): Bet | undefined {
+	return phase.bets.find(bet => bet.player === publicId && bet.target === target) ??
+		phase.spectatorBets.find(bet => bet.player === publicId && bet.target === target);
+}
+
+
+function getGuessForTarget(target: BetTarget, game: GameState): GuessCardData | undefined {
+	const phase = game.phase;
+	if (!isBettingPhase(phase)) {
+		return undefined;
+	}
+	
 	return phase.guesses
 		.filter(guess => guess.target === target)
 		.map(guess => ({
@@ -196,6 +216,12 @@ function playerHasGuess(publicId: PublicId, game: GameState): boolean {
 		return false;
 	}
 	return phase.guesses[publicId] !== false;
+}
+
+
+function nameForPlayer(game: GameState, publicId: PublicId): string {
+	return game.players.find(player => player.publicId === publicId)?.name ??
+		game.spectators.find(spec => spec.publicId === publicId)?.name!;
 }
 
 
@@ -431,8 +457,7 @@ export class GameComponent implements OnDestroy {
 	}
 	
 	private openWagerDialog(game: GameState, phase: BettingPhaseState, target: BetTarget): void {
-		const existingBet = phase.bets.find(
-			bet => bet.player === this.thisParticipant().publicId && bet.target === target);
+		const existingBet = getPlayerBetOnTarget(this.thisParticipant().publicId, target, phase);
 		this.wagerDialog = this.dialog
 			.open<WagerDialog, WagerDialogData>(WagerDialog, {
 				data: {
@@ -535,11 +560,15 @@ export class GameComponent implements OnDestroy {
 		return shouldEnableBetTarget(target, this.game(), this.thisParticipant().publicId);
 	}
 	
-	getBetsOnTarget(target: BetTarget): { value: number; color: string }[] {
+	getBetsOnTarget(target: BetTarget): BetData[] {
 		return getBetsOnTarget(target, this.game());
 	}
 	
-	getGuessForTarget(target: BetTarget): { value: number; color: string } | undefined {
+	getSpectatorBetOnTarget(target: BetTarget): SpectatorBetData | undefined {
+		return getSpectatorBetOnTarget(target, this.game());
+	}
+	
+	getGuessForTarget(target: BetTarget): GuessCardData | undefined {
 		return getGuessForTarget(target, this.game());
 	}
 	

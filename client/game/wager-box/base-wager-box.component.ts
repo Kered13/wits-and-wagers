@@ -1,21 +1,28 @@
 import { Directive, HostBinding, HostListener, input, output } from "@angular/core";
 
 
-type Bet = {
+export type BetData = {
 	value: number;
 	color: string;
 };
+
+export type SpectatorBetData = {
+	value: number;
+	name: string;
+}
 
 
 @Directive()
 export abstract class BaseWagerBox {
 	readonly color = input.required<string>();
-	readonly bets = input<Bet[]>([]);
+	readonly bets = input<BetData[]>([]);
+	readonly spectatorBet = input<SpectatorBetData>();
 	readonly disabled = input<boolean>(false);
 	
 	readonly onClick = output<void>();
 	
 	abstract chipPositions(): string[];
+	abstract spectatorChipPosition(): string;
 	
 	@HostBinding("style.--bg-color")
 	private get bgColor() {

@@ -17,10 +17,56 @@ const R = Symbol("Red");
 const B = Symbol("Black");
 
 
-type Guess = GuessJson & {
-	payout: number,
-	color: Symbol
-};
+function guessToTarget(numPlayers: number, guessIdx: number): GuessTarget {
+	const targetMap: GuessTarget[][] = [
+		[],
+		[3],
+		[2, 4],
+		[2, 3, 4],
+		[1, 2, 4, 5],
+		[1, 2, 3, 4, 5],
+		[0, 1, 2, 4, 5, 6],
+		[0, 1, 2, 3, 4, 5, 6],
+	];
+	return targetMap[numPlayers]![guessIdx]!;
+}
+
+
+function payoutForTarget(target: BetTarget): number {
+	// Payouts for each target.
+	const payoutMultipliers = [5, 4, 3, 2, 3, 4, 5];
+	if (target === "AllTooHigh") {
+		return 6;
+	} else if (target === "Red" || target === "Black") {
+		return 1;
+	} else {
+		return payoutMultipliers[target]!;
+	}
+}
+
+
+function payoutForBet(bet: Bet, bets: Bet[], winningTarget: BetTarget, winningColors: Set<String>): number {
+	const winningPayout = payoutForTarget(winningTarget);
+	const multiplier =
+		bet.target === winningTarget ? winningPayout :
+			(typeof (bet.target) === "string" && winningColors.has(bet.target)) ? 1 : -1;
+
+	// Players always get their reserved chip(s) back, at minimum.
+	return Math.max(reservedChipsFor(bet, bets), (multiplier + 1) * bet.wager);
+}
+
+
+// Returns the number of reserved chips a player should get for each of
+// their losing bets.
+function reservedChipsFor(bet: Bet, bets: Bet[]): number {
+	const numBets = bets.filter(bet2 => bet2.player === bet.player).length;
+
+	// A player who made no bets gets no reserved chips back. A player who
+	// made one bet gets up to two chips back. A player who made two bets
+	// gets one chip back for each bet. But a player can never get back more
+	// than they wagered.
+	return Math.min(bet.wager, [0, 2, 1][numBets]!);
+}
 
 
 export type BettingPhaseOptions = {
@@ -35,7 +81,8 @@ export const bettingPhaseDefaultOptions: BettingPhaseOptions = {
 
 export class BettingPhase implements Phase {
 	private readonly bets: Bet[] = [];
-	private readonly guesses: Guess[];
+	private readonly spectatorBets: Bet[] = [];
+	private readonly guesses: GuessJson[];
 	private readonly endPhaseSubj = new Subject<void>();
 	private readonly timeout: NodeJS.Timeout | undefined;
 	// Phase end time as millisecond timestamp.
@@ -48,21 +95,14 @@ export class BettingPhase implements Phase {
 			private readonly round: number,
 			guesses: Map<Player, number>,
 			private readonly options: BettingPhaseOptions) {
-		// Payouts for each target.
-		const payoutMultipliers = [5, 4, 3, 2, 3, 4, 5];
-		// Colors assigned to each target.
-		const targetColors = [R, R, R, N, B, B, B];
-		
 		this.guesses = Array.from(guesses)
 			.sort((first, second) => first[1] - second[1])
-			.map(([player, guess], i): Guess => {
-				const target = BettingPhase.guessToTarget(guesses.size, i);
+			.map(([player, guess], i): GuessJson => {
+				const target = guessToTarget(guesses.size, i);
 				return {
 					player: player.publicId,
 					target: target,
 					guess: guess,
-					payout: payoutMultipliers[target]!,
-					color: targetColors[target]!,
 				};
 			});
 		
@@ -75,7 +115,7 @@ export class BettingPhase implements Phase {
 		}
 	}
 	
-	private targetToGuess(target: GuessTarget): Guess | undefined {
+	private targetToGuess(target: GuessTarget): GuessJson | undefined {
 		const U = undefined;
 		const guessMap = [
 			[U, U, U, U, U, U, U],
@@ -95,58 +135,39 @@ export class BettingPhase implements Phase {
 		return this.guesses[guessIdx];
 	}
 	
-	private static guessToTarget(numPlayers: number, guessIdx: number): GuessTarget {
-		const targetMap: GuessTarget[][] = [
-			[                   ],
-			[         3         ],
-			[      2,    4      ],
-			[      2, 3, 4      ],
-			[   1, 2,    4, 5   ],
-			[   1, 2, 3, 4, 5   ],
-			[0, 1, 2,    4, 5, 6],
-			[0, 1, 2, 3, 4, 5, 6],
-		];
-		return targetMap[numPlayers]![guessIdx]!;
-	}
-	
-	private guessToTarget(guessIdx: number): GuessTarget {
-		return BettingPhase.guessToTarget(this.guesses.length, guessIdx);
-	}
-	
 	public submitBet(playerId: PrivateId, target: BetTarget, wager: number): void {
-		const player = this.getPrivatePlayerOrSpectator(playerId);
-		
 		this.validateTarget(target);
 		
+		const player = this.players.tryGetPrivatePlayer(playerId);
+		if (player) {
+			return this.doSubmitBet(player, this.bets, target, wager);
+		}
+		const spectator = this.spectators.tryGetPrivatePlayer(playerId);
+		if (spectator) {
+			return this.doSubmitBet(spectator, this.spectatorBets, target, wager);
+		}
+		throw new HttpError(404, `Player or spectator private ID ${playerId} not found.`);
+	}
+	
+	private doSubmitBet(player: Participant, bets: Bet[], target: BetTarget, wager: number) {
 		// Normalize bet by moving it to the highest valued target with the same
 		// guess. This gives the player the best possible payout.
 		target = this.normalizeTarget(target);
 		
-		const existingBetIdx = this.bets.findIndex(bet => bet.player === player.publicId && bet.target === target);
-		const existingBet = existingBetIdx >= 0 ? this.bets[existingBetIdx]! : undefined;
-		this.validateWager(player, wager, existingBet);
+		const existingBetIdx = bets.findIndex(bet => bet.player === player.publicId && bet.target === target);
+		const existingBet = existingBetIdx >= 0 ? bets[existingBetIdx]! : undefined;
+		this.validateWager(player, bets, wager, existingBet);
 		
 		if (existingBet) {
+			// Remove the previous bet.
 			player.chips += existingBet.wager;
-			this.bets.splice(existingBetIdx, 1);
+			bets.splice(existingBetIdx, 1);
 		}
 		
 		if (wager > 0) {
-			this.bets.push({ player: player.publicId, target: target, wager: wager });
+			bets.push({ player: player.publicId, target: target, wager: wager });
 			// Deduct the wager from the player's chips.
 			player.chips -= wager;
-		}
-	}
-	
-	public withdrawBet(playerId: PrivateId, target: BetTarget): void {
-		const player = this.getPrivatePlayerOrSpectator(playerId);
-		const i = this.bets.findIndex(bet => bet.player === player.publicId && bet.target === target);
-		if (i > -1) {
-			// Return the player's chips.
-			player.chips += this.bets[i]!.wager;
-			this.bets.splice(i, 1);
-		} else {
-			throw new HttpError(400, `Player ${playerId } does not have a bet on target ${target}.`);
 		}
 	}
 	
@@ -167,28 +188,27 @@ export class BettingPhase implements Phase {
 			}
 			winningGuessIdx++;
 		}
-		const winningGuess: Guess | undefined = this.guesses[winningGuessIdx];
+		
+		const winningGuess: GuessJson | undefined = this.guesses[winningGuessIdx];
 		const winningColors = this.winningColors(winningGuess);
-		const winningPayout = winningGuess?.payout ?? 6;
-		const winningTarget = this.normalizeTarget(winningGuessIdx >= 0 ? this.guessToTarget(winningGuessIdx) : "AllTooHigh");
+		const winningTarget = this.normalizeTarget(winningGuessIdx >= 0 ? guessToTarget(this.guesses.length, winningGuessIdx) : "AllTooHigh");
 		
 		// Payout all bets. Ties are handled by normalizing bets on submission,
 		// so they do not need to be handled here.
 		for (const bet of this.bets) {
-			const multiplier =
-				bet.target === winningTarget ? winningPayout :
-				(typeof(bet.target) === "string" && winningColors.has(bet.target)) ? 1 : -1;
+			const payout = payoutForBet(bet, this.bets, winningTarget, winningColors);
 			
-			// Players always get their reserved chip(s) back, at minimum.
-			const payout = Math.max(this.reservedChipsFor(bet), (multiplier + 1) * bet.wager);
-			const player = this.getPublicPlayerOrSpectator(bet.player);
+			const player = this.players.getPublicPlayer(bet.player);
 			player.chips += payout;
+			conclusion.earnings[player.publicId]! += payout;
+		}
+		
+		for (const bet of this.spectatorBets) {
+			const payout = payoutForBet(bet, this.spectatorBets, winningTarget, winningColors);
 			
-			if (this.players.hasPublicPlayer(player.publicId)) {
-				conclusion.earnings[player.publicId]! += payout;
-			} else {
-				conclusion.spectatorEarnings[player.publicId]! += payout;
-			}
+			const player = this.spectators.getPublicPlayer(bet.player);
+			player.chips += payout;
+			conclusion.spectatorEarnings[player.publicId]! += payout;
 		}
 		
 		// Award bonus chips to the player who got the correct guess. Handle
@@ -217,6 +237,7 @@ export class BettingPhase implements Phase {
 				guess: guess.guess
 			})),
 			bets: this.bets,
+			spectatorBets: this.filterBetsForSpectator(forPlayer),
 			...this.options.bettingPhaseDuration && { roundDuration: this.options.bettingPhaseDuration },
 			...this.endTime && { roundEnd: this.endTime }
 		};
@@ -235,14 +256,16 @@ export class BettingPhase implements Phase {
 	}
 	
 	// Return all the colors that have a winning guess.
-	private winningColors(winningGuess: Guess | undefined): Set<String> {
+	private winningColors(winningGuess: GuessJson | undefined): Set<String> {
+		// Colors assigned to each target.
+		const targetColors = [R, R, R, N, B, B, B];
+		
 		if (!winningGuess) {
 			return new Set();
 		}
 		return new Set(
 			this.guesses.filter(guess => guess.guess === winningGuess.guess)
-				.map(guess => guess.color)
-				.map(guess => guess.description!));
+				.map(guess => targetColors[guess.target as number]!.description!));
 	}
 	
 	private validateTarget(target: BetTarget): void {
@@ -255,24 +278,24 @@ export class BettingPhase implements Phase {
 	}
 	
 	// Validate the given bet.
-	private validateWager(player: Participant, wager: number, existingBet?: Bet): void {
+	private validateWager(player: Participant, bets: Bet[], wager: number, existingBet?: Bet): void {
 		const existingWager = existingBet ? existingBet.wager : 0;
 		if (wager < 0 || wager > player.chips + existingWager || !Number.isInteger(wager)) {
 			throw new HttpError(400, `Invalid wager. ${wager} is not an integer between 1 and ${player.chips}`);
 		}
 		
-		const existingBets = this.bets.filter(bet => bet !== existingBet && bet.player === player.publicId).length;
-		if (existingBets == 2) {
-			throw new HttpError(400, `Only two bets per player allowed. Player ${player.publicId} has played ${existingBets} bets.`);
-		} else if (existingBets > 2) {
-			throw new HttpError(500, `Player ${player.publicId} somehow has too many ${existingBets} bets. This should not happen.`);
+		const otherExistingBets = bets.filter(bet => bet !== existingBet && bet.player === player.publicId).length;
+		if (otherExistingBets == 2) {
+			throw new HttpError(400, `Only two bets per player allowed. Player ${player.publicId} has played ${otherExistingBets} bets.`);
+		} else if (otherExistingBets > 2) {
+			throw new HttpError(500, `Player ${player.publicId} somehow has too many ${otherExistingBets} bets. This should not happen.`);
 		}
 	}
 	
 	// When targets are tied, we need to pick a canonical target to use for bets
-	// and payouts. We do this returning hte highest payout, breaking ties by
+	// and payouts. We do this returning the highest payout, breaking ties by
 	// player ID. This ensures that the best possible payout is always used for
-	// bets. Separately, we ensure that all players with this guess receive
+	// bets. Elsewhere, we also ensure that all players with this guess receive
 	// round bonus chips.
 	private normalizeTarget(target: BetTarget): BetTarget {
 		if (typeof(target) !== "number") {
@@ -284,36 +307,14 @@ export class BettingPhase implements Phase {
 			.sort((first, second) =>
 				first.player < second.player ? -1 :
 				first.player > second.player ? 1 : 0)
-			.sort((first, second) => second.payout - first.payout)
+			.sort((first, second) => payoutForTarget(second.target) - payoutForTarget(first.target))
 			.at(0)!;
-		return this.guessToTarget(this.guesses.findIndex(guess => guess === bestGuess));
+		return guessToTarget(this.guesses.length, this.guesses.findIndex(guess => guess === bestGuess));
 	}
 	
-	// Returns the number of reserved chips a player should get for each of
-	// their losing bets.
-	private reservedChipsFor(bet: Bet): number {
-		const numBets = this.bets.filter(bet2 => bet2.player === bet.player).length;
-		
-		// A player who made no bets gets no reserved chips back. A player who
-		// made one bet gets up to two chips back. A player who made two bets
-		// gets one chip back for each bet. But a player can never get back more
-		// than they wagered.
-		return Math.min(bet.wager, [0, 2, 1][numBets]!);
-	}
-	
-	private getPrivatePlayerOrSpectator(playerId: PrivateId): Participant {
-		const player = this.players.tryGetPrivatePlayer(playerId) ?? this.spectators.tryGetPrivatePlayer(playerId);
-		if (!player) {
-			throw new HttpError(404, `Player or spectator private ID ${playerId} not found.`);
-		}
-		return player;
-	}
-	
-	private getPublicPlayerOrSpectator(playerId: PublicId): Participant {
-		const player = this.players.tryGetPublicPlayer(playerId) ?? this.spectators.tryGetPublicPlayer(playerId);
-		if (!player) {
-			throw new HttpError(404, `Player or spectator private ID ${playerId} not found.`);
-		}
-		return player;
+	// Filters bets to only those that the spectator should see.
+	private filterBetsForSpectator(privateId: PrivateId): Bet[] {
+		const publicId = this.spectators.tryGetPrivatePlayer(privateId)?.publicId ?? "";
+		return this.spectatorBets.filter(bet => bet.player == publicId);
 	}
 }

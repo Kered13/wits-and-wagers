@@ -226,13 +226,68 @@ describe("BettingPhase", () => {
 				{ player: "public-Bob", target: "Red", wager: 10 },
 				{ player: "public-Charlie", target: "Black", wager: 50 },
 				{ player: "public-Derek", target: 2, wager: 60 },
-			]
+			],
+			spectatorBets: [],
 		};
 		
 		expectBettingPhaseStateEqual(phase.toJson(alice.privateId), expected);
 		expectBettingPhaseStateEqual(phase.toJson(bob.privateId), expected);
 		expectBettingPhaseStateEqual(phase.toJson(charlie.privateId), expected);
 		expectBettingPhaseStateEqual(phase.toJson(derek.privateId), expected);
+	});
+	
+	test("toJson reports only spectator bet for one self", () => {
+		const alice = makePlayer("Alice");
+		const bob = makeSpectator("Bob");
+		const charlie = makeSpectator("Charlie");
+		
+		const phase = makeBettingPhase({
+			question: "What is the question?",
+			answer: 42,
+			round: 1,
+			guesses: [[alice, 42]],
+			spectators: [bob, charlie],
+		});
+		
+		phase.submitBet(alice.privateId, "AllTooHigh", 37);
+		phase.submitBet(bob.privateId, "Red", 10);
+		phase.submitBet(charlie.privateId, "Black", 50);
+		
+		const baseExpected: BettingPhaseState = {
+			phase: "betting",
+			questionInfo: {
+				question: "What is the question?",
+			},
+			guesses: [
+				{ player: "public-Alice", target: 3, guess: 42 },
+			],
+			bets: [
+				{ player: "public-Alice", target: "AllTooHigh", wager: 37 },
+			],
+			spectatorBets: [],
+		};
+		
+		const aliceExpected: BettingPhaseState = {
+			...baseExpected,
+			spectatorBets: [],
+		};
+		expectBettingPhaseStateEqual(phase.toJson(alice.privateId), aliceExpected);
+		
+		const bobExpected: BettingPhaseState = {
+			...baseExpected,
+			spectatorBets: [
+				{ player: "public-Bob", target: "Red", wager: 10 },
+			],
+		};
+		expectBettingPhaseStateEqual(phase.toJson(bob.privateId), bobExpected);
+		
+		const charlieExpected: BettingPhaseState = {
+			...baseExpected,
+			spectatorBets: [
+				{ player: "public-Charlie", target: "Black", wager: 50 },
+			],
+		};
+		expectBettingPhaseStateEqual(phase.toJson(charlie.privateId), charlieExpected);
 	});
 	
 	test("toJson reports round time and end time if option specified", () => {
@@ -258,6 +313,7 @@ describe("BettingPhase", () => {
 				{ player: "public-Alice", target: 3, guess: 42 },
 			],
 			bets: [],
+			spectatorBets: [],
 			roundDuration: 60_000,
 			roundEnd: 1_060_300
 		});
