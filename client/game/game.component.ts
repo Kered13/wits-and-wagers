@@ -16,6 +16,7 @@ import { GameInstanceService, GameService } from "./game.service.js";
 import { GameEndDialog } from "./game-end-dialog/game-end-dialog.component.js";
 import { GuessCard, GuessCardData } from "./guess-card/guess-card.component.js";
 import { GuessDialog, GuessDialogData } from "./guess-dialog/guess-dialog.component.js";
+import { ScoreBoard } from "./score-board/score-board.component.js";
 import { AllTooHighBox } from "./wager-box/all-too-high-box.component.js";
 import { BettingBox } from "./wager-box/wager-box.component.js";
 import { ColorWagerBox } from "./wager-box/color-wager-box.component.js";
@@ -261,6 +262,7 @@ function getGuessCards(game: GameState): GuessCardData[] {
 		BettingBox,
 		ColorWagerBox,
 		GuessCard,
+		ScoreBoard,
 		WagerBoxBgText,
 		WagerBoxBottomText,
 	],

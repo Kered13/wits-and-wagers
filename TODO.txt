@@ -6,7 +6,7 @@
   * Make game ID distinct from lobby ID?
   * Support mixing question sets?
 * Implement desktop UI.
-  * Show player names, colors, chips.
+  * Show available chips in wager dialog.
   * Render chips more dynamically?
   * Show "Waiting for Guesses" to spectators.
   * Handle bet normalization.
