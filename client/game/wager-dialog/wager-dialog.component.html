@@ -1,5 +1,6 @@
-<h1 mat-dialog-title>Place Bet!</h1>
-<div mat-dialog-content>
+<div mat-dialog-content class="content">
+	<h1>Place Bet!</h1>
+	<span class="available">Available Chips: <span class="available-chips">${{ getAvailableChips() }}</span></span>
 	<mat-form-field class="wager">
 		<mat-label>Wager:</mat-label>
 		<input matInput
@@ -9,9 +10,9 @@
 			[chipValidator]="getAvailableChips()"
 			[(ngModel)]="wager" />
 		@if (wagerField.hasError("insufficientChips")) {
-			<mat-error>Insufficient chips. {{ getAvailableChips() }} chips available.</mat-error>
+			<mat-error>Insufficient chips.</mat-error>
 		} @else {
-			<mat-error>Wager must not be negative.</mat-error>
+			<mat-error>Wager must be a positive integer.</mat-error>
 		}
 	</mat-form-field>
 </div>

@@ -52,7 +52,6 @@ export class WagerDialog {
 	constructor(
 			private readonly dialogRef: MatDialogRef<WagerDialog>,
 			@Inject(MAT_DIALOG_DATA) readonly data: WagerDialogData) {
-		dialogRef.updateSize("355px", "235px");
 	}
 	
 	getWager(): number | undefined {
