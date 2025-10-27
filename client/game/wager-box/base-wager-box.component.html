@@ -1,8 +1,10 @@
 <div class="wager-box">
 	<ng-content />
 	<ng-content select="wager-box-bg-text" />
-	@for (bet of bets(); track bet.color) {
-		<betting-chip [value]="bet.value" [color]="bet.color" [style.inset]="chipPositions()[$index]" />
+	@for (bet of betsOnBoard(); track $index) {
+		@if (bet) {
+			<betting-chip [value]="bet.value" [color]="bet.color" [style.inset]="chipPositions()[$index]" />
+		}
 	}
 	@if (spectatorBet(); as bet) {
 		<spectator-chip [value]="bet.value" [name]="bet.name" [style.inset]="spectatorChipPosition()" />

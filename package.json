@@ -35,7 +35,7 @@
     "multimap": "^1.1.0",
     "ng2-fittext": "^2.0.0",
     "ngx-typed-router": "^1.2.0",
-    "random": "^5.3.0",
+    "random": "^5.4.1",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "uuid": "^11.0.5",
