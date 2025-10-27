@@ -98,6 +98,7 @@ export class GameApp {
 		
 		const { game } = this.getGame(gameId);
 		game.submitGuess(requester, guess);
+		res.end();
 	}
 	
 	private submitBet(req: Request, res: Response): void {
@@ -106,6 +107,7 @@ export class GameApp {
 		
 		const { game } = this.getGame(gameId);
 		game.submitBet(requester, target, wager);
+		res.end();
 	}
 	
 	private endPhase(req: Request, res: Response): void {
@@ -114,6 +116,7 @@ export class GameApp {
 		
 		const { game } = this.getGame(gameId);
 		game.endPhase(requester);
+		res.end();
 	}
 	
 	private subscribe(webSocket: WebSocket) {

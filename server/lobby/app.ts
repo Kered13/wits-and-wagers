@@ -176,6 +176,7 @@ export class LobbyApp {
 			.notifyPlayer(privateId, { type: "kicked" })
 			.closeAndRemovePlayer(privateId)
 			.notifyClients(data.lobby.makeUpdate());
+		res.end();
 	}
 	
 	private movePlayer(req: Request, res: Response): void {
@@ -206,6 +207,7 @@ export class LobbyApp {
 		}
 		
 		notifier.notifyClients(data.lobby.makeUpdate());
+		res.end();
 	}
 	
 	private setColor(req: Request, res: Response): void {
@@ -222,6 +224,7 @@ export class LobbyApp {
 		lobby.setPlayerColor(player, color);
 		
 		notifier.notifyClients(data.lobby.makeUpdate());
+		res.end();
 	}
 	
 	private beginGame(req: Request, res: Response): void {
@@ -238,6 +241,7 @@ export class LobbyApp {
 		notifier
 			.notifyClients(beginGame)
 			.close();
+		res.end();
 	}
 	
 	private cancel(req: Request, res: Response): void {
@@ -252,6 +256,7 @@ export class LobbyApp {
 		notifier
 			.notifyClients(lobby.makeCancel())
 			.close();
+		res.end();
 	}
 	
 	private getQuestionSets(req: Request, res: Response): void {
