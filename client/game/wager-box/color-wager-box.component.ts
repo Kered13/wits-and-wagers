@@ -22,10 +22,7 @@ export class ColorWagerBox extends BaseWagerBox {
 			"0% 7%",
 			"-4% 47%",
 			"17% 88%",
+			"40% -4%",
 		];
-	}
-	
-	override spectatorChipPosition(): string {
-		return "40% -4%";
 	}
 };

@@ -17,7 +17,6 @@
 			color="var(--green-space)"
 			[disabled]="!shouldEnableBetTarget('AllTooHigh')"
 			[bets]="getBetsOnTarget('AllTooHigh')"
-			[spectatorBet]="getSpectatorBetOnTarget('AllTooHigh')"
 			(onClick)="onWagerBoxClick('AllTooHigh')">
 		<wager-box-bg-text class="all-too-high-text">
 			ALL GUESSES TOO HIGH
@@ -28,7 +27,6 @@
 			color="var(--red-space)"
 			[disabled]="!shouldEnableBetTarget(0)"
 			[bets]="getBetsOnTarget(0)"
-			[spectatorBet]="getSpectatorBetOnTarget(0)"
 			(onClick)="onWagerBoxClick(0)">
 		@if (getGuessForTarget(0); as guess) {
 			<guess-card class="guess-card" [data]="guess" />
@@ -39,7 +37,6 @@
 			color="var(--red-space)"
 			[disabled]="!shouldEnableBetTarget(1)"
 			[bets]="getBetsOnTarget(1)"
-			[spectatorBet]="getSpectatorBetOnTarget(1)"
 			(onClick)="onWagerBoxClick(1)">
 		@if (getGuessForTarget(1); as guess) {
 			<guess-card class="guess-card" [data]="guess" />
@@ -50,7 +47,6 @@
 			color="var(--red-space)"
 			[disabled]="!shouldEnableBetTarget(2)"
 			[bets]="getBetsOnTarget(2)"
-			[spectatorBet]="getSpectatorBetOnTarget(2)"
 			(onClick)="onWagerBoxClick(2)">
 		@if (getGuessForTarget(2); as guess) {
 			<guess-card class="guess-card" [data]="guess" />
@@ -61,7 +57,6 @@
 			color="var(--green-space)"
 			[disabled]="!shouldEnableBetTarget(3)"
 			[bets]="getBetsOnTarget(3)"
-			[spectatorBet]="getSpectatorBetOnTarget(3)"
 			(onClick)="onWagerBoxClick(3)">
 		@if (getGuessForTarget(3); as guess) {
 			<guess-card class="guess-card" [data]="guess" />
@@ -72,7 +67,6 @@
 			color="var(--black-space)"
 			[disabled]="!shouldEnableBetTarget(4)"
 			[bets]="getBetsOnTarget(4)"
-			[spectatorBet]="getSpectatorBetOnTarget(4)"
 			(onClick)="onWagerBoxClick(4)">
 		@if (getGuessForTarget(4); as guess) {
 			<guess-card class="guess-card" [data]="guess" />
@@ -83,7 +77,6 @@
 			color="var(--black-space)"
 			[disabled]="!shouldEnableBetTarget(5)"
 			[bets]="getBetsOnTarget(5)"
-			[spectatorBet]="getSpectatorBetOnTarget(5)"
 			(onClick)="onWagerBoxClick(5)">
 		@if (getGuessForTarget(5); as guess) {
 			<guess-card class="guess-card" [data]="guess" />
@@ -94,7 +87,6 @@
 			color="var(--black-space)"
 			[disabled]="!shouldEnableBetTarget(6)"
 			[bets]="getBetsOnTarget(6)"
-			[spectatorBet]="getSpectatorBetOnTarget(6)"
 			(onClick)="onWagerBoxClick(6)">
 		@if (getGuessForTarget(6); as guess) {
 			<guess-card class="guess-card" [data]="guess" />
@@ -106,7 +98,6 @@
 			color="var(--red-space)"
 			[disabled]="!shouldEnableBetTarget('Red')"
 			[bets]="getBetsOnTarget('Red')"
-			[spectatorBet]="getSpectatorBetOnTarget('Red')"
 			(onClick)="onWagerBoxClick('Red')">
 		<wager-box-bg-text class="payoff">RED 1 <span class="payoff-to">to</span> 1</wager-box-bg-text>
 	</color-wager-box>
@@ -114,7 +105,6 @@
 			class="black-bet"
 			color="var(--black-space)"
 			[disabled]="!shouldEnableBetTarget('Black')"
-			[spectatorBet]="getSpectatorBetOnTarget('Black')"
 			[bets]="getBetsOnTarget('Black')"
 			(onClick)="onWagerBoxClick('Black')">
 		<wager-box-bg-text class="payoff">BLACK 1 <span class="payoff-to">to</span> 1</wager-box-bg-text>

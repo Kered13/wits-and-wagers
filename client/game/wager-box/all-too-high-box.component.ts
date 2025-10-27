@@ -22,10 +22,7 @@ export class AllTooHighBox extends BaseWagerBox {
 			"28% 7%",
 			"85% 6%",
 			"-1% 5%",
+			"18% -40%",
 		];
-	}
-	
-	override spectatorChipPosition(): string {
-		return "18% -40%";
 	}
 };

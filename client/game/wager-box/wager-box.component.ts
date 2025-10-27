@@ -22,10 +22,7 @@ export class BettingBox extends BaseWagerBox {
 			"17% 10%",
 			"7% 55%",
 			"81% 3%",
+			"-1% 10%",
 		];
-	}
-	
-	override spectatorChipPosition(): string {
-		return "-1% 10%";
 	}
 };

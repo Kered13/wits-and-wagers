@@ -3,11 +3,12 @@
 	<ng-content select="wager-box-bg-text" />
 	@for (bet of betsOnBoard(); track $index) {
 		@if (bet) {
-			<betting-chip [value]="bet.value" [color]="bet.color" [style.inset]="chipPositions()[$index]" />
+			@if (bet.color) {
+				<betting-chip [value]="bet.value" [color]="bet.color" [style.inset]="chipPositions()[$index]" />
+			} @else {
+				<spectator-chip [value]="bet.value" [name]="bet.name" [style.inset]="chipPositions()[$index]" />
+			}
 		}
-	}
-	@if (spectatorBet(); as bet) {
-		<spectator-chip [value]="bet.value" [name]="bet.name" [style.inset]="spectatorChipPosition()" />
 	}
 	<span class="bottom-text">
 		<ng-content select="wager-box-bottom-text" />

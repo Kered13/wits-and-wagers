@@ -32,7 +32,7 @@ import { Bet, BetTarget, BettingPhaseState } from "../../shared/game/betting-pha
 import { GameOverPhaseState, GamePlayer, GameState } from "../../shared/game/game.js";
 import { QuestionPhaseState } from "../../shared/game/question-phase.js";
 import { IntermissionPhaseState } from "../../shared/game/intermission-phase.js";
-import { BetData, SpectatorBetData } from "./wager-box/base-wager-box.component.js";
+import { BetData } from "./wager-box/base-wager-box.component.js";
 
 
 @Directive({
@@ -166,21 +166,27 @@ function getBetsOnTarget(target: BetTarget, game: GameState): BetData[] {
 		return [];
 	}
 	
+	const bets = getPlayerBetsOnTarget(target, game, phase);
+	const spectatorBet = getSpectatorBetOnTarget(target, game, phase);
+	if (spectatorBet) {
+		bets.push(spectatorBet);
+	}
+	return bets;
+}
+
+
+function getPlayerBetsOnTarget(target: BetTarget, game: GameState, phase: BettingPhaseState): BetData[] {
 	return phase.bets
 		.filter(bet => bet.target === target)
 		.map(bet => ({
 			value: bet.wager,
+			name: nameForPlayer(game, bet.player),
 			color: colorForPlayer(game, bet.player),
 		}));
 }
 
 
-function getSpectatorBetOnTarget(target: BetTarget, game: GameState): SpectatorBetData | undefined {
-	const phase = game.phase;
-	if (!isBettingPhase(phase)) {
-		return undefined;
-	}
-	
+function getSpectatorBetOnTarget(target: BetTarget, game: GameState, phase: BettingPhaseState): BetData | undefined {
 	return phase.spectatorBets
 		.filter(bet => bet.target === target)
 		.map(bet => ({
@@ -564,10 +570,6 @@ export class GameComponent implements OnDestroy {
 	
 	getBetsOnTarget(target: BetTarget): BetData[] {
 		return getBetsOnTarget(target, this.game());
-	}
-	
-	getSpectatorBetOnTarget(target: BetTarget): SpectatorBetData | undefined {
-		return getSpectatorBetOnTarget(target, this.game());
 	}
 	
 	getGuessForTarget(target: BetTarget): GuessCardData | undefined {

@@ -4,18 +4,14 @@ import random from "random";
 
 export type BetData = {
 	value: number;
-	color: string;
-};
-
-export type SpectatorBetData = {
-	value: number;
 	name: string;
-}
+	color?: string;
+};
 
 
 function updateBetChips(previousChips: (BetData | undefined)[], newBets: BetData[]): (BetData | undefined)[] {
 	const newChips = previousChips.map(chip => {
-		return newBets.find(bet => bet.color === chip?.color)
+		return newBets.find(bet => chip !== undefined && bet.color === chip?.color)
 	});
 	// Trim trailing undefined values from the array.
 	newChips.length = newChips.findLastIndex(chip => chip !== undefined) + 1;
@@ -60,7 +56,6 @@ function insertNewChip(bet: BetData, chips: (BetData | undefined)[]): void {
 export abstract class BaseWagerBox {
 	readonly color = input.required<string>();
 	readonly bets = input<BetData[]>([]);
-	readonly spectatorBet = input<SpectatorBetData>();
 	readonly disabled = input<boolean>(false);
 	
 	readonly betsOnBoard: Signal<(BetData | undefined)[]>;
@@ -68,12 +63,11 @@ export abstract class BaseWagerBox {
 	readonly onClick = output<void>();
 	
 	abstract chipPositions(): string[];
-	abstract spectatorChipPosition(): string;
 	
 	constructor() {
 		this.betsOnBoard = linkedSignal<BetData[], (BetData | undefined)[]>({
 			source: this.bets,
-			computation: (bets, previous) => updateBetChips(previous?.value ?? [], this.bets()),
+			computation: (bets, previous) => updateBetChips(previous?.value ?? [], bets),
 		});
 	}
 	
