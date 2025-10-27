@@ -5,10 +5,9 @@
   "main": "app.ts",
   "type": "module",
   "scripts": {
-    "build": "tsc --project server/tsconfig.json",
-    "build-test": "tsc --project server/tsconfig-test.json",
-    "start": "cd server && tsx app.ts",
-    "watch": "npm run watch-server",
+    "build-server": "tsc --project server/tsconfig.json",
+    "build-client": "cd client && ng build",
+    "start-server": "cd server && tsx app.ts",
     "watch-server": "cd server && tsx watch app.ts",
     "watch-client": "cd client && ng serve",
     "test-client": "echo \"Error: no test specified\" && exit 1",
