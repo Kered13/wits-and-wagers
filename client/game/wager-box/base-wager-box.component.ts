@@ -27,7 +27,8 @@ function updateBetChips(previousChips: (BetData | undefined)[], newBets: BetData
 
 // Return all indices where the array is undefined. If less than 2 indices are
 // undefined, then indices at the end of the array are added until we have 2
-// indices.
+// indices, but we never return an index more than 8 (the number of positions we
+// have hardcoded).
 function getEmptyIndices<T>(array: T[]): number[] {
 	const indices = [];
 	for (let i = 0; i < array.length; i++) {
@@ -35,7 +36,7 @@ function getEmptyIndices<T>(array: T[]): number[] {
 			indices.push(i);
 		}
 	}
-	for (let i = array.length; indices.length < 2; i++) {
+	for (let i = array.length; i < 8 && indices.length < 2; i++) {
 		indices.push(i);
 	}
 	return indices;
