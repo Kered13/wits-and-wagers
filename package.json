@@ -12,7 +12,8 @@
     "watch-client": "cd client && ng serve",
     "test-client": "echo \"Error: no test specified\" && exit 1",
     "test-server": "vitest run --config server/vitest.config.ts",
-    "test-server-watch": "vitest watch --config server/vitest.config.ts"
+    "test-server-watch": "vitest watch --config server/vitest.config.ts",
+    "analyze-bundle": "cd client && ng build --configuration=analyze-bundle && source-map-explorer ../dist/client/browser/**/*.js --no-border-checks"
   },
   "dependencies": {
     "@angular/animations": "^20.0.0",
@@ -56,6 +57,7 @@
     "karma-coverage": "~2.2.0",
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
+    "source-map-explorer": "^2.5.3",
     "tsx": "^4.19.2",
     "typescript": "~5.8.0",
     "vitest": "^3.0.5"
