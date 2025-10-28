@@ -30,13 +30,13 @@ async function main(port: number) {
 	expressWs(express()).app
 		.use(cors())
 		.use(express.json({ strict: false }))
-		.use(express.static("public"))
 		.use(logRequest)
+		.use(express.static("public"))
+		.use(express.static("dist/client/browser"))
 		.use(LOBBY_API_ROOT, lobbyApp.getRouter())
 		.use(GAME_API_ROOT, gameApp.getRouter())
-		.listen(port, () => {
-			console.log("Server is running on port " + port);
-		});
+		.get("*", (req, res) => res.sendFile("dist/client/browser/index.html", { root: process.cwd() }))
+		.listen(port, () => console.log("Server is running on port " + port));
 }
 
 
