@@ -21,7 +21,7 @@ function logRequest(req: Request, res: Response, next: NextFunction): void {
 
 
 async function main(port: number) {
-	const questionSets = await findQuestionSetsOnFilesystem("C:\\Users\\Derek\\Projects\\wits-and-wagers\\server\\data\\questions");
+	const questionSets = await findQuestionSetsOnFilesystem("server\\data\\questions");
 	
 	const questionSetManager = new QuestionSetManager(questionSets);
 	const gameApp = new GameApp();

@@ -5,8 +5,10 @@
   "main": "app.ts",
   "type": "module",
   "scripts": {
+    "build": "npm run build-client && npm run build-server",
     "build-server": "tsc --project server/tsconfig.json",
     "build-client": "cd client && ng build",
+    "start": "node dist/server/app.js",
     "start-server": "cd server && tsx app.ts",
     "watch-server": "cd server && tsx watch app.ts",
     "watch-client": "cd client && ng serve",
