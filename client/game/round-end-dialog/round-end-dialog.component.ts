@@ -34,7 +34,9 @@ export class RoundEndDialog {
 				id: publicId,
 				name: this.getNameForPlayer(publicId),
 				earnings: earnings
-			}));
+			}))
+			// Sort descending.
+			.sort((a, b) => b.earnings - a.earnings);
 	}
 	
 	getNameForPlayer(id: PublicId): string {
