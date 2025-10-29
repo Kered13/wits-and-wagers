@@ -14,16 +14,16 @@ export type QueryParams = {
 @Injectable({providedIn: "root"})
 export class BackendService {
 	constructor(
-		private readonly http: HttpClient,
+		private readonly httpClient: HttpClient,
 		@Inject(SERVER_URL) private readonly url: string) {}
 	
 	public get<T>(path: string, queryParams?: QueryParams): Observable<T> {
-		return this.http.get<T>(this.httpUrl(path), { params: queryParams || {} });
+		return this.httpClient.get<T>(this.httpUrl(path), { params: queryParams || {} });
 	}
 	
 	public postJson<Req, Res>(path: string, body: Req): Observable<Res> {
 		const headers: HttpHeaders = new HttpHeaders().set("Content-Type", "application/json");
-		return this.http.post<Res>(this.httpUrl(path), JSON.stringify(body), { headers: headers });
+		return this.httpClient.post<Res>(this.httpUrl(path), JSON.stringify(body), { headers: headers });
 	}
 	
 	public webSocket<T>(path: string) : WebSocketSubject<T> {
@@ -31,11 +31,19 @@ export class BackendService {
 	}
 	
 	private httpUrl(path: string): string {
-		return (this.isSecure() ? "https://" : "http://") + this.url + path;
+		return this.http() + this.url + path;
 	}
 	
 	private wsUrl(path: string): string {
-		return (this.isSecure() ? "wss://" : "ws://") + this.url + path;
+		return this.ws() + this.url + path;
+	}
+	
+	private http(): string {
+		return this.isSecure() ? "https://" : "http://";
+	}
+	
+	private ws(): string {
+		return this.isSecure() ? "wss://" : "ws://";
 	}
 	
 	private isSecure(): boolean {
