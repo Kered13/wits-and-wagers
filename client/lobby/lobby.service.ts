@@ -9,7 +9,6 @@ import { WebsocketError } from "../utils/websocket-error.js";
 import { GameId } from "../../shared/game/game.js";
 import { BEGIN_PATH, type BeginGameRequest } from "../../shared/lobby/begin.js";
 import { CANCEL_PATH, type CancelLobbyRequest } from "../../shared/lobby/cancel.js";
-import { GET_QUESTION_SETS_PATH, GetQuestionSetsResponse } from "../../shared/lobby/get-question-sets.js";
 import { CREATE_PATH, CreateLobbyRequestSchema, type CreateLobbyRequest, type CreateLobbyResponse } from "../../shared/lobby/create.js";
 import { JOIN_LOBBY_PATH, type JoinLobbyRequest, type JoinLobbyResponse } from "../../shared/lobby/join-lobby.js";
 import { KICK_PLAYER_PATH, type KickPlayerRequest } from "../../shared/lobby/kick-player.js";
@@ -19,6 +18,8 @@ import { LobbyNotificationSchema, type LobbyNotification } from "../../shared/lo
 import { SET_COLOR_PATH, type SetColorRequest } from "../../shared/lobby/set-color.js";
 import { SUBSCRIBE_PATH, type SubscribeRequest } from "../../shared/lobby/subscribe.js";
 import { PrivateId, PublicId } from "../../shared/player.js";
+import { QUESTIONS_API_ROOT } from "../../shared/questions/questions.js";
+import { GET_QUESTION_SETS_PATH, GetQuestionSetsResponse } from "../../shared/questions/get-question-sets.js";
 import { Rgb } from "../../shared/rgb.js";
 import { WebSocketRequest } from "../../shared/websocket.interface.js";
 
@@ -57,7 +58,7 @@ export class LobbyService {
 	}
 	
 	public getQuestionSets(): Observable<GetQuestionSetsResponse> {
-		return this.backend.get<GetQuestionSetsResponse>(LOBBY_API_ROOT + GET_QUESTION_SETS_PATH);
+		return this.backend.get<GetQuestionSetsResponse>(QUESTIONS_API_ROOT + GET_QUESTION_SETS_PATH);
 	}
 }
 

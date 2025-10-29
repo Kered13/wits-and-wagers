@@ -5,7 +5,6 @@ import { type WebSocket } from "ws";
 import { Lobby } from "./lobby.js";
 import { type LobbyFactory } from "./lobby-factory.js";
 import { type GameApp } from "../game/app.js";
-import { type QuestionSetManager } from "../questions/question-set-manager.js";
 import { HttpError } from "../utils/httperror.js";
 import { Notifier } from "../utils/notifier.js";
 import { verifyRequest } from "../utils/verifyrequest.js";
@@ -13,7 +12,6 @@ import { WebSocketUtil } from "../utils/websocket.js";
 import { BEGIN_PATH, BeginGameRequestSchema } from "../../shared/lobby/begin.js";
 import { CANCEL_PATH, CancelLobbyRequestSchema } from "../../shared/lobby/cancel.js";
 import { CREATE_PATH, CreateLobbyRequestSchema, CreateLobbyResponseSchema, type CreateLobbyResponse } from "../../shared/lobby/create.js";
-import { GET_QUESTION_SETS_PATH, GetQuestionSetsRequestSchema, GetQuestionSetsResponseSchema, type GetQuestionSetsResponse } from "../../shared/lobby/get-question-sets.js";
 import { JOIN_LOBBY_PATH, JoinLobbyRequestSchema, type JoinLobbyResponse, } from "../../shared/lobby/join-lobby.js";
 import { KICK_PLAYER_PATH, KickPlayerRequestSchema } from "../../shared/lobby/kick-player.js";
 import { type LobbyId } from "../../shared/lobby/lobby.js";
@@ -39,7 +37,6 @@ export class LobbyApp {
 	private lobbyCounter: number = 0;
 	
 	constructor(
-		private readonly questionSetManager: QuestionSetManager,
 		private readonly gameApp: GameApp,
 		private readonly lobbyFactory: LobbyFactory) {}
 	
@@ -259,21 +256,6 @@ export class LobbyApp {
 		res.end();
 	}
 	
-	private getQuestionSets(req: Request, res: Response): void {
-		verifyRequest(req.body, GetQuestionSetsRequestSchema, `Invalid GetQuestionSetsRequest: ${JSON.stringify(req.body)}`);
-		
-		const questionSets = this.questionSetManager.getQuestionSets();
-		
-		const response: GetQuestionSetsResponse = Array.from(questionSets)
-			.map(([id, questionSet]) => ({
-				id,
-				name: questionSet.fileName,
-				size: questionSet.questions.length
-			}));
-		assert(GetQuestionSetsResponseSchema, response);
-		res.send(response);
-	}
-	
 	private subscribe(webSocket: WebSocket): void {
 		const ws = new WebSocketUtil(webSocket);
 		ws.onMethod("subscribe", (msg: unknown) => {
@@ -327,7 +309,6 @@ export class LobbyApp {
 			.post(SET_COLOR_PATH, (req, res) => this.setColor(req, res))
 			.post(BEGIN_PATH, (req, res) => this.beginGame(req, res))
 			.post(CANCEL_PATH, (req, res) => this.cancel(req, res))
-			.get(GET_QUESTION_SETS_PATH, (req, res) => this.getQuestionSets(req, res))
 			.ws(SUBSCRIBE_PATH, ws => this.subscribe(ws));
 	}
 }

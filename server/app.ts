@@ -4,13 +4,15 @@ import expressWs from "express-ws";
 
 
 import { GameApp } from "./game/app.js";
+import { GameFactory } from "./game/game-factory.js";
 import { LobbyApp } from "./lobby/app.js"
+import { LobbyFactory } from "./lobby/lobby-factory.js";
+import { QuestionApp } from "./questions/app.js";
 import { findQuestionSetsOnFilesystem } from "./questions/question-loading.js";
+import { QuestionSetManager } from "./questions/question-set-manager.js";
 import { LOBBY_API_ROOT } from "../shared/lobby/lobby.js";
 import { GAME_API_ROOT } from "../shared/game/game.js";
-import { QuestionSetManager } from "./questions/question-set-manager.js";
-import { GameFactory } from "./game/game-factory.js";
-import { LobbyFactory } from "./lobby/lobby-factory.js";
+import { QUESTIONS_API_ROOT } from "../shared/questions/questions.js";
 
 
 const PORT = 3000;
@@ -29,7 +31,8 @@ async function main(port: number) {
 	const gameFactory = new GameFactory(questionSetManager);
 	const lobbyFactory = new LobbyFactory(gameFactory, questionSetManager);
 	const gameApp = new GameApp();
-	const lobbyApp = new LobbyApp(questionSetManager, gameApp, lobbyFactory);
+	const lobbyApp = new LobbyApp(gameApp, lobbyFactory);
+	const questionsApp = new QuestionApp(questionSetManager);
 	
 	expressWs(express()).app
 		.use(cors())
@@ -39,6 +42,7 @@ async function main(port: number) {
 		.use(express.static("dist/client/browser"))
 		.use(LOBBY_API_ROOT, lobbyApp.getRouter())
 		.use(GAME_API_ROOT, gameApp.getRouter())
+		.use(QUESTIONS_API_ROOT, questionsApp.getRouter())
 		.get("*", (req, res) => res.sendFile("dist/client/browser/index.html", { root: process.cwd() }))
 		.listen(port, () => console.log("Server is running on port " + port));
 }

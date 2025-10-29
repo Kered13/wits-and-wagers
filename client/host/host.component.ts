@@ -14,7 +14,7 @@ import { PRIVATE_ID, PUBLIC_ID } from "../app/localstorage.keys.js";
 import { LobbyService } from "../lobby/lobby.service.js";
 import { HostRoute, TypedRouteFor } from "../routes/routes.js";
 import { RoutingService } from "../routes/routing.service.js";
-import { GetQuestionSetsResponse } from "../../shared/lobby/get-question-sets.js";
+import { GetQuestionSetsResponse } from "../../shared/questions/get-question-sets.js";
 
 
 @Component({
