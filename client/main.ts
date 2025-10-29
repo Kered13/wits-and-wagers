@@ -3,7 +3,7 @@ import { ApplicationConfig, provideZoneChangeDetection } from "@angular/core";
 import { bootstrapApplication } from "@angular/platform-browser";
 import { provideAnimationsAsync } from "@angular/platform-browser/animations/async";
 
-import { provideServerProtocol, provideServerUrl } from "./app/flags.js";
+import { provideServerUrl } from "./app/flags.js";
 import { GlobalErrorHandler } from "./error-dialog/error-handler.js";
 import { AppComponent } from "./root/root.component.js";
 import { provideRouter, provideRoutes } from "./routes/route-impls.js";
@@ -18,7 +18,6 @@ const appConfig: ApplicationConfig = {
 		provideRoutes(),
 		GlobalErrorHandler.provideErrorHandler(),
 		provideServerUrl(),
-		provideServerProtocol(),
 	]
 };
 
