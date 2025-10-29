@@ -1,4 +1,4 @@
-import { array, integer, literal, nonEmpty, number, optional, pipe, strictObject, string, union, type InferOutput } from "valibot";
+import { array, integer, literal, minValue, nonEmpty, number, optional, pipe, strictObject, string, union, type InferOutput } from "valibot";
 
 import { PublicIdSchema } from "../player.js";
 import { QuestionInfoSchema } from "./question.js";
@@ -38,7 +38,7 @@ export type Guess = InferOutput<typeof GuessSchema>;
 export const BetSchema = strictObject({
 	player: PublicIdSchema,
 	target: BetTargetSchema,
-	wager: pipe(number(), integer())
+	wager: pipe(number(), integer(), minValue(0)),
 });
 export type Bet = InferOutput<typeof BetSchema>;
 
@@ -56,6 +56,6 @@ export const BettingPhaseStateSchema = strictObject({
 	// Round duration, in milliseconds.
 	roundDuration: optional(number()),
 	// The time when the round will end, as millisecond timestamp.
-	roundEnd: optional(number())
+	roundEnd: optional(number()),
 });
 export type BettingPhaseState = InferOutput<typeof BettingPhaseStateSchema>;

@@ -9,7 +9,7 @@
   * Make game ID distinct from lobby ID?
   * Support mixing question sets?
 * Implement desktop UI.
-  * Keep players fixed in place on HUD.
+  * Can press Enter to submit guess/wager.
   * Render guesses more dynamically.
   * Add a better indication for when it is time to guess or bet.
   * Handle bet normalization.

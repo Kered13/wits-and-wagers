@@ -1,4 +1,4 @@
-import { integer, number, pipe, strictObject, type InferOutput } from "valibot";
+import { integer, minValue, number, pipe, strictObject, type InferOutput } from "valibot";
 
 import { GameIdSchema } from "./game.js";
 import { PrivateIdSchema } from "../player.js";
@@ -11,6 +11,6 @@ export const SUBMIT_GUESS_PATH = "/submitguess";
 export const SubmitGuessRequestSchema = strictObject({
 	gameId: GameIdSchema,
 	requester: PrivateIdSchema,
-	guess: pipe(number(), integer())
+	guess: pipe(number(), integer(), minValue(1)),
 });
 export type SubmitGuessRequest = InferOutput<typeof SubmitGuessRequestSchema>;

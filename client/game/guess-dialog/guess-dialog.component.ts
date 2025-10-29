@@ -3,8 +3,7 @@ import { AbstractControl, FormsModule, NG_VALIDATORS, ValidationErrors } from "@
 import { MatButtonModule } from "@angular/material/button";
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from "@angular/material/dialog";
 import { MatError, MatInputModule } from "@angular/material/input";
-import { parseFloatSafe } from "complete-common";
-import { QuestionInfo } from "../../../shared/game/question";
+import { parseIntSafe } from "complete-common";
 
 
 @Directive({
@@ -13,9 +12,9 @@ import { QuestionInfo } from "../../../shared/game/question";
 })
 export class GuessValidator {
 	public validate(control: AbstractControl): ValidationErrors | null {
-		const value = parseFloatSafe(control.value);
-		if (value === undefined) {
-			return { "notANumber": true };
+		const value = parseIntSafe(control.value);
+		if (value === undefined || value <= 0) {
+			return { "notAPositiveWholeNumber": true };
 		}
 		return null;
 	}
@@ -86,6 +85,6 @@ export class GuessDialog {
 	}
 	
 	getGuess(): number | undefined {
-		return parseFloatSafe(this.guess);
+		return parseIntSafe(this.guess);
 	}
 }

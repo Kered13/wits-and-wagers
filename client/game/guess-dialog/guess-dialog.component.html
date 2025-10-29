@@ -7,8 +7,8 @@
 			inputmode="numeric"
 			guessValidator
 			[(ngModel)]="guess" />
-		@if (guessField.hasError("notANumber")) {
-			<mat-error>Guess must be a number.</mat-error>
+		@if (guessField.hasError("notAPositiveWholeNumber")) {
+			<mat-error>Guess must be a positive whole number.</mat-error>
 		}
 	</mat-form-field>
 </div>
