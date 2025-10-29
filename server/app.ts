@@ -27,7 +27,7 @@ async function main(port: number) {
 	
 	const questionSetManager = new QuestionSetManager(questionSets);
 	const gameFactory = new GameFactory(questionSetManager);
-	const lobbyFactory = new LobbyFactory(gameFactory);
+	const lobbyFactory = new LobbyFactory(gameFactory, questionSetManager);
 	const gameApp = new GameApp();
 	const lobbyApp = new LobbyApp(questionSetManager, gameApp, lobbyFactory);
 	

@@ -14,7 +14,8 @@ export type QuestionPhaseOptions = {
 	questionPhaseDuration?: number;
 }
 
-export const questionPhaseDefaultOptions: QuestionPhaseOptions = {
+
+export const DEFAULT_QUESTION_PHASE_OPTIONS: QuestionPhaseOptions = {
 	endQuestionPhaseWhenAllGuessesSubmitted: true,
 	// In milliseconds.
 	questionPhaseDuration: undefined

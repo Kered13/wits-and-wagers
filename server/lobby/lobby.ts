@@ -1,10 +1,10 @@
+import { type LobbyOptions } from "./lobby-option.js";
 import { Game } from "../game/game.js";
 import { type GameFactory } from "../game/game-factory.js";
 import { type Participant, Player, Spectator } from "../player/player.js";
 import { HttpError } from "../utils/httperror.js";
 import { COLORS } from "../../shared/color.js";
 import { type GameId } from "../../shared/game/game.js";
-import { type LobbyOptions } from "../../shared/lobby/create.js";
 import { type LobbyState, type LobbyId } from "../../shared/lobby/lobby.js";
 import { type LobbyBeginGame, type LobbyCanceled, type LobbyUpdate } from "../../shared/lobby/notifications.js";
 import { type PrivateId, type PrivatePlayer, type PublicId } from "../../shared/player.js";
@@ -32,24 +32,6 @@ export class Lobby {
 			publicId: hostPlayer.publicId,
 			privateId: hostPlayer.privateId
 		};
-		this.options.numberOfPlayers = this.options.numberOfPlayers ?? 7;
-		
-		Lobby.validateOptions(this.options);
-	}
-	
-	static validateOptions(options: LobbyOptions): void {
-		if (options.numberOfPlayers && (options.numberOfPlayers < 1 || options.numberOfPlayers > 7)) {
-			throw new HttpError(400, "Number of players must be between 1 and 7.");
-		}
-		if (options.numberOfRounds && (options.numberOfRounds < 1)) {
-			throw new HttpError(400, "Number of rounds must be greater than 0.");
-		}
-		if (options.questionPhaseDuration && (options.questionPhaseDuration <= 0)) {
-			throw new HttpError(400, "Question phase duration must be greater than 0.");
-		}
-		if (options.bettingPhaseDuration && (options.bettingPhaseDuration <= 0)) {
-			throw new HttpError(400, "Question phase duration must be greater than 0.");
-		}
 	}
 	
 	public getId(): LobbyId {
@@ -95,7 +77,7 @@ export class Lobby {
 		const existingSpectator = this.spectators.find(player => player.privateId === existingId || player.publicId === existingId);
 		if (existingPlayer) {
 			return existingPlayer;
-		} else if (this.players.length >= this.options.numberOfPlayers!) {
+		} else if (this.players.length >= this.options.numberOfPlayers) {
 			throw new HttpError(403, "Lobby is full.");
 		} else if (existingSpectator) {
 			// Move spectator to player.

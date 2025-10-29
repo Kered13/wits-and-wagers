@@ -5,7 +5,7 @@ import { Participant, Spectator, type Player } from "../player/player.js";
 import { type PlayerManager } from "../player/player-manager.js";
 import { HttpError } from "../utils/httperror.js";
 import { type Bet, type BetTarget, type BettingPhaseState, type Guess as GuessJson, type GuessTarget } from "../../shared/game/betting-phase.js";
-import { type PrivateId, type PublicId } from "../../shared/player.js";
+import { type PrivateId } from "../../shared/player.js";
 import { type BettingConclusion } from "../../shared/game/intermission-phase.js";
 import { stripAnswer, type QuestionAnswerInfo } from "../../shared/game/question.js";
 
@@ -15,6 +15,17 @@ import { stripAnswer, type QuestionAnswerInfo } from "../../shared/game/question
 const N = Symbol("None");
 const R = Symbol("Red");
 const B = Symbol("Black");
+
+
+export type BettingPhaseOptions = {
+	// In milliseconds.
+	bettingPhaseDuration?: number;
+};
+
+
+export const DEFAULT_BETTING_PHASE_OPTIONS: BettingPhaseOptions = {
+	bettingPhaseDuration: undefined
+};
 
 
 function guessToTarget(numPlayers: number, guessIdx: number): GuessTarget {
@@ -67,16 +78,6 @@ function reservedChipsFor(bet: Bet, bets: Bet[]): number {
 	// than they wagered.
 	return Math.min(bet.wager, [0, 2, 1][numBets]!);
 }
-
-
-export type BettingPhaseOptions = {
-	// In milliseconds.
-	bettingPhaseDuration?: number;
-};
-
-export const bettingPhaseDefaultOptions: BettingPhaseOptions = {
-	bettingPhaseDuration: undefined
-};
 
 
 export class BettingPhase implements Phase {

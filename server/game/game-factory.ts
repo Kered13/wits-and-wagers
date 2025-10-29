@@ -1,22 +1,11 @@
-import { bettingPhaseDefaultOptions } from "./betting-phase.js";
-import { Game, type GameOptions } from "./game.js";
-import { intermissionPhaseDefaultOptions } from "./intermission-phase.js";
-import { questionPhaseDefaultOptions } from "./question-phase.js";
+import { Game } from "./game.js";
 import { type ParticipantParams, type PlayerParams, type SpectatorParams } from "../player/player.js";
 import { QuestionGenerator } from "../questions/question-generator.js";
 import { type QuestionSetManager } from "../questions/question-set-manager.js";
 import { HttpError } from "../utils/httperror.js";
 import { type GameId } from "../../shared/game/game.js";
-import { type LobbyOptions } from "../../shared/lobby/create.js";
-
-
-const defaultOptions = Object.assign(
-	{
-		numberOfRounds: 7,
-	},
-	questionPhaseDefaultOptions,
-	bettingPhaseDefaultOptions,
-	intermissionPhaseDefaultOptions);
+import { type LobbyOptions } from "../lobby/lobby-option.js";
+import { type GameOptions } from "./game-options.js";
 
 
 export class GameFactory {
@@ -28,7 +17,7 @@ export class GameFactory {
 			spectators: SpectatorParams[],
 			host: ParticipantParams,
 			options: LobbyOptions): Game {
-		const gameOptions: GameOptions = Object.assign({}, defaultOptions, options, { host: host});
+		const gameOptions: GameOptions = Object.assign({}, options, { host: host});
 		
 		const questionSet = this.questionSetManager.getQuestionSet(options.questionSet);
 		if (!questionSet) {

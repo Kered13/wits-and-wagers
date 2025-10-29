@@ -1,5 +1,4 @@
 * Implement game.
-  * Don't allow a lobby to start if the question set does not have enough questions.
   * Separate question APIs from lobby APIs.
   * Generate random lobby/game names.
   * Garbage collect inactive games.

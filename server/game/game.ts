@@ -1,14 +1,14 @@
 import { Observable, Subject } from "rxjs"
 
-import { BettingPhase, bettingPhaseDefaultOptions, type BettingPhaseOptions } from "./betting-phase.js";
+import { BettingPhase } from "./betting-phase.js";
+import { type GameOptions } from "./game-options.js";
 import { GameOverPhase } from "./game-over-phase.js";
-import { IntermissionPhase, intermissionPhaseDefaultOptions, type IntermissionPhaseOptions } from "./intermission-phase.js";
+import { IntermissionPhase } from "./intermission-phase.js";
 import { type Phase } from "./phase.js";
 import { Player, Spectator, type ParticipantParams, type PlayerParams, type SpectatorParams } from "../player/player.js";
 import { PlayerManager } from "../player/player-manager.js";
-import { QuestionPhase, questionPhaseDefaultOptions, type QuestionPhaseOptions } from "./question-phase.js";
+import { QuestionPhase, } from "./question-phase.js";
 import { QuestionGenerator } from "../questions/question-generator.js";
-import { type QuestionSetManager } from "../questions/question-set-manager.js";
 import { HttpError } from "../utils/httperror.js";
 import { type BetTarget } from "../../shared/game/betting-phase.js";
 import { type GameId, type GameState } from "../../shared/game/game.js";
@@ -16,14 +16,6 @@ import { type PrivateId } from "../../shared/player.js";
 import { type GameUpdate } from "../../shared/game/notifications.js";
 import { type BettingConclusion, type SkippedBettingPhase } from "../../shared/game/intermission-phase.js";
 import { type QuestionAnswerInfo } from "../../shared/game/question.js";
-
-
-export type GameOptions = QuestionPhaseOptions & BettingPhaseOptions & IntermissionPhaseOptions & {
-	title: string,
-	host: ParticipantParams,
-	questionSet: number,
-	numberOfRounds: number,
-};
 
 
 export class Game {
