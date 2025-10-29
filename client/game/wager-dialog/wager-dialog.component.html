@@ -10,12 +10,12 @@
 		@if (wager.hasError("insufficientChips")) {
 			<mat-error>Insufficient chips.</mat-error>
 		} @else {
-			<mat-error>Wager must be a positive whole number.</mat-error>
+			<mat-error>Must be a positive whole number.</mat-error>
 		}
 	</mat-form-field>
 </div>
 <div mat-dialog-actions>
-	<button mat-raised-button [mat-dialog-close]="undefined">Cancel</button>
+	<button mat-raised-button type="button" [mat-dialog-close]="undefined">Cancel</button>
 	@if (data.existingWager) {
 		<button mat-raised-button [mat-dialog-close]="0">Withdraw</button>
 	}

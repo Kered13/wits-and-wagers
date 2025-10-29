@@ -32,7 +32,14 @@
 					placeholder="Number of Rounds"
 					inputmode="numeric"
 					pattern="[1-9][0-9]*"
-					formControlName="numberOfRounds" />
+					formControlName="numberOfRounds"
+					[errorStateMatcher]="numRoundsMatcher" />
+				@if (options.hasError("NotEnoughQuestionsInSet")) {
+					<mat-error>Not enough questions in set.</mat-error>
+				}
+				@if (options.hasError("RoundsMustBePositive")) {
+					<mat-error>Must be a greater than 0.</mat-error>
+				}
 			</mat-form-field>
 			<mat-checkbox formControlName="endQuestionPhaseWhenAllGuessesSubmitted">
 				Automatically end question round when all players have submitted questions.

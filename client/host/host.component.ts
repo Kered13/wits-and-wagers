@@ -1,11 +1,12 @@
 import { ChangeDetectionStrategy, Component, computed, Inject, Signal } from "@angular/core";
 import { toSignal } from "@angular/core/rxjs-interop";
-import { FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
+import { AbstractControl, FormControl, FormGroup, FormGroupDirective, NgForm, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from "@angular/forms";
 import { MatButton } from "@angular/material/button";
 import { MatCardModule } from "@angular/material/card";
 import { MatCheckboxModule } from "@angular/material/checkbox";
-import { MatInputModule } from "@angular/material/input";
+import { MatError, MatInputModule } from "@angular/material/input";
 import { MatOption, MatSelect } from "@angular/material/select";
+import { ErrorStateMatcher } from "@angular/material/core"
 import { ActivatedRoute } from "@angular/router";
 import { parseIntSafe } from "complete-common";
 
@@ -22,6 +23,7 @@ import { GetQuestionSetsResponse } from "../../shared/lobby/get-question-sets.js
 		MatButton,
 		MatCardModule,
 		MatCheckboxModule,
+		MatError,
 		MatInputModule,
 		MatOption,
 		MatSelect,
@@ -40,10 +42,13 @@ export class HostComponent {
 		endQuestionPhaseWhenAllGuessesSubmitted: new FormControl(true),
 		questionTime: new FormControl(""),
 		bettingTime: new FormControl(""),
-	});
+	}, this.numberOfRoundsValidator());
 	
 	private readonly username: Signal<string>;
+	
 	readonly questionSets: Signal<GetQuestionSetsResponse>;
+	
+	readonly numRoundsMatcher: ErrorStateMatcher;
 	
 	constructor(
 			private readonly lobbyService: LobbyService,
@@ -52,6 +57,32 @@ export class HostComponent {
 		const data = toSignal(route.data, { requireSync: true });
 		this.username = computed(() => data().username);
 		this.questionSets = toSignal(this.lobbyService.getQuestionSets(), { initialValue: [] });
+		
+		const that = this;
+		this.numRoundsMatcher = {
+			isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {
+				return new ErrorStateMatcher().isErrorState(control, form) ||
+					that.options.hasError("NotEnoughQuestionsInSet");
+			}
+		};
+	}
+	
+	private numberOfRoundsValidator(): ValidatorFn {
+		return (control: AbstractControl): ValidationErrors | null => {
+			const numberOfRounds = parseIntSafe(control.value.numberOfRounds);
+			if (numberOfRounds === undefined) {
+				return null;
+			} else if (numberOfRounds <= 0) {
+				return { "RoundsMustBePositive": true };
+			} else if (control.value.questionSet == undefined) {
+				return null;
+			}
+			const questionSet = this.questionSets()[control.value.questionSet];
+			if (numberOfRounds > questionSet.size) {
+				return { "NotEnoughQuestionsInSet": true };
+			}
+			return null;
+		}
 	}
 	
 	createLobby(): void {
