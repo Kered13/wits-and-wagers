@@ -45,9 +45,4 @@ export class PlayerManager<P extends Participant> {
 	public getAll(): P[] {
 		return this.players;
 	}
-	
-	public sortedByChips(): P[] {
-		return this.players
-			.sort((first, second) => second.chips - first.chips)
-	}
 }

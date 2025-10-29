@@ -99,17 +99,4 @@ describe("PlayerManager", () => {
 		
 		expect(manager.getAll()).to.have.members([alice, bob, charlie]);
 	});
-	
-	test("sortedByChips returns all players sorted by chips", () => {
-		const alice = makePlayer("Alice");
-		const bob = makePlayer("Bob");
-		const charlie = makePlayer("Charlie");
-		const manager = new PlayerManager([alice, bob, charlie]);
-		
-		alice.chips = 10;
-		bob.chips = 20;
-		charlie.chips = 5;
-		
-		expect(manager.sortedByChips()).to.have.ordered.members([bob, alice, charlie]);
-	});
 });

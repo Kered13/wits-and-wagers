@@ -178,8 +178,8 @@ export class Game {
 		return {
 			title: this.title,
 			host: this.host.publicId,
-			players: this.players.sortedByChips().map(player => player.toGameJson()),
-			spectators: this.spectators.sortedByChips().map(spectator => spectator.toGameJson()),
+			players: this.players.getAll().map(player => player.toGameJson()),
+			spectators: this.spectators.getAll().map(spectator => spectator.toGameJson()),
 			round: this.round,
 			phase: this.phase.toJson(forPlayer)
 		};
