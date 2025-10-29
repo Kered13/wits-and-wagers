@@ -1,5 +1,4 @@
 * Implement game.
-  * Allow non-integer guesses.
   * Don't allow a lobby to start if the question set does not have enough questions.
   * Separate question APIs from lobby APIs.
   * Generate random lobby/game names.
@@ -9,7 +8,6 @@
   * Make game ID distinct from lobby ID?
   * Support mixing question sets?
 * Implement desktop UI.
-  * Can press Enter to submit guess/wager.
   * Render guesses more dynamically.
   * Add a better indication for when it is time to guess or bet.
   * Handle bet normalization.

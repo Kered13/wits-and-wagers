@@ -1,23 +1,17 @@
-import { Component, Directive, DOCUMENT, Inject } from "@angular/core";
-import { AbstractControl, FormsModule, NG_VALIDATORS, ValidationErrors } from "@angular/forms";
+import { Component, DOCUMENT, HostListener, Inject } from "@angular/core";
+import { AbstractControl, FormControl, FormsModule, ReactiveFormsModule, ValidationErrors, Validators } from "@angular/forms";
 import { MatButtonModule } from "@angular/material/button";
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from "@angular/material/dialog";
 import { MatError, MatInputModule } from "@angular/material/input";
 import { parseIntSafe } from "complete-common";
 
 
-@Directive({
-	selector: "[guessValidator]",
-	providers: [{ provide: NG_VALIDATORS, useExisting: GuessValidator, multi: true }]
-})
-export class GuessValidator {
-	public validate(control: AbstractControl): ValidationErrors | null {
-		const value = parseIntSafe(control.value);
-		if (value === undefined || value <= 0) {
-			return { "notAPositiveWholeNumber": true };
-		}
-		return null;
+function validateGuess(control: AbstractControl): ValidationErrors | null {
+	const value = parseIntSafe(control.value);
+	if (value === undefined || value <= 0) {
+		return { "notAPositiveWholeNumber": true };
 	}
+	return null;
 }
 
 
@@ -30,32 +24,31 @@ export type GuessDialogData = {
 @Component({
 	selector: "guess-dialog",
 	imports: [
-		GuessValidator,
 		FormsModule,
 		MatButtonModule,
 		MatDialogModule,
 		MatError,
 		MatInputModule,
+		ReactiveFormsModule,
 	],
 	templateUrl: "./guess-dialog.component.html",
 	styleUrl: "./guess-dialog.component.css"
 })
 export class GuessDialog {
-	currentGuess: number | undefined;
-	guess: string;
+	readonly currentGuess: number | undefined;
+	readonly guess = new FormControl("", [Validators.required, validateGuess]);
 	
 	// The vertical position of this dialog.
 	private position: number = 0;
 	// The last scroll position of the document.
 	private lastScroll: number = 0;
 	
-	
 	constructor(
 			private readonly dialogRef: MatDialogRef<GuessDialog>,
 			@Inject(DOCUMENT) private readonly document: Document,
 			@Inject(MAT_DIALOG_DATA) data: GuessDialogData) {
 		this.currentGuess = data.currentGuess;
-		this.guess = this.currentGuess?.toString() ?? "";
+		this.guess.setValue(this.currentGuess?.toString() ?? "");
 		
 		// Update the position to keep the dialog fixed relative to the
 		// document. This is an unfortunate workaround since MatDialog does not
@@ -65,6 +58,14 @@ export class GuessDialog {
 		this.document.addEventListener("scroll", event => {
 			this.updatePosition(window?.scrollY ?? 0);
 		});
+	}
+	
+	@HostListener("keyup.enter", ["$event"])
+	private submit(event: KeyboardEvent) {
+		if (this.guess.valid) {
+			this.dialogRef.close(this.getGuess());
+		}
+		event.stopPropagation();
 	}
 	
 	private initializePosition(position: number, scroll: number): void {
@@ -85,6 +86,6 @@ export class GuessDialog {
 	}
 	
 	getGuess(): number | undefined {
-		return parseIntSafe(this.guess);
+		return parseIntSafe(this.guess.value ?? "");
 	}
 }

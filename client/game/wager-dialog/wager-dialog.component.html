@@ -4,12 +4,10 @@
 	<mat-form-field class="wager">
 		<mat-label>Wager:</mat-label>
 		<input matInput
-			#wagerField="ngModel"
+			[formControl]="wager"
 			placeholder="Wager"
-			inputmode="numeric"
-			[chipValidator]="getAvailableChips()"
-			[(ngModel)]="wager" />
-		@if (wagerField.hasError("insufficientChips")) {
+			inputmode="numeric" />
+		@if (wager.hasError("insufficientChips")) {
 			<mat-error>Insufficient chips.</mat-error>
 		} @else {
 			<mat-error>Wager must be a positive whole number.</mat-error>
@@ -21,5 +19,5 @@
 	@if (data.existingWager) {
 		<button mat-raised-button [mat-dialog-close]="0">Withdraw</button>
 	}
-	<button mat-raised-button [mat-dialog-close]="getWager()!" [disabled]="!wagerField.valid">Wager</button>
+	<button mat-raised-button [mat-dialog-close]="getWager()!" [disabled]="wager.invalid">Wager</button>
 </div>

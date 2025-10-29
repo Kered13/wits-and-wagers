@@ -2,12 +2,11 @@
 	<span class="instructions">Enter Your Guess:</span>
 	<mat-form-field class="guess">
 		<input matInput
-			#guessField="ngModel"
+			[formControl]="guess"
 			placeholder="Guess"
 			inputmode="numeric"
-			guessValidator
-			[(ngModel)]="guess" />
-		@if (guessField.hasError("notAPositiveWholeNumber")) {
+			guessValidator />
+		@if (guess.hasError("notAPositiveWholeNumber")) {
 			<mat-error>Guess must be a positive whole number.</mat-error>
 		}
 	</mat-form-field>
@@ -16,5 +15,5 @@
 	@if (currentGuess !== undefined) {
 		<button mat-raised-button [mat-dialog-close]="undefined">Cancel</button>
 	}
-	<button mat-raised-button [mat-dialog-close]="getGuess()!" [disabled]="!guessField.valid">Submit</button>
+	<button mat-raised-button [mat-dialog-close]="getGuess()!" [disabled]="guess.invalid">Submit</button>
 </div>
