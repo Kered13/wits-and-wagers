@@ -37,8 +37,8 @@ export class HostComponent {
 	readonly options = new FormGroup({
 		title: new FormControl("", Validators.required),
 		questionSet: new FormControl<number | undefined>(undefined, Validators.required),
-		numberOfPlayers: new FormControl<number>(7),
-		numberOfRounds: new FormControl(""),
+		numberOfPlayers: new FormControl<number>(7, Validators.required),
+		numberOfRounds: new FormControl("7", Validators.required),
 		endQuestionPhaseWhenAllGuessesSubmitted: new FormControl(true),
 		questionTime: new FormControl(""),
 		bettingTime: new FormControl(""),
