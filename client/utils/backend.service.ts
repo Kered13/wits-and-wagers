@@ -39,6 +39,6 @@ export class BackendService {
 	}
 	
 	private isSecure(): boolean {
-		return window.location.protocol === "https";
+		return window.location.protocol === "https:";
 	}
 }
