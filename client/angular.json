@@ -50,8 +50,8 @@
               "outputHashing": "all",
               "fileReplacements": [
                 {
-                  "replace": "app/flags.ts",
-                  "with": "app/flags.production.ts"
+                  "replace": "app/environment.ts",
+                  "with": "app/environment.production.ts"
                 }
               ]
             },
@@ -61,8 +61,8 @@
               "sourceMap": true,
               "fileReplacements": [
                 {
-                  "replace": "app/flags.ts",
-                  "with": "app/flags.development.ts"
+                  "replace": "app/environment.ts",
+                  "with": "app/environment.development.ts"
                 }
               ]
             },

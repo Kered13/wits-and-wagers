@@ -3,7 +3,7 @@ import { Inject, Injectable } from "@angular/core";
 import { Observable } from "rxjs";
 import { webSocket, WebSocketSubject } from "rxjs/webSocket";
 
-import { SERVER_URL } from "../app/flags.js";
+import { SERVER_PROTOCOL, SERVER_URL } from "../app/flags.js";
 
 
 export type QueryParams = {
@@ -15,6 +15,7 @@ export type QueryParams = {
 export class BackendService {
 	constructor(
 		private readonly http: HttpClient,
+		@Inject(SERVER_PROTOCOL) private readonly protocol: string,
 		@Inject(SERVER_URL) private readonly url: string) {}
 	
 	public get<T>(path: string, queryParams?: QueryParams): Observable<T> {
@@ -31,7 +32,7 @@ export class BackendService {
 	}
 	
 	private httpUrl(path: string): string {
-		return "http://" + this.url + path;
+		return this.protocol + this.url + path;
 	}
 
 	private wsUrl(path: string): string {
