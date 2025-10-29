@@ -8,6 +8,12 @@ export const CREATE_PATH = "/create";
 
 
 export const LobbyOptionsSchema = strictObject({
+	// Name of the lobby and subsequent game.
+	title: pipe(string(), nonEmpty()),
+	// Name of the host player.
+	host: pipe(string(), nonEmpty()),
+	// ID of the question set to use for the game.
+	questionSet: number(),
 	// Maximum number of players. Default 7.
 	numberOfPlayers: optional(number()),
 	// Maximum number of rounds. Default 7.
@@ -24,12 +30,6 @@ export type LobbyOptions = InferOutput<typeof LobbyOptionsSchema>;
 
 // Creates a new lobby and adds the host to it.
 export const CreateLobbyRequestSchema = strictObject({
-	// Name of the lobby and subsequent game.
-	title: pipe(string(), nonEmpty()),
-	// Name of the host player.
-	host: pipe(string(), nonEmpty()),
-	// ID of the question set to use for the game.
-	questionSet: number(),
 	// Options for the lobby.
 	options: LobbyOptionsSchema,
 });

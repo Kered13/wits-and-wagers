@@ -1,4 +1,7 @@
 * Implement game.
+  * Allow non-integer guesses.
+  * Don't allow a lobby to start if the question set does not have enough questions.
+  * Separate question APIs from lobby APIs.
   * Generate random lobby/game names.
   * Garbage collect inactive games.
   * Allow spectators to place guesses.

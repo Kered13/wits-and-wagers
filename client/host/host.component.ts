@@ -60,10 +60,10 @@ export class HostComponent {
 			let bettingTime = this.options.value.bettingTime ? parseInt(this.options.value.bettingTime) * 1000 : undefined;
 			
 			this.lobbyService.createLobby({
-					title: this.options.value.title!,
-					host: this.username(),
-					questionSet: this.options.value.questionSet!,
 					options: {
+						title: this.options.value.title!,
+						host: this.username(),
+						questionSet: this.options.value.questionSet!,
 						numberOfRounds: parseIntSafe(this.options.value.numberOfRounds ?? ""),
 						numberOfPlayers: this.options.value.numberOfPlayers ?? 7,
 						endQuestionPhaseWhenAllGuessesSubmitted: this.options.value.endQuestionPhaseWhenAllGuessesSubmitted!,

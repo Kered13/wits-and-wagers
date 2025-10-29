@@ -577,8 +577,11 @@ export class GameComponent implements OnDestroy {
 	}
 	
 	getRound() {
-		const round = this.game().round;
-		return round > 7 ? "Game Over" : ("Round " + round);
+		const game = this.game();
+		if (isGameOverPhase(game.phase)) {
+			return "Game Over";
+		}
+		return "Round " + game.round;
 	}
 	
 	getQuestion(phase: PhaseState): string {

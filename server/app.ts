@@ -9,6 +9,8 @@ import { findQuestionSetsOnFilesystem } from "./questions/question-loading.js";
 import { LOBBY_API_ROOT } from "../shared/lobby/lobby.js";
 import { GAME_API_ROOT } from "../shared/game/game.js";
 import { QuestionSetManager } from "./questions/question-set-manager.js";
+import { GameFactory } from "./game/game-factory.js";
+import { LobbyFactory } from "./lobby/lobby-factory.js";
 
 
 const PORT = 3000;
@@ -24,8 +26,10 @@ async function main(port: number) {
 	const questionSets = await findQuestionSetsOnFilesystem("server/data/questions");
 	
 	const questionSetManager = new QuestionSetManager(questionSets);
+	const gameFactory = new GameFactory(questionSetManager);
+	const lobbyFactory = new LobbyFactory(gameFactory);
 	const gameApp = new GameApp();
-	const lobbyApp = new LobbyApp(questionSetManager, gameApp);
+	const lobbyApp = new LobbyApp(questionSetManager, gameApp, lobbyFactory);
 	
 	expressWs(express()).app
 		.use(cors())

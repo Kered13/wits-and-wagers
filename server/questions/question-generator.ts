@@ -7,16 +7,16 @@ import { type QuestionAnswerInfo } from "../../shared/game/question.js";
 export class QuestionGenerator {
 	private readonly questions: QuestionAnswerInfo[];
 	
-	constructor(questions: QuestionAnswerInfo[]) {
-		if (questions.length < 7) {
-			throw new HttpError(500, "Insufficient questions. At least 7 questions must be available.");
+	constructor(questions: QuestionAnswerInfo[], numQuestions: number) {
+		if (questions.length < numQuestions) {
+			throw new HttpError(500, `Insufficient questions. ${numQuestions} questions requests, but only ${questions.length} questions available.`);
 		}
-		this.questions = random.shuffle(questions).slice(0, 7);
+		this.questions = random.sample(questions, numQuestions);
 	}
 	
 	public nextQuestion(): QuestionAnswerInfo {
 		if (!this.questions) {
-			throw new HttpError(500, "More than 7 questions were requested for one game.");
+			throw new HttpError(500, `Ran out of questions. This should not happen.`);
 		}
 		return this.questions.pop()!;
 	}

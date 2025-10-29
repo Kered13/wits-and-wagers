@@ -3,6 +3,7 @@ import { assert } from "valibot";
 import { type WebSocket } from "ws";
 
 import { Lobby } from "./lobby.js";
+import { type LobbyFactory } from "./lobby-factory.js";
 import { type GameApp } from "../game/app.js";
 import { type QuestionSetManager } from "../questions/question-set-manager.js";
 import { HttpError } from "../utils/httperror.js";
@@ -37,7 +38,10 @@ export class LobbyApp {
 	private readonly spectatorLobbies: Map<LobbyId, LobbyData> = new Map();
 	private lobbyCounter: number = 0;
 	
-	constructor(private readonly questionSetManager: QuestionSetManager, private readonly gameApp: GameApp) {}
+	constructor(
+		private readonly questionSetManager: QuestionSetManager,
+		private readonly gameApp: GameApp,
+		private readonly lobbyFactory: LobbyFactory) {}
 	
 	private verifyHost(lobby: Lobby, requester: PrivateId): void {
 		if (!lobby.isHost(requester)) {
@@ -80,14 +84,10 @@ export class LobbyApp {
 		const request = verifyRequest(
 			req.body, CreateLobbyRequestSchema, `Invalid CreateLobbyRequest: ${JSON.stringify(req.body)}`);
 		
-		const lobby = new Lobby(
+		const lobby = this.lobbyFactory.newLobby(
 			this.createLobbyId(),
 			this.createLobbySpectatorId(),
-			request.title,
-			request.host,
-			request.questionSet,
-			request.options,
-			this.questionSetManager);
+			request.options);
 		const notifier = new LobbyNotifier();
 		this.lobbies.set(lobby.getId(), { lobby, notifier });
 		this.spectatorLobbies.set(lobby.getSpectatorId(), { lobby, notifier });

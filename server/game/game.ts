@@ -7,7 +7,8 @@ import { type Phase } from "./phase.js";
 import { Player, Spectator, type ParticipantParams, type PlayerParams, type SpectatorParams } from "../player/player.js";
 import { PlayerManager } from "../player/player-manager.js";
 import { QuestionPhase, questionPhaseDefaultOptions, type QuestionPhaseOptions } from "./question-phase.js";
-import { type QuestionGenerator } from "../questions/question-generator.js";
+import { QuestionGenerator } from "../questions/question-generator.js";
+import { type QuestionSetManager } from "../questions/question-set-manager.js";
 import { HttpError } from "../utils/httperror.js";
 import { type BetTarget } from "../../shared/game/betting-phase.js";
 import { type GameId, type GameState } from "../../shared/game/game.js";
@@ -17,24 +18,19 @@ import { type BettingConclusion, type SkippedBettingPhase } from "../../shared/g
 import { type QuestionAnswerInfo } from "../../shared/game/question.js";
 
 
-export type GameOptions = QuestionPhaseOptions & BettingPhaseOptions & IntermissionPhaseOptions &{
-	numberOfRounds: number
+export type GameOptions = QuestionPhaseOptions & BettingPhaseOptions & IntermissionPhaseOptions & {
+	title: string,
+	host: ParticipantParams,
+	questionSet: number,
+	numberOfRounds: number,
 };
-
-const defaultOptions: GameOptions = Object.assign(
-	{
-		numberOfRounds: 7,
-	},
-	questionPhaseDefaultOptions,
-	bettingPhaseDefaultOptions,
-	intermissionPhaseDefaultOptions);
 
 
 export class Game {
 	private readonly players: PlayerManager<Player>;
 	private readonly spectators: PlayerManager<Spectator>;
-	private readonly options: GameOptions;
 	private readonly updates = new Subject<void>();
+	private readonly host: ParticipantParams;
 	
 	private round: number = 1;
 	private question: QuestionAnswerInfo;
@@ -42,17 +38,14 @@ export class Game {
 	
 	constructor(
 			private readonly id: GameId,
-			private readonly title: string,
-			private readonly host: ParticipantParams,
 			players: PlayerParams[],
 			spectators: SpectatorParams[],
-			private readonly questionGenerator: QuestionGenerator,
-			options?: Partial<GameOptions>) {
+			private readonly options: GameOptions,
+			private readonly questionGenerator: QuestionGenerator) {
+		this.host = this.options.host;
 		this.players = new PlayerManager(players.map(player => new Player(player)));
 		this.spectators = new PlayerManager(spectators.map(player => new Spectator(player)));
 		this.question = this.questionGenerator.nextQuestion();
-		this.options = Object.assign({}, defaultOptions, options);
-		
 		this.phase = new QuestionPhase(this.question, this.players, this.options);
 		this.startPhase(this.phase);
 	}
@@ -176,7 +169,7 @@ export class Game {
 	
 	public toJson(forPlayer: PrivateId): GameState {
 		return {
-			title: this.title,
+			title: this.options.title,
 			host: this.host.publicId,
 			players: this.players.getAll().map(player => player.toGameJson()),
 			spectators: this.spectators.getAll().map(spectator => spectator.toGameJson()),

@@ -2,12 +2,16 @@
 
 <div class="board">
 	<div class="header">
-		<span class="round">{{ getRound() }}</span>
-		<span class="timer"
-				[style.visibility]="roundTimer() !== undefined ? 'visible' : 'hidden'">
-			<mat-icon class="timer-icon">timer</mat-icon>
-			<span class="timer-text">{{ roundTimer() || "" }}</span>
-		</span>
+		@if (!isGameOverPhase(phase)) {
+			<span class="round">{{ getRound() }}</span>
+			<span class="timer"
+					[style.visibility]="roundTimer() !== undefined ? 'visible' : 'hidden'">
+				<mat-icon class="timer-icon">timer</mat-icon>
+				<span class="timer-text">{{ roundTimer() || "" }}</span>
+			</span>
+		} @else {
+			<span class="game-over">Game Over!</span>
+		}
 	</div>
 	<div class="question-box">
 		<span class="question">{{ getQuestion(phase) }}</span>

@@ -1,7 +1,6 @@
 import { Game } from "../game/game.js";
+import { type GameFactory } from "../game/game-factory.js";
 import { type Participant, Player, Spectator } from "../player/player.js";
-import { QuestionGenerator } from "../questions/question-generator.js";
-import { type QuestionSetManager } from "../questions/question-set-manager.js";
 import { HttpError } from "../utils/httperror.js";
 import { COLORS } from "../../shared/color.js";
 import { type GameId } from "../../shared/game/game.js";
@@ -24,12 +23,9 @@ export class Lobby {
 	constructor(
 			private readonly id: LobbyId,
 			private readonly spectatorId: LobbyId,
-			private readonly title: string,
-			hostName: string,
-			private readonly questionSet: number,
 			private readonly options: LobbyOptions,
-			private readonly questionSetManager: QuestionSetManager) {
-		const hostPlayer = Player.generate(hostName, this.generateColor());
+			private readonly gameFactory: GameFactory) {
+		const hostPlayer = Player.generate(this.options.host, this.generateColor());
 		this.players.push(hostPlayer);
 		this.host = {
 			name: hostPlayer.name,
@@ -175,20 +171,18 @@ export class Lobby {
 	}
 	
 	public beginGame(): [Game, LobbyBeginGame] {
-		const game = new Game(
+		const game = this.gameFactory.newGame(
 			Lobby.gameIdFromLobbyId(this.id),
-			this.title,
-			this.host,
 			this.players,
 			this.spectators,
-			new QuestionGenerator(this.questionSetManager.getQuestionSet(this.questionSet)!.questions),
+			this.host,
 			this.options);
 		return [game, this.makeBeginGame(game.getId())];
 	}
 	
 	public toJson(): LobbyState {
 		return {
-			title: this.title,
+			title: this.options.title,
 			host: this.host.publicId,
 			players: this.players.map(player => player.toLobbyJson()),
 			spectators: this.spectators.map(spectator => spectator.toLobbyJson()),
