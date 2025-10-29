@@ -47,12 +47,24 @@
                   "maximumError": "8kB"
                 }
               ],
-              "outputHashing": "all"
+              "outputHashing": "all",
+              "fileReplacements": [
+                {
+                  "replace": "app/flags.ts",
+                  "with": "app/flags.production.ts"
+                }
+              ]
             },
             "development": {
               "optimization": false,
               "extractLicenses": false,
-              "sourceMap": true
+              "sourceMap": true,
+              "fileReplacements": [
+                {
+                  "replace": "app/flags.ts",
+                  "with": "app/flags.development.ts"
+                }
+              ]
             },
             "analyze-bundle": {
               "sourceMap": true,
