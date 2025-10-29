@@ -1,16 +1,18 @@
 * Implement game.
   * Generate random lobby/game names.
   * Garbage collect inactive games.
-  * Allow spectators to place guesses?
+  * Allow spectators to place guesses.
   * Allow withdrawing guesses? (Currently, new guesses override old.)
   * Make game ID distinct from lobby ID?
   * Support mixing question sets?
 * Implement desktop UI.
-  * Render chips more dynamically?
-  * Show "Waiting for Guesses" to spectators.
+  * Keep players fixed in place on HUD.
+  * Render guesses more dynamically.
+  * Add a better indication for when it is time to guess or bet.
   * Handle bet normalization.
+  * Add instructions to the game.
+  * Provide better indication when a space is not playable?
+  * Art pass (fonts, improved colors, etc.).
 * Implement mobile UI.
 * Implement game/lobby expiration.
-* Deploy app.
-* Implement audience.
 * Implement questions upload.
