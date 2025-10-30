@@ -20,6 +20,10 @@ import { type LobbyNotification } from "../../shared/lobby/notifications.js";
 import { SUBSCRIBE_PATH, SubscribeRequestSchema } from "../../shared/lobby/subscribe.js";
 import { SET_COLOR_PATH, SetColorRequestSchema } from "../../shared/lobby/set-color.js";
 import { type PrivateId } from "../../shared/player.js";
+import type { Subscription } from "rxjs";
+
+
+const LOBBY_GARBAGE_COLLECTION_TIMEOUT_MS = 30*60*1000;
 
 
 class LobbyNotifier extends Notifier<LobbyNotification> {}
@@ -62,6 +66,32 @@ export class LobbyApp {
 		return data;
 	}
 	
+	private addLobby(lobby: Lobby): void {
+		const notifier = new LobbyNotifier();
+		this.lobbies.set(lobby.getId(), { lobby, notifier });
+		this.spectatorLobbies.set(lobby.getSpectatorId(), { lobby, notifier });
+		
+		let sub: Subscription;
+		let timeout = setTimeout(() => this.deleteLobby(lobby, notifier, sub), LOBBY_GARBAGE_COLLECTION_TIMEOUT_MS);
+		sub = lobby.onUpdates().subscribe({
+			next: () => {
+				timeout.refresh();
+				notifier.notifyClients(lobby.makeUpdate());
+			},
+			complete: () => {
+				clearTimeout(timeout);
+				this.deleteLobby(lobby, notifier, sub);
+			}
+		});
+	}
+	
+	private deleteLobby(lobby: Lobby, notifier: LobbyNotifier, sub: Subscription) {
+		console.log(`Deleting lobby ${lobby.getId()}`);
+		sub.unsubscribe();
+		notifier.close();
+		this.removeLobby(lobby);
+	}
+	
 	private removeLobby(lobby: Lobby): void {
 		this.lobbies.delete(lobby.getId());
 		this.spectatorLobbies.delete(lobby.getSpectatorId());
@@ -85,9 +115,7 @@ export class LobbyApp {
 			this.createLobbyId(),
 			this.createLobbySpectatorId(),
 			request.options);
-		const notifier = new LobbyNotifier();
-		this.lobbies.set(lobby.getId(), { lobby, notifier });
-		this.spectatorLobbies.set(lobby.getSpectatorId(), { lobby, notifier });
+		this.addLobby(lobby);
 		
 		const response: CreateLobbyResponse = {
 			id: lobby.getId(),
@@ -120,7 +148,6 @@ export class LobbyApp {
 		const { lobby, notifier } = data;
 		const player = lobby.addPlayer(name, privateId);
 		
-		notifier.notifyClients(lobby.makeUpdate());
 		return {
 			player: player.toPrivateJson()
 		};
@@ -135,7 +162,6 @@ export class LobbyApp {
 		const { lobby, notifier } = data;
 		const player = lobby.addSpectator(name, privateId);
 		
-		notifier.notifyClients(lobby.makeUpdate());
 		return {
 			player: player.toPrivateJson()
 		};
@@ -194,16 +220,13 @@ export class LobbyApp {
 			throw new HttpError(404, `Player with public ID ${player} not found in lobby.`);
 		}
 		
+		// We don't need to provide a name for players/spectators already in the
+		// lobby.
 		if (role === "player") {
-			// Player is already in the lobby, so we don't need to provide a
-			// name.
 			lobby.addPlayer("", player);
 		} else {
-			// Player is already in the lobby, so we don't need to provide a name.
 			lobby.addSpectator("", player);
 		}
-		
-		notifier.notifyClients(data.lobby.makeUpdate());
 		res.end();
 	}
 	
@@ -219,8 +242,6 @@ export class LobbyApp {
 		}
 		
 		lobby.setPlayerColor(player, color);
-		
-		notifier.notifyClients(data.lobby.makeUpdate());
 		res.end();
 	}
 	
@@ -234,10 +255,9 @@ export class LobbyApp {
 		this.removeLobby(lobby);
 		const [game, beginGame] = lobby.beginGame();
 		this.gameApp.addGame(game);
+		notifier.notifyClients(beginGame);
+		lobby.endLobby();
 		
-		notifier
-			.notifyClients(beginGame)
-			.close();
 		res.end();
 	}
 	
@@ -250,9 +270,8 @@ export class LobbyApp {
 		
 		this.removeLobby(lobby);
 		
-		notifier
-			.notifyClients(lobby.makeCancel())
-			.close();
+		notifier.notifyClients(lobby.makeCancel());
+		lobby.endLobby();
 		res.end();
 	}
 	
@@ -279,14 +298,10 @@ export class LobbyApp {
 					if (!notifier.hasClients(privateId)) {
 						if (lobby.isHost(privateId)) {
 							// TODO: Uncomment when development is done.
-							// this.removeLobby(lobby);
-							
-							// notifier
-							// 	.notifyClients(lobby.makeCancel())
-							// 	.close();
+							// notifier.notifyClients(lobby.makeCancel());
+							// lobby.endLobby();
 						} else {
 							lobby.removeParticipant(privateId);
-							notifier.notifyClients(lobby.makeUpdate());
 						}
 					}
 				});

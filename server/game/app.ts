@@ -14,6 +14,10 @@ import { type GameNotification } from "../../shared/game/notifications.js";
 import { SUBMIT_BET_PATH, SubmitBetRequestSchema } from "../../shared/game/submit-bet.js";
 import { SUBMIT_GUESS_PATH, SubmitGuessRequestSchema } from "../../shared/game/submit-guess.js";
 import type { PrivateId } from "../../shared/player.js";
+import type { Subscription } from "rxjs";
+
+
+const GAME_GARBAGE_COLLECTION_TIMEOUT_MS = 30*60*1000;
 
 
 class GameNotifier extends Notifier<GameNotification> {}
@@ -46,17 +50,26 @@ export class GameApp {
 		const notifier = new GameNotifier();
 		this.games.set(game.getId(), { game, notifier });
 		
-		game.onUpdates().subscribe({
+		let sub: Subscription;
+		let timeout = setTimeout(() => this.deleteGame(game, notifier, sub), GAME_GARBAGE_COLLECTION_TIMEOUT_MS);
+		sub = game.onUpdates().subscribe({
 			next: () => {
-				console.log(`Sending game update.`);
+				timeout.refresh();
 				game.getParticipants().forEach(
 					player => notifier.notifyPlayer(player.privateId, game.makeUpdate(player.privateId)));
 			},
 			complete: () => {
-				notifier.close();
-				this.games.delete(game.getId());
+				clearTimeout(timeout);
+				this.deleteGame(game, notifier, sub);
 			}
 		});
+	}
+	
+	private deleteGame(game: Game, notifier: GameNotifier, sub: Subscription): void {
+		console.log(`Deleting game ${game.getId()}`);
+		sub.unsubscribe();
+		notifier.close();
+		this.games.delete(game.getId());
 	}
 	
 	private joinGame(req: Request, res: Response): void {

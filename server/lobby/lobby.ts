@@ -1,3 +1,6 @@
+import { Subject, type Observable } from "rxjs";
+
+
 import { type LobbyOptions } from "./lobby-option.js";
 import { Game } from "../game/game.js";
 import { type GameFactory } from "../game/game-factory.js";
@@ -14,6 +17,7 @@ import { type Rgb } from "../../shared/rgb.js";
 export class Lobby {
 	private readonly players: Player[] = [];
 	private readonly spectators: Spectator[] = [];
+	private readonly updates = new Subject<void>();
 	private readonly host: PrivatePlayer;
 	
 	public static gameIdFromLobbyId(lobbyId: LobbyId): GameId {
@@ -75,6 +79,8 @@ export class Lobby {
 	public addPlayer(name: string, existingId?: PrivateId | PublicId): Player {
 		const existingPlayer = this.players.find(player => player.privateId === existingId || player.publicId === existingId);
 		const existingSpectator = this.spectators.find(player => player.privateId === existingId || player.publicId === existingId);
+		
+		let player: Player;
 		if (existingPlayer) {
 			return existingPlayer;
 		} else if (this.players.length >= this.options.numberOfPlayers) {
@@ -82,32 +88,34 @@ export class Lobby {
 		} else if (existingSpectator) {
 			// Move spectator to player.
 			this.removeSpectator(existingSpectator.privateId);
-			const player = Player.fromSpectator(existingSpectator, this.generateColor());
+			player = Player.fromSpectator(existingSpectator, this.generateColor());
 			this.players.push(player);
-			return player;
 		} else {
-			const player = Player.generate(name, this.generateColor());
+			player = Player.generate(name, this.generateColor());
 			this.players.push(player);
-			return player;
 		}
+		this.updates.next();
+		return player;
 	}
 	
 	public addSpectator(name: string, existingId?: PrivateId | PublicId): Spectator {
 		const existingSpectator = this.spectators.find(spec => spec.privateId === existingId || spec.publicId === existingId);
 		const existingPlayer = this.players.find(player => player.privateId === existingId || player.publicId === existingId);
+		
+		let spectator: Spectator;
 		if (existingSpectator) {
 			return existingSpectator;
 		} else if (existingPlayer) {
 			// Move spectator to player.
 			this.removePlayer(existingPlayer.privateId);
-			const spectator = Spectator.fromPlayer(existingPlayer);
+			spectator = Spectator.fromPlayer(existingPlayer);
 			this.spectators.push(spectator);
-			return spectator;
 		} else {
-			const spectator = Spectator.generate(name);
+			spectator = Spectator.generate(name);
 			this.spectators.push(spectator);
-			return spectator;
 		}
+		this.updates.next();
+		return spectator;
 	}
 	
 	public removePlayer(id: PrivateId | PublicId): void {
@@ -129,6 +137,7 @@ export class Lobby {
 		}
 		
 		player.color = color;
+		this.updates.next();
 	}
 	
 	// Remove either a player or a spectator.
@@ -142,6 +151,7 @@ export class Lobby {
 		} else {
 			throw new HttpError(404, `Player with public or private ID ${id} not found.`);
 		}
+		this.updates.next();
 	}
 	
 	private doRemoveParticipant(players: Player[] | Spectator[], id: PrivateId | PublicId): void {
@@ -160,6 +170,12 @@ export class Lobby {
 			this.host,
 			this.options);
 		return [game, this.makeBeginGame(game.getId())];
+	}
+	
+	// End lobby update notifications. No changes to the lobby may be made after
+	// calling this.
+	public endLobby(): void {
+		this.updates.complete();
 	}
 	
 	public toJson(): LobbyState {
@@ -199,5 +215,12 @@ export class Lobby {
 			throw new HttpError(500, "No colors available. This is a server bug.");
 		}
 		return availableColors[0]!;
+	}
+	
+	// Notifies when a new update is available. Subscribers should call
+	// makeUpdate() to get the update. When this observable completes, the lobby
+	// has ended.
+	public onUpdates(): Observable<void> {
+		return this.updates.asObservable();
 	}
 }
