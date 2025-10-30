@@ -14,6 +14,8 @@ export class GlobalErrorHandler implements ErrorHandler {
 		return { provide: ErrorHandler, useClass: GlobalErrorHandler };
 	}
 	
+	// Returns a subject that will notify and complete when the error dialog is
+	// closed.
 	public handleError(error: unknown): Observable<any> {
 		// For some reason HttpErrorResponse is not a subclass of Error.
 		if (!(error instanceof Error) && !(error instanceof HttpErrorResponse)) {

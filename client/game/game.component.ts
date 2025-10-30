@@ -278,7 +278,7 @@ function getGuessCards(game: GameState): GuessCardData[] {
 })
 export class GameComponent implements OnDestroy {
 	private readonly gameService: Signal<RefCounted<GameInstanceService>>;
-	private readonly instanceSub: Subscription;
+	private readonly subs: Subscription[] = [];
 	private guessDialog: MatDialogRef<GuessDialog> | undefined = undefined;
 	private wagerDialog: MatDialogRef<WagerDialog> | undefined = undefined;
 	private intermissionDialog: MatDialogRef<RoundEndDialog> | undefined = undefined;
@@ -307,8 +307,8 @@ export class GameComponent implements OnDestroy {
 		
 		const instanceService = combineLatest([route.params, route.data]).pipe(
 			map(([params, data]) => gameService.getGameInstanceService(params.gameId, data.player.privateId)));
-		this.instanceSub = instanceService.pipe(startWith(undefined), pairwise())
-			.subscribe(([oldService, newService]) => this.onNewGame(oldService, newService!));
+		this.subs.push(instanceService.pipe(startWith(undefined), pairwise())
+			.subscribe(([oldService, newService]) => this.onNewGame(oldService, newService!)));
 		
 		const initialState: GameState = {
 			title: "",
@@ -325,7 +325,7 @@ export class GameComponent implements OnDestroy {
 			},
 		};
 		const gameObs = instanceService.pipe(switchMap(service => service.get().onGameUpdate()));
-		gameObs.subscribe({
+		this.subs.push(gameObs.subscribe({
 			next: (state) => {
 				this.onGameUpdate(state);
 			},
@@ -337,13 +337,15 @@ export class GameComponent implements OnDestroy {
 						scrollStrategy: this.overlay.scrollStrategies.noop(),
 					}));
 			}
-		}),
+		})),
 		
-		instanceService.pipe(switchMap(service => service.get().onError()))
+		this.subs.push(instanceService.pipe(switchMap(service => service.get().onError()))
 			.subscribe(err => {
+				// Completes immediately after notifying, so we don't need to
+				// unsubscribe.
 				this.errorHandler.handleError(err)
 					.subscribe(_ => this.routing.toHome());
-			});
+			}));
 		
 		this.gameService = toSignal(instanceService, { requireSync: true });
 		this.game = toSignal(gameObs, { initialValue: initialState });
@@ -509,7 +511,9 @@ export class GameComponent implements OnDestroy {
 	
 	public ngOnDestroy(): void {
 		this.closeGameService(this.gameService());
-		this.instanceSub.unsubscribe();
+		for (const sub of this.subs) {
+			sub.unsubscribe();
+		}
 	}
 	
 	public onSubmitGuess(): void {
