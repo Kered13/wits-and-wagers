@@ -1,9 +1,13 @@
 import { describe, expect, test, vi } from "vitest";
 
-import { Game, GameOptions } from "./game.js";
+import { Game } from "./game.js";
+import { GameOptions } from "./game-options.js";
 import { Player, Spectator } from "../player/player.js";
 import { QuestionGenerator } from "../questions/question-generator.js";
 import { HttpError } from "../utils/httperror.js";
+import { DEFAULT_BETTING_PHASE_OPTIONS } from "./betting-phase.js";
+import { DEFAULT_QUESTION_PHASE_OPTIONS } from "./question-phase.js";
+import { DEFAULT_INTERMISSION_PHASE_OPTIONS } from "./intermission-phase.js";
 
 
 function makePlayer(name: string): Player {
@@ -28,22 +32,31 @@ function makeSpectator(name: string): Spectator {
 function makeQuestionGenerator() {
 	const question = {
 		question: "Guess a number?",
-		answer: 7
+		answer: 7,
 	};
-	return new QuestionGenerator(new Array(7).fill(question));
+	return new QuestionGenerator(new Array(7).fill(question), 7);
 }
 
 
 function makeGame(id: string, title: string, players: Player[], spectators?: Spectator[], options?: Partial<GameOptions>): Game {
 	// Do not automatically end the question phase. This makes testing easier.
+	const gameOpts: GameOptions = Object.assign({},
+		DEFAULT_BETTING_PHASE_OPTIONS,
+		DEFAULT_QUESTION_PHASE_OPTIONS,
+		DEFAULT_INTERMISSION_PHASE_OPTIONS,
+		{
+			title: title,
+			host: players[0],
+			endQuestionPhaseWhenAllGuessesSubmitted: false,
+			numberOfRounds: 7,
+		},
+		options);
 	return new Game(
 		id,
-		title,
-		players[0],
 		players,
 		spectators ?? [],
-		makeQuestionGenerator(),
-		Object.assign({}, { endQuestionPhaseWhenAllGuessesSubmitted: false }, options));
+		gameOpts,
+		makeQuestionGenerator());
 }
 
 
@@ -61,23 +74,23 @@ describe("Game", () => {
 					name: alice.name,
 					publicId: alice.publicId,
 					color: alice.color,
-					chips: 2
+					chips: 2,
 				}],
 				spectators: [{
 					name: bob.name,
 					publicId: bob.publicId,
-					chips: 2
+					chips: 2,
 				}],
 				round: 1,
 				phase: {
 					phase: "question",
 					questionInfo: {
-						question: "Guess a number?"
+						question: "Guess a number?",
 					},
 					guesses: {
-						"public-Alice": false
-					}
-				}
+						"public-Alice": false,
+					},
+				},
 			});
 		});
 		
@@ -97,26 +110,26 @@ describe("Game", () => {
 						name: alice.name,
 						publicId: alice.publicId,
 						color: alice.color,
-						chips: 2
+						chips: 2,
 					},
 					{
 						name: bob.name,
 						publicId: bob.publicId,
 						color: bob.color,
-						chips: 2
-					}
+						chips: 2,
+					},
 				],
 				spectators: [],
 				round: 1,
 				phase: {
 					phase: "question",
 					questionInfo: {
-						question: "Guess a number?"
+						question: "Guess a number?",
 					},
 					guesses: {
 						"public-Alice": 42,
-						"public-Bob": true
-					}
+						"public-Bob": true,
+					},
 				}
 			});
 		});
@@ -139,24 +152,25 @@ describe("Game", () => {
 				game.endPhase(alice.privateId);
 			}
 			
-			const expectedPlayers = [{
-					name: charlie.name,
-					publicId: charlie.publicId,
-					color: charlie.color,
-					chips: 60
-				},
+			const expectedPlayers = [
 				{
 					name: alice.name,
 					publicId: alice.publicId,
 					color: alice.color,
-					chips: 30
+					chips: 30,
 				},
 				{
 					name: bob.name,
 					publicId: bob.publicId,
 					color: bob.color,
-					chips: 10
-				}
+					chips: 10,
+				},
+				{
+					name: charlie.name,
+					publicId: charlie.publicId,
+					color: charlie.color,
+					chips: 60,
+				},
 			];
 			
 			const actualJson = game.toJson(alice.privateId);
@@ -168,12 +182,12 @@ describe("Game", () => {
 				spectators: [{
 					name: derek.name,
 					publicId: derek.publicId,
-					chips: 50
+					chips: 50,
 				}],
 				round: 8,
 				phase: {
-					phase: "game-over"
-				}
+					phase: "game-over",
+				},
 			});
 			expect(actualJson.players).to.deep.ordered.members(expectedPlayers);
 		});
@@ -185,7 +199,7 @@ describe("Game", () => {
 		
 		expect(game.makeUpdate(alice.privateId)).to.deep.equal({
 			type: "update",
-			state: game.toJson(alice.privateId)
+			state: game.toJson(alice.privateId),
 		});
 	});
 	
@@ -299,7 +313,7 @@ describe("Game", () => {
 		const gameEndCallback = vi.fn();
 		game.onUpdates().subscribe({
 			next: updateCallback,
-			complete: gameEndCallback
+			complete: gameEndCallback,
 		});
 		
 		game.endPhase(alice.privateId);
@@ -321,11 +335,9 @@ describe("Game", () => {
 		
 		const updateCallback = vi.fn();
 		const gameEndCallback = vi.fn();
-		const roundEndCallback = vi.fn();
-		const roundEndGameEndCallback = vi.fn();
 		game.onUpdates().subscribe({
 			next: updateCallback,
-			complete: gameEndCallback
+			complete: gameEndCallback,
 		});
 		
 		game.endPhase(alice.privateId);
@@ -439,23 +451,23 @@ describe("Game", () => {
 				name: alice.name,
 				publicId: alice.publicId,
 				color: alice.color,
-				chips: 2
+				chips: 2,
 			}],
 			spectators: [{
 				name: bob.name,
 				publicId: bob.publicId,
-				chips: 2
+				chips: 2,
 			}],
 			round: 1,
 			phase: {
 				phase: "question",
 				questionInfo: {
-					question: "Guess a number?"
+					question: "Guess a number?",
 				},
 				guesses: {
 					"public-Alice": false
-				}
-			}
+				},
+			},
 		});
 		
 		expect(callback).toHaveBeenCalled();

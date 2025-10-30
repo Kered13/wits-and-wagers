@@ -15,7 +15,7 @@ export class QuestionGenerator {
 	}
 	
 	public nextQuestion(): QuestionAnswerInfo {
-		if (!this.questions) {
+		if (!this.questions.length) {
 			throw new HttpError(500, `Ran out of questions. This should not happen.`);
 		}
 		return this.questions.pop()!;

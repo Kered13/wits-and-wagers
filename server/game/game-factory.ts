@@ -16,12 +16,13 @@ export class GameFactory {
 			players: PlayerParams[],
 			spectators: SpectatorParams[],
 			host: ParticipantParams,
+			questionSetId: number,
 			options: LobbyOptions): Game {
 		const gameOptions: GameOptions = Object.assign({}, options, { host: host});
 		
-		const questionSet = this.questionSetManager.getQuestionSet(options.questionSet);
+		const questionSet = this.questionSetManager.getQuestionSet(questionSetId);
 		if (!questionSet) {
-			throw new HttpError(500, `Invalid question set: ${gameOptions.questionSet}`);
+			throw new HttpError(500, `Invalid question set: ${questionSetId}`);
 		}
 		const questionGenerator = new QuestionGenerator(questionSet.questions, gameOptions.numberOfRounds);
 		

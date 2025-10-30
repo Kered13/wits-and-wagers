@@ -7,6 +7,5 @@ import { type ParticipantParams } from "../player/player.js";
 export type GameOptions = QuestionPhaseOptions & BettingPhaseOptions & IntermissionPhaseOptions & {
 	title: string,
 	host: ParticipantParams,
-	questionSet: number,
 	numberOfRounds: number,
 };

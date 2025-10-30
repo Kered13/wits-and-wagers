@@ -15,22 +15,30 @@ function makeQuestion(): QuestionAnswerInfo {
 
 describe("QuestionGenerator", () => {
 	test("throws error if insufficient questions", () => {
-		expect(() => new QuestionGenerator([])).to.throw(HttpError);
-		expect(() => new QuestionGenerator(new Array(6).fill(makeQuestion())))
+		expect(() => new QuestionGenerator([], 7)).to.throw(HttpError);
+		expect(() => new QuestionGenerator(new Array(6).fill(makeQuestion()), 7))
 			.to.throw(HttpError);
 	});
 	
-	test("does not throw error if 7 or more questions", () => {
-		expect(() => new QuestionGenerator(new Array(7).fill(makeQuestion())))
+	test("does not throw error if sufficient questions", () => {
+		expect(() => new QuestionGenerator(new Array(7).fill(makeQuestion()), 7))
 			.to.not.throw();
 	});
 	
 	test("nextQuestion returns questions", () => {
-		const generator = new QuestionGenerator(new Array(7).fill(makeQuestion()));
+		const generator = new QuestionGenerator(new Array(7).fill(makeQuestion()), 7);
 		
 		expect(generator.nextQuestion()).to.deep.equal({
 			question: "Guess a number?",
 			answer: 7
 		});
+	});
+	
+	test("throws if nextQuestion called too many times", () => {
+		const generator = new QuestionGenerator([makeQuestion()], 1);
+		
+		generator.nextQuestion();
+		
+		expect(() => generator.nextQuestion()).to.throw(HttpError);
 	});
 });
