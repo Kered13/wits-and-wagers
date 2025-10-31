@@ -1,12 +1,11 @@
 import { Subject, type Observable } from "rxjs";
 
 import { type Phase } from "./phase.js";
-import { Spectator, type Player } from "../player/player.js";
+import { Player, Spectator } from "../player/player.js";
 import { type PlayerManager } from "../player/player-manager.js";
 import { type QuestionPhaseState } from "../../shared/game/question-phase.js";
 import { type PrivateId } from "../../shared/player.js";
 import { stripAnswer, type QuestionAnswerInfo } from "../../shared/game/question.js";
-import { HttpError } from "../utils/httperror.js";
 
 
 export type QuestionPhaseOptions = {
@@ -33,8 +32,7 @@ export class QuestionPhase implements Phase {
 	
 	constructor(
 			private readonly questionInfo: QuestionAnswerInfo,
-			private readonly players: PlayerManager<Player>,
-			private readonly spectators: PlayerManager<Spectator>,
+			private readonly playerManager: PlayerManager,
 			private readonly options: QuestionPhaseOptions) {
 		if (options.questionPhaseDuration) {
 			// Add a small fudge factor to the round duration. This is just to
@@ -46,24 +44,19 @@ export class QuestionPhase implements Phase {
 	}
 	
 	public submitGuess(playerId: PrivateId, guess: number): void {
-		const player = this.players.tryGetPrivatePlayer(playerId);
-		const spectator = this.spectators.tryGetPrivatePlayer(playerId);
-		if (player) {
+		const player = this.playerManager.getPrivateParticipant(playerId);
+		if (player instanceof Player) {
 			this.guesses.set(player, guess);
 			
 			// If every player has submitted a guess, end the phase.
 			const submittedPlayers = Array.from(this.guesses.keys());
 			if (this.options.endQuestionPhaseWhenAllGuessesSubmitted &&
-					this.players.getAll().every(p => submittedPlayers.includes(p))) {
+					this.playerManager.getAllPlayers().every(p => submittedPlayers.includes(p))) {
 				this.endPhase();
 			}
-			return;
+		} else {
+			this.specGuesses.set(player, guess);
 		}
-		if (spectator) {
-			this.specGuesses.set(spectator, guess);
-			return;
-		}
-		throw new HttpError(404, `Player or spectator private ID ${playerId} not found.`);
 	}
 	
 	public getGuesses(): [Map<Player, number>, Map<Spectator, number>] {
@@ -75,18 +68,17 @@ export class QuestionPhase implements Phase {
 	}
 	
 	public toJson(forPlayer: PrivateId): QuestionPhaseState {
-		const spectatorGuess = this.getSpectatorGuess(forPlayer);
 		return {
 			phase: "question",
 			questionInfo: stripAnswer(this.questionInfo),
 			guesses: Object.fromEntries(
-				this.players.getAll().map(player => {
+				this.playerManager.getAllPlayers().map(player => {
 					const guess = this.guesses.get(player);
 					const report = !guess ? false :
 						player.privateId !== forPlayer ? true : guess;
 					return [player.publicId, report];
 				})),
-			spectatorGuess: spectatorGuess,
+			spectatorGuess: this.getSpectatorGuess(forPlayer),
 			roundDuration: this.options.questionPhaseDuration,
 			roundEnd: this.endTime,
 		};
@@ -100,11 +92,11 @@ export class QuestionPhase implements Phase {
 		this.endPhaseSubj.complete();
 	}
 	
-	private getSpectatorGuess(playerId: PrivateId): number | undefined {
-		const player = this.spectators.tryGetPrivatePlayer(playerId);
-		if (!player) {
+	private getSpectatorGuess(specId: PrivateId): number | undefined {
+		const spectator = this.playerManager.tryGetPrivateSpectator(specId);
+		if (!spectator) {
 			return undefined;
 		}
-		return this.specGuesses.get(player);
+		return this.specGuesses.get(spectator);
 	}
 }

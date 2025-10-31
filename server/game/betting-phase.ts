@@ -1,11 +1,11 @@
 import { Subject, type Observable } from "rxjs";
 
 import { type Phase } from "./phase.js";
-import { Participant, Spectator, type Player } from "../player/player.js";
+import { Participant, Player, Spectator } from "../player/player.js";
 import { type PlayerManager } from "../player/player-manager.js";
 import { HttpError } from "../utils/httperror.js";
 import { type Bet, type BetTarget, type BettingPhaseState, type Guess as GuessJson, type GuessTarget } from "../../shared/game/betting-phase.js";
-import { type PrivateId } from "../../shared/player.js";
+import { type PrivateId, type PublicId } from "../../shared/player.js";
 import { type BettingConclusion } from "../../shared/game/intermission-phase.js";
 import { stripAnswer, type QuestionAnswerInfo } from "../../shared/game/question.js";
 
@@ -94,6 +94,30 @@ function reservedChipsFor(bet: Bet, bets: Bet[]): number {
 }
 
 
+function addWinners<T extends Participant>(
+		guesses: GuessJson[],
+		playerManager: PlayerManager,
+		winningGuess: number,
+		answer: number,
+		round: number,
+		winners: PublicId[],
+		earnings: { [x: string]: number; }) {
+	for (const guess of guesses) {
+		if (guess.guess >= winningGuess && guess.guess <= answer) {
+			const player = playerManager.getPublicPlayer(guess.player);
+			addWinner(player, round, winners, earnings);
+		}
+	}
+}
+
+
+function addWinner(player: Participant, round: number, winners: PublicId[], earnings: { [x: string]: number; }) {
+	player.chips += round;
+	winners.push(player.publicId);
+	earnings[player.publicId]! += round;
+}
+
+
 export class BettingPhase implements Phase {
 	private readonly bets: Bet[] = [];
 	private readonly spectatorBets: Bet[] = [];
@@ -106,11 +130,10 @@ export class BettingPhase implements Phase {
 	
 	constructor(
 			private readonly questionInfo: QuestionAnswerInfo,
-			private readonly players: PlayerManager<Player>,
-			private readonly spectators: PlayerManager<Spectator>,
-			private readonly round: number,
+			private readonly playerManager: PlayerManager,
 			guesses: Map<Player, number>,
 			specGuesses: Map<Spectator, number>,
+			private readonly round: number,
 			private readonly options: BettingPhaseOptions) {
 		this.guesses = sortGuesses(guesses);
 		this.specGuesses = sortGuesses(specGuesses);
@@ -147,17 +170,12 @@ export class BettingPhase implements Phase {
 	public submitBet(playerId: PrivateId, target: BetTarget, wager: number): void {
 		this.validateTarget(target);
 		
-		const player = this.players.tryGetPrivatePlayer(playerId);
-		if (player) {
+		const player = this.playerManager.getPrivateParticipant(playerId);
+		if (player instanceof Player) {
 			this.doSubmitBet(player, this.bets, target, wager);
-			return;
+		} else {
+			this.doSubmitBet(player, this.spectatorBets, target, wager);
 		}
-		const spectator = this.spectators.tryGetPrivatePlayer(playerId);
-		if (spectator) {
-			this.doSubmitBet(spectator, this.spectatorBets, target, wager);
-			return;
-		}
-		throw new HttpError(404, `Player or spectator private ID ${playerId} not found.`);
 	}
 	
 	private doSubmitBet(player: Participant, bets: Bet[], target: BetTarget, wager: number): void {
@@ -188,9 +206,9 @@ export class BettingPhase implements Phase {
 		const conclusion: BettingConclusion = {
 			type: "conclusion",
 			winners: [],
-			earnings: Object.fromEntries(this.players.getAll().map(player => [player.publicId, 0])),
+			earnings: Object.fromEntries(this.playerManager.getAllPlayers().map(player => [player.publicId, 0])),
 			spectatorWinners: [],
-			spectatorEarnings: Object.fromEntries(this.spectators.getAll().map(player => [player.publicId, 0]))
+			spectatorEarnings: Object.fromEntries(this.playerManager.getAllSpectators().map(spectator => [spectator.publicId, 0]))
 		};
 		
 		let winningGuessIdx = -1;
@@ -210,7 +228,7 @@ export class BettingPhase implements Phase {
 		for (const bet of this.bets) {
 			const payout = payoutForBet(bet, this.bets, winningTarget, winningColors);
 			
-			const player = this.players.getPublicPlayer(bet.player);
+			const player = this.playerManager.getPublicPlayer(bet.player);
 			player.chips += payout;
 			conclusion.earnings[player.publicId]! += payout;
 		}
@@ -218,7 +236,7 @@ export class BettingPhase implements Phase {
 		for (const bet of this.spectatorBets) {
 			const payout = payoutForBet(bet, this.spectatorBets, winningTarget, winningColors);
 			
-			const player = this.spectators.getPublicPlayer(bet.player);
+			const player = this.playerManager.getPublicSpectator(bet.player);
 			player.chips += payout;
 			conclusion.spectatorEarnings[player.publicId]! += payout;
 		}
@@ -228,10 +246,8 @@ export class BettingPhase implements Phase {
 		if (winningGuess) {
 			for (const guess of this.guesses ) {
 				if (guess.guess === winningGuess.guess) {
-					const player = this.players.getPublicPlayer(guess.player);
-					player.chips += this.round;
-					conclusion.winners.push(player.publicId);
-					conclusion.earnings[player.publicId]! += this.round;
+					const player = this.playerManager.getPublicPlayer(guess.player);
+					addWinner(player, this.round, conclusion.winners, conclusion.earnings);
 				}
 			}
 		}
@@ -240,10 +256,8 @@ export class BettingPhase implements Phase {
 		// than the winning player.
 		for (const guess of this.specGuesses) {
 			if (guess.guess >= (winningGuess?.guess ?? 0) && guess.guess <= this.questionInfo.answer) {
-				const spectator = this.spectators.getPublicPlayer(guess.player)!;
-				spectator.chips += this.round;
-				conclusion.spectatorWinners.push(spectator.publicId);
-				conclusion.spectatorEarnings[spectator.publicId]! += this.round;
+				const spectator = this.playerManager.getPublicSpectator(guess.player)!;
+				addWinner(spectator, this.round, conclusion.spectatorWinners, conclusion.spectatorEarnings);
 			}
 		}
 		
@@ -337,7 +351,7 @@ export class BettingPhase implements Phase {
 	
 	// Filters bets to only those that the spectator should see.
 	private filterBetsForSpectator(privateId: PrivateId): Bet[] {
-		const publicId = this.spectators.tryGetPrivatePlayer(privateId)?.publicId ?? "";
+		const publicId = this.playerManager.tryGetPrivateSpectator(privateId)?.publicId ?? "";
 		return this.spectatorBets.filter(bet => bet.player == publicId);
 	}
 }

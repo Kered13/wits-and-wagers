@@ -472,13 +472,4 @@ describe("Game", () => {
 		
 		expect(callback).toHaveBeenCalled();
 	});
-	
-	test("tryGetPrivatePlayer", () => {
-		const alice = makePlayer("Alice");
-		const bob = makeSpectator("Bob");
-		const game = makeGame("id", "Game", [alice], [bob]);
-		
-		expect(game.tryGetPrivatePlayer(alice.privateId)).to.deep.equal(alice);
-		expect(game.tryGetPrivatePlayer(bob.privateId)).to.be.undefined;
-	});
 });

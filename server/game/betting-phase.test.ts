@@ -47,11 +47,10 @@ function makeBettingPhase(
 	const options = Object.assign({}, DEFAULT_BETTING_PHASE_OPTIONS, obj.options);
 	return new BettingPhase(
 		question,
-		new PlayerManager(guesses.map(([player, guess]) => player)),
-		new PlayerManager(spectators),
-		round,
+		new PlayerManager(guesses.map(([player, guess]) => player), spectators),
 		new Map(guesses),
 		new Map(specGuesses),
+		round,
 		options);
 }
 

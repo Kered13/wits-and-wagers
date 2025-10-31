@@ -19,8 +19,7 @@ import { type QuestionAnswerInfo } from "../../shared/game/question.js";
 
 
 export class Game {
-	private readonly players: PlayerManager<Player>;
-	private readonly spectators: PlayerManager<Spectator>;
+	private readonly playerManager: PlayerManager;
 	private readonly updates = new Subject<void>();
 	private readonly host: ParticipantParams;
 	
@@ -35,8 +34,9 @@ export class Game {
 			private readonly options: GameOptions,
 			private readonly questionGenerator: QuestionGenerator) {
 		this.host = this.options.host;
-		this.players = new PlayerManager(players.map(player => new Player(player)));
-		this.spectators = new PlayerManager(spectators.map(player => new Spectator(player)));
+		this.playerManager = new PlayerManager(
+			players.map(player => new Player(player)),
+			spectators.map(player => new Spectator(player)));
 		
 		this.startQuestionPhase();
 	}
@@ -46,13 +46,13 @@ export class Game {
 	}
 	
 	public addSpectator(name: string, id?: PrivateId): Spectator {
-		const existingSpectator = this.spectators.tryGetPrivatePlayer(id ?? "");
+		const existingSpectator = this.playerManager.tryGetPrivateSpectator(id ?? "");
 		if (existingSpectator) {
 			return existingSpectator;
 		}
 		
 		const spectator: Spectator = Spectator.generate(name);
-		this.spectators.addPlayer(spectator);
+		this.playerManager.addSpectator(spectator);
 		this.updates.next();
 		return spectator;
 	}
@@ -120,18 +120,17 @@ export class Game {
 	
 	private startQuestionPhase(): void {
 		this.question = this.questionGenerator.nextQuestion();
-		this.startPhase(new QuestionPhase(this.question, this.players, this.spectators, this.options));
+		this.startPhase(new QuestionPhase(this.question, this.playerManager, this.options));
 	}
 	
 	private startBettingPhase(guesses: Map<Player, number>, specGuesses: Map<Spectator, number>): void {
 		this.startPhase(
 			new BettingPhase(
 				this.question,
-				this.players,
-				this.spectators,
-				this.round,
+				this.playerManager,
 				guesses,
 				specGuesses,
+				this.round,
 				this.options))
 	}
 
@@ -163,8 +162,8 @@ export class Game {
 		return {
 			title: this.options.title,
 			host: this.host.publicId,
-			players: this.players.getAll().map(player => player.toGameJson()),
-			spectators: this.spectators.getAll().map(spectator => spectator.toGameJson()),
+			players: this.playerManager.getAllPlayers().map(player => player.toGameJson()),
+			spectators: this.playerManager.getAllSpectators().map(spectator => spectator.toGameJson()),
 			round: this.round,
 			phase: this.phase.toJson(forPlayer)
 		};
@@ -179,11 +178,7 @@ export class Game {
 	}
 	
 	public getParticipants(): (Player | Spectator)[] {
-		return [...this.players.getAll(), ...this.spectators.getAll()];
-	}
-	
-	public tryGetPrivatePlayer(privateId: PrivateId): Player | undefined {
-		return this.players.getAll().find(p => p.privateId === privateId);
+		return [...this.playerManager.getAllPlayers(), ...this.playerManager.getAllSpectators()];
 	}
 	
 	public getRound(): number {

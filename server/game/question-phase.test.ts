@@ -32,8 +32,7 @@ function makeQuestionPhase(
 			qa?: QuestionAnswerInfo | string,
 			options?: Partial<QuestionPhaseOptions>
 		}): QuestionPhase {
-	const players = new PlayerManager(obj.players);
-	const spectators = new PlayerManager(obj.spectators ?? []);
+	const playerManager = new PlayerManager(obj.players, obj.spectators ?? []);
 	const question = typeof(obj.qa) !== "object" ?
 		{ question: obj.qa ?? "What is the answer?", answer: 7 } :
 		obj.qa;
@@ -41,7 +40,7 @@ function makeQuestionPhase(
 		DEFAULT_QUESTION_PHASE_OPTIONS,
 		{ endQuestionPhaseWhenAllGuessesSubmitted: false },
 		obj.options);
-	return new QuestionPhase(question, players, spectators, options);
+	return new QuestionPhase(question, playerManager, options);
 }
 
 
