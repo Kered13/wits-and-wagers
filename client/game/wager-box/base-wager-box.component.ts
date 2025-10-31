@@ -3,15 +3,18 @@ import random from "random";
 
 
 export type BetData = {
-	value: number;
 	name: string;
+	value: number;
+	// If color is not provided, this is a spectator bet.
 	color?: string;
 };
 
 
 function updateBetChips(previousChips: (BetData | undefined)[], newBets: BetData[]): (BetData | undefined)[] {
+	// Remove all chips that are no longer on the board. Remaining cards keep
+	// their positions.
 	const newChips = previousChips.map(chip => {
-		return newBets.find(bet => chip !== undefined && bet.color === chip?.color)
+		return newBets.find(bet => chip !== undefined && bet.color === chip.color)
 	});
 	// Trim trailing undefined values from the array.
 	newChips.length = newChips.findLastIndex(chip => chip !== undefined) + 1;
@@ -22,6 +25,16 @@ function updateBetChips(previousChips: (BetData | undefined)[], newBets: BetData
 		}
 	}
 	return newChips;
+}
+
+
+// Insert the given bet into an empty position in chips. We randomly choose
+// among empty positions in the middle of the array, or from the end if there
+// are not enough empty positions in the middle.
+function insertNewChip(bet: BetData, chips: (BetData | undefined)[]): void {
+	const availableSlots = getEmptyIndices(chips);
+	const slot = random.choice(availableSlots)!;
+	chips[slot] = bet;
 }
 
 
@@ -40,16 +53,6 @@ function getEmptyIndices<T>(array: T[]): number[] {
 		indices.push(i);
 	}
 	return indices;
-}
-
-
-// Insert the given bet into an empty position in chips. We randomly choose
-// among empty positions in the middle of the array, or from the end if there
-// are not enough empty positions in the middle.
-function insertNewChip(bet: BetData, chips: (BetData | undefined)[]): void {
-	const availableSlots = getEmptyIndices(chips);
-	const slot = random.choice(availableSlots)!;
-	chips[slot] = bet;
 }
 
 

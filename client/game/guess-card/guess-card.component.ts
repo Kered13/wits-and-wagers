@@ -3,9 +3,11 @@ import { Ng2FittextModule } from "ng2-fittext";
 
 
 export type GuessCardData = {
+	name: string;
 	// If value is not provided, the card is face-down.
 	value: number | boolean;
-	color: string;
+	// If color is not provided, this is a spectator guess.
+	color?: string;
 };
 
 
@@ -22,17 +24,17 @@ export class GuessCard {
 	readonly onClick = output<void>();
 	
 	@HostBinding("style.visibility")
-	private get visible() {
+	private get visible(): string {
 		return this.data().value === false ? "hidden" : "visible";
 	}
 	
 	@HostBinding("style.--card-color")
-	private get color() {
-		return this.data().color;
+	private get color(): string {
+		return this.data().color ?? "lightgrey";
 	}
 	
 	@HostBinding("class.enabled")
-	private get enabledClass() {
+	private get enabledClass(): boolean {
 		return !this.disabled();
 	}
 	

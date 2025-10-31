@@ -22,7 +22,27 @@
 	justify-content: center;
 }
 
+.spec-contents {
+	width: 100%;
+	height: 100%;
+	
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
 .guess-value {
+	flex-grow: 1;
+	user-select: none;
+	
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.spec-name {
+	flex-grow: 0;
+	
 	user-select: none;
 }
 

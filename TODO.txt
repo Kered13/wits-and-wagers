@@ -10,6 +10,7 @@
   * Add a better indication for when it is time to guess or bet.
   * Handle bet normalization.
   * Add instructions to the game.
+  * Improve lobby UI.
   * Provide better indication when a space is not playable?
   * Art pass (fonts, improved colors, etc.).
 * Implement mobile UI.

@@ -1,5 +1,5 @@
 import { Overlay } from "@angular/cdk/overlay";
-import { ChangeDetectionStrategy, Component, Directive, effect, ElementRef, Inject, input, Input, OnDestroy, Signal, viewChild } from "@angular/core";
+import { ChangeDetectionStrategy, Component, computed, Directive, effect, ElementRef, Inject, input, Input, linkedSignal, OnDestroy, Signal, viewChild } from "@angular/core";
 import { toSignal } from "@angular/core/rxjs-interop";
 import { AbstractControl, FormsModule, NG_VALIDATORS, NgModel, ValidationErrors, Validator } from "@angular/forms";
 import { MatButton } from "@angular/material/button";
@@ -11,6 +11,7 @@ import { Title } from "@angular/platform-browser";
 import { ActivatedRoute } from "@angular/router";
 import { parseIntSafe } from "complete-common";
 import { combineLatest, concat, delay, map, type Observable, of, pairwise, startWith, Subscription, switchMap, take } from "rxjs";
+import random from "random";
 
 import { GameInstanceService, GameService } from "./game.service.js";
 import { GameEndDialog } from "./game-end-dialog/game-end-dialog.component.js";
@@ -211,6 +212,7 @@ function getGuessForTarget(target: BetTarget, game: GameState): GuessCardData | 
 	return phase.guesses
 		.filter(guess => guess.target === target)
 		.map(guess => ({
+			name: nameForPlayer(game, guess.player),
 			value: guess.guess,
 			color: colorForPlayer(game, guess.player),
 		}))[0];
@@ -222,7 +224,7 @@ function playerHasGuess(publicId: PublicId, game: GameState): boolean {
 	if (!isQuestionPhase(phase)) {
 		return false;
 	}
-	return phase.guesses[publicId] !== false;
+	return (phase.guesses[publicId] ?? false) !== false || phase.spectatorGuess !== undefined;
 }
 
 
@@ -237,18 +239,74 @@ function colorForPlayer(game: GameState, publicId: PublicId): string {
 }
 
 
-function getGuessCards(game: GameState): GuessCardData[] {
+function getGuessCards(game: GameState, thisPlayer: PrivatePlayer): GuessCardData[] {
 	const phase = game.phase;
 	if (!isQuestionPhase(phase)) {
 		return [];
 	}
-	return game.players.map(player => {
+	const guesses: GuessCardData[] = game.players
+		.filter(player => phase.guesses[player.publicId] !== false)
+		.map(player => {
 			const guess = phase.guesses[player.publicId]
 			return {
-				color: colorForPlayer(game, player.publicId),
+				name: nameForPlayer(game, player.publicId),
 				value: guess,
+				color: colorForPlayer(game, player.publicId),
 			};
 		});
+	if (phase.spectatorGuess !== undefined) {
+		guesses.push({
+			name: nameForPlayer(game, thisPlayer.publicId),
+			value: phase.spectatorGuess,
+		});
+	}
+	return guesses;
+}
+
+
+function updateGuessCards(previousCards: (GuessCardData | undefined)[], newGuesses: GuessCardData[]): (GuessCardData | undefined)[] {
+	// Remove all cards that are no longer on the board. Remaining cards keep
+	// their positions.
+	const newCards = previousCards.map(card => {
+		return newGuesses.find(guess => card !== undefined && guess.color === card.color);
+	});
+	// Trim trailing undefined values from the array.
+	newCards.length = newCards.findLastIndex(card => card !== undefined) + 1;
+
+	for (const guess of newGuesses) {
+		if (!newCards.find(card => card && card.color === guess.color)) {
+			insertNewCard(guess, newCards);
+		}
+	}
+	return newCards;
+}
+
+
+// Insert the given bet into an empty position in chips. We randomly choose
+// among empty positions in the middle of the array, or from the end if there
+// are not enough empty positions in the middle.
+function insertNewCard(guess: GuessCardData, cards: (GuessCardData | undefined)[]): void {
+	const availableSlots = getEmptyIndices(cards);
+	const slot = random.choice(availableSlots)!;
+	cards[slot] = guess;
+}
+
+
+// Return all indices where the array is undefined. If less than 3 indices are
+// undefined, then indices at the end of the array are added until we have 3
+// indices, but we never return an index more than 8 (the number of positions we
+// have hardcoded).
+function getEmptyIndices<T>(array: T[]): number[] {
+	const indices = [];
+	for (let i = 0; i < array.length; i++) {
+		if (array[i] === undefined) {
+			indices.push(i);
+		}
+	}
+	for (let i = array.length; i < 8 && indices.length < 3; i++) {
+		indices.push(i);
+	}
+	return indices;
 }
 
 
@@ -289,6 +347,7 @@ export class GameComponent implements OnDestroy {
 	readonly guessField: Signal<NgModel | undefined> = viewChild("guessField");
 	readonly targetField: Signal<NgModel | undefined> = viewChild("targetField");
 	readonly wagerField: Signal<NgModel | undefined> = viewChild("wagerField");
+	readonly guessCards: Signal<(GuessCardData | undefined)[]>;
 	
 	guess: string = ""
 	target: string = ""
@@ -355,6 +414,12 @@ export class GameComponent implements OnDestroy {
 			{ initialValue: undefined });
 		
 		effect(() => titleService.setTitle(route.routeConfig!.title! + " - " + this.game().title));
+		
+		const guessData = computed(() => getGuessCards(this.game(), this.thisParticipant()));
+		this.guessCards = linkedSignal<GuessCardData[], (GuessCardData | undefined)[]>({
+			source: guessData,
+			computation: (guesses, previous) => updateGuessCards(previous?.value ?? [], guesses),
+		});
 	}
 	
 	isQuestionPhase(phase: PhaseState): phase is QuestionPhaseState {
@@ -435,7 +500,6 @@ export class GameComponent implements OnDestroy {
 	// Ensure that we do not open multiple guess dialogs.
 	private shouldOpenGuessDialog(game: GameState, publicId: PublicId): boolean {
 		return !this.guessDialog &&
-			isPlayer(game, publicId) &&
 			!playerHasGuess(publicId, game);
 	}
 	
@@ -606,10 +670,6 @@ export class GameComponent implements OnDestroy {
 		return "Source: " + source + (date ? ` (${date})` : "");
 	}
 	
-	getGuessCards(): GuessCardData[] {
-		return getGuessCards(this.game());
-	}
-	
 	getCardPosition(index: number): string {
 		return [
 			"translate(20px, 5px) rotate(-10deg)",
@@ -619,6 +679,7 @@ export class GameComponent implements OnDestroy {
 			"translate(-80px, -130px) rotate(-25deg)",
 			"translate(-190px, -50px) rotate(5deg)",
 			"translate(210px, -35px) rotate(5deg)",
+			"translate(20px, -175px) rotate(-5deg)",
 		][index];
 	}
 	
