@@ -1,11 +1,12 @@
 import { Subject, type Observable } from "rxjs";
 
 import { type Phase } from "./phase.js";
-import { type Player } from "../player/player.js";
+import { Spectator, type Player } from "../player/player.js";
 import { type PlayerManager } from "../player/player-manager.js";
 import { type QuestionPhaseState } from "../../shared/game/question-phase.js";
 import { type PrivateId } from "../../shared/player.js";
 import { stripAnswer, type QuestionAnswerInfo } from "../../shared/game/question.js";
+import { HttpError } from "../utils/httperror.js";
 
 
 export type QuestionPhaseOptions = {
@@ -24,6 +25,7 @@ export const DEFAULT_QUESTION_PHASE_OPTIONS: QuestionPhaseOptions = {
 
 export class QuestionPhase implements Phase {
 	private readonly guesses = new Map<Player, number>();
+	private readonly specGuesses = new Map<Spectator, number>();
 	private readonly endPhaseSubj: Subject<void> = new Subject<void>();
 	private readonly timeout: NodeJS.Timeout | undefined;
 	// Phase end time as millisecond timestamp.
@@ -32,6 +34,7 @@ export class QuestionPhase implements Phase {
 	constructor(
 			private readonly questionInfo: QuestionAnswerInfo,
 			private readonly players: PlayerManager<Player>,
+			private readonly spectators: PlayerManager<Spectator>,
 			private readonly options: QuestionPhaseOptions) {
 		if (options.questionPhaseDuration) {
 			// Add a small fudge factor to the round duration. This is just to
@@ -43,19 +46,28 @@ export class QuestionPhase implements Phase {
 	}
 	
 	public submitGuess(playerId: PrivateId, guess: number): void {
-		const player = this.players.getPrivatePlayer(playerId);
-		this.guesses.set(player, guess);
-		
-		// If every player has submitted a guess, end the phase.
-		const submittedPlayers = Array.from(this.guesses.keys());
-		if (this.options.endQuestionPhaseWhenAllGuessesSubmitted &&
-				this.players.getAll().every(p => submittedPlayers.includes(p))) {
-			this.endPhase();
+		const player = this.players.tryGetPrivatePlayer(playerId);
+		const spectator = this.spectators.tryGetPrivatePlayer(playerId);
+		if (player) {
+			this.guesses.set(player, guess);
+			
+			// If every player has submitted a guess, end the phase.
+			const submittedPlayers = Array.from(this.guesses.keys());
+			if (this.options.endQuestionPhaseWhenAllGuessesSubmitted &&
+					this.players.getAll().every(p => submittedPlayers.includes(p))) {
+				this.endPhase();
+			}
+			return;
 		}
+		if (spectator) {
+			this.specGuesses.set(spectator, guess);
+			return;
+		}
+		throw new HttpError(404, `Player or spectator private ID ${playerId} not found.`);
 	}
 	
-	public getGuesses(): Map<Player, number> {
-		return this.guesses;
+	public getGuesses(): [Map<Player, number>, Map<Spectator, number>] {
+		return [this.guesses, this.specGuesses];
 	}
 	
 	public onEndPhase(): Observable<void> {
@@ -63,6 +75,7 @@ export class QuestionPhase implements Phase {
 	}
 	
 	public toJson(forPlayer: PrivateId): QuestionPhaseState {
+		const spectatorGuess = this.getSpectatorGuess(forPlayer);
 		return {
 			phase: "question",
 			questionInfo: stripAnswer(this.questionInfo),
@@ -73,8 +86,9 @@ export class QuestionPhase implements Phase {
 						player.privateId !== forPlayer ? true : guess;
 					return [player.publicId, report];
 				})),
-			...this.options.questionPhaseDuration && { roundDuration: this.options.questionPhaseDuration },
-			...this.endTime && { roundEnd: this.endTime }
+			spectatorGuess: spectatorGuess,
+			roundDuration: this.options.questionPhaseDuration,
+			roundEnd: this.endTime,
 		};
 	}
 	
@@ -84,5 +98,13 @@ export class QuestionPhase implements Phase {
 		}
 		this.endPhaseSubj.next();
 		this.endPhaseSubj.complete();
+	}
+	
+	private getSpectatorGuess(playerId: PrivateId): number | undefined {
+		const player = this.spectators.tryGetPrivatePlayer(playerId);
+		if (!player) {
+			return undefined;
+		}
+		return this.specGuesses.get(player);
 	}
 }

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
-import { BettingPhase, bettingPhaseDefaultOptions, BettingPhaseOptions } from "./betting-phase.js";
+import { BettingPhase, BettingPhaseOptions, DEFAULT_BETTING_PHASE_OPTIONS } from "./betting-phase.js";
 import { Player, Spectator } from "../player/player.js";
 import { PlayerManager } from "../player/player-manager.js";
 import { type BettingPhaseState } from "../../shared/game/betting-phase.js";
@@ -32,6 +32,7 @@ function makeSpectator(name: string): Spectator {
 function makeBettingPhase(
 		obj: {
 			guesses: [Player, number][],
+			specGuesses?: [Spectator, number][],
 			spectators?: Spectator[],
 			question?: string,
 			answer?: number,
@@ -39,16 +40,18 @@ function makeBettingPhase(
 			options?: Partial<BettingPhaseOptions>
 		}): BettingPhase {
 	const guesses = obj.guesses;
+	const specGuesses = obj.specGuesses ?? [];
 	const spectators = obj.spectators ?? [];
 	const question = { question: obj.question ?? "What is the answer?", answer: obj.answer ?? 7 };
 	const round = obj.round ?? 1;
-	const options = Object.assign({}, bettingPhaseDefaultOptions, obj.options);
+	const options = Object.assign({}, DEFAULT_BETTING_PHASE_OPTIONS, obj.options);
 	return new BettingPhase(
 		question,
 		new PlayerManager(guesses.map(([player, guess]) => player)),
 		new PlayerManager(spectators),
 		round,
 		new Map(guesses),
+		new Map(specGuesses),
 		options);
 }
 
@@ -410,7 +413,7 @@ describe("BettingPhase", () => {
 				{ player: "public-Alice", target: 5, wager: 10 },
 				{ player: "public-Bob", target: 5, wager: 10 },
 				{ player: "public-Charlie", target: 5, wager: 10 },
-				{ player: "public-Derek", target: 5, wager: 10 }
+				{ player: "public-Derek", target: 5, wager: 10 },
 			];
 			
 			expect(phase.toJson(alice.privateId).bets).to.have.deep.members(expectedBets);
@@ -423,7 +426,7 @@ describe("BettingPhase", () => {
 			const phase = makeBettingPhase({
 				answer: 42,
 				round: 3,
-				guesses: [[alice, 42]]
+				guesses: [[alice, 42]],
 			});
 			
 			phase.submitBet(alice.privateId, "AllTooHigh", 10);
@@ -436,7 +439,8 @@ describe("BettingPhase", () => {
 				earnings: {
 					[alice.publicId]: 3*15 + 1 + 3
 				},
-				spectatorEarnings: {}
+				spectatorWinners: [],
+				spectatorEarnings: {},
 			});
 			
 			// Alice wins 2x her bet on 0 and loses her bet on AllTooHigh, but
@@ -449,7 +453,7 @@ describe("BettingPhase", () => {
 			const phase = makeBettingPhase({
 				answer: 42,
 				round: 3,
-				guesses: [[alice, 43]]
+				guesses: [[alice, 43]],
 			});
 			
 			phase.submitBet(alice.privateId, "AllTooHigh", 10);
@@ -462,7 +466,8 @@ describe("BettingPhase", () => {
 				earnings: {
 					[alice.publicId]: 7 * 10 + 1
 				},
-				spectatorEarnings: {}
+				spectatorWinners: [],
+				spectatorEarnings: {},
 			});
 			
 			// Alice wins 6x her bet on AllTooHigh and loses her bet on 0, but
@@ -481,7 +486,7 @@ describe("BettingPhase", () => {
 			const phase = makeBettingPhase({
 				answer: 42,
 				round: 3,
-				guesses: [[charlie, 30], [derek, 50], [bob, 60], [alice, 40]]
+				guesses: [[charlie, 30], [derek, 50], [bob, 60], [alice, 40]],
 			});
 			
 			phase.submitBet(alice.privateId, 1, 10);
@@ -510,7 +515,7 @@ describe("BettingPhase", () => {
 			const phase = makeBettingPhase({
 				answer: 52,
 				round: 3,
-				guesses: [[alice, 50], [bob, 50], [charlie, 50], [derek, 50], [elizabeth, 60]]
+				guesses: [[alice, 50], [bob, 50], [charlie, 50], [derek, 50], [elizabeth, 60]],
 			});
 			
 			const conclusion = phase.resolve();
@@ -523,9 +528,10 @@ describe("BettingPhase", () => {
 					[bob.publicId]: 3,
 					[charlie.publicId]: 3,
 					[derek.publicId]: 3,
-					[elizabeth.publicId]: 0
+					[elizabeth.publicId]: 0,
 				},
-				spectatorEarnings: {}
+				spectatorWinners: [],
+				spectatorEarnings: {},
 			});
 			
 			// No one bets, but the four-way tie pays out the round bonus to all
@@ -546,7 +552,7 @@ describe("BettingPhase", () => {
 			const phase = makeBettingPhase({
 				answer: 52,
 				round: 3,
-				guesses: [[alice, 40], [bob, 50], [charlie, 50], [derek, 50], [elizabeth, 60]]
+				guesses: [[alice, 40], [bob, 50], [charlie, 50], [derek, 50], [elizabeth, 60]],
 			});
 			
 			phase.submitBet(alice.privateId, 2, 10);
@@ -563,9 +569,10 @@ describe("BettingPhase", () => {
 					[bob.publicId]: 4*10 + 3,
 					[charlie.publicId]: 4*10 + 3,
 					[derek.publicId]: 3,
-					[elizabeth.publicId]: 0
+					[elizabeth.publicId]: 0,
 				},
-				spectatorEarnings: {}
+				spectatorWinners: [],
+				spectatorEarnings: {},
 			});
 			
 			// Alice wins 3x her bet on 1.
@@ -589,7 +596,7 @@ describe("BettingPhase", () => {
 			const phase = makeBettingPhase({
 				answer: 52,
 				round: 3,
-				guesses: [[alice, 40], [bob, 50], [charlie, 50], [derek, 50], [elizabeth, 60]]
+				guesses: [[alice, 40], [bob, 50], [charlie, 50], [derek, 50], [elizabeth, 60]],
 			});
 			
 			phase.submitBet(alice.privateId, "Red", 10);
@@ -617,7 +624,7 @@ describe("BettingPhase", () => {
 			const phase = makeBettingPhase({
 				answer: 42,
 				round: 3,
-				guesses: [[alice, 50], [bob, 60], [charlie, 70], [derek, 80]]
+				guesses: [[alice, 50], [bob, 60], [charlie, 70], [derek, 80]],
 			});
 			
 			phase.submitBet(alice.privateId, 1, 10);
@@ -647,7 +654,7 @@ describe("BettingPhase", () => {
 				const phase = makeBettingPhase({
 					answer: 42,
 					round: 3,
-					guesses: [[alice, 50]]
+					guesses: [[alice, 50]],
 				});
 				
 				phase.submitBet(alice.privateId, "AllTooHigh", 10);
@@ -663,7 +670,7 @@ describe("BettingPhase", () => {
 				const phase = makeBettingPhase({
 					answer: 42,
 					round: 3,
-					guesses: [[alice, 40]]
+					guesses: [[alice, 40]],
 				});
 				
 				phase.submitBet(alice.privateId, 3, 10);
@@ -679,7 +686,7 @@ describe("BettingPhase", () => {
 				const phase = makeBettingPhase({
 					answer: 42,
 					round: 3,
-					guesses: [[alice, 50]]
+					guesses: [[alice, 50]],
 				});
 				
 				phase.submitBet(alice.privateId, "Black", 10);
@@ -696,7 +703,7 @@ describe("BettingPhase", () => {
 				const phase = makeBettingPhase({
 					answer: 42,
 					round: 3,
-					guesses: [[alice, 40]]
+					guesses: [[alice, 40]],
 				});
 				
 				phase.submitBet(alice.privateId, "Black", 10);
@@ -717,7 +724,7 @@ describe("BettingPhase", () => {
 				const phase = makeBettingPhase({
 					answer: 32,
 					round: 3,
-					guesses: [[alice, 40], [bob, 50]]
+					guesses: [[alice, 40], [bob, 50]],
 				});
 				
 				phase.submitBet(alice.privateId, "AllTooHigh", 10);
@@ -741,7 +748,7 @@ describe("BettingPhase", () => {
 				const phase = makeBettingPhase({
 					answer: 42,
 					round: 3,
-					guesses: [[alice, 40], [bob, 50]]
+					guesses: [[alice, 40], [bob, 50]],
 				});
 				
 				phase.submitBet(alice.privateId, 2, 10);
@@ -764,7 +771,7 @@ describe("BettingPhase", () => {
 				const phase = makeBettingPhase({
 					answer: 52,
 					round: 3,
-					guesses: [[alice, 50], [bob, 40]]
+					guesses: [[alice, 50], [bob, 40]],
 				});
 				
 				phase.submitBet(alice.privateId, 2, 10);
@@ -787,7 +794,7 @@ describe("BettingPhase", () => {
 				const phase = makeBettingPhase({
 					answer: 52,
 					round: 3,
-					guesses: [[alice, 50], [bob, 40]]
+					guesses: [[alice, 50], [bob, 40]],
 				});
 				
 				phase.submitBet(alice.privateId, 2, 10);
@@ -813,7 +820,7 @@ describe("BettingPhase", () => {
 				const phase = makeBettingPhase({
 					answer: 32,
 					round: 3,
-					guesses: [[alice, 40], [bob, 50], [charlie, 60]]
+					guesses: [[alice, 40], [bob, 50], [charlie, 60]],
 				});
 				
 				phase.submitBet(alice.privateId, "AllTooHigh", 10);
@@ -841,7 +848,7 @@ describe("BettingPhase", () => {
 				const phase = makeBettingPhase({
 					answer: 42,
 					round: 3,
-					guesses: [[alice, 40], [bob, 50], [charlie, 60]]
+					guesses: [[alice, 40], [bob, 50], [charlie, 60]],
 				});
 				
 				phase.submitBet(alice.privateId, "AllTooHigh", 10);
@@ -870,7 +877,7 @@ describe("BettingPhase", () => {
 				const phase = makeBettingPhase({
 					answer: 52,
 					round: 3,
-					guesses: [[alice, 40], [bob, 50], [charlie, 60]]
+					guesses: [[alice, 40], [bob, 50], [charlie, 60]],
 				});
 				
 				phase.submitBet(alice.privateId, "AllTooHigh", 10);
@@ -900,7 +907,7 @@ describe("BettingPhase", () => {
 				const phase = makeBettingPhase({
 					answer: 62,
 					round: 3,
-					guesses: [[alice, 40], [bob, 50], [charlie, 60]]
+					guesses: [[alice, 40], [bob, 50], [charlie, 60]],
 				});
 				
 				phase.submitBet(alice.privateId, "AllTooHigh", 10);
@@ -933,7 +940,7 @@ describe("BettingPhase", () => {
 				const phase = makeBettingPhase({
 					answer: 32,
 					round: 3,
-					guesses: [[alice, 40], [bob, 50], [charlie, 60], [derek, 70]]
+					guesses: [[alice, 40], [bob, 50], [charlie, 60], [derek, 70]],
 				});
 				
 				phase.submitBet(alice.privateId, "AllTooHigh", 10);
@@ -966,7 +973,7 @@ describe("BettingPhase", () => {
 				const phase = makeBettingPhase({
 					answer: 42,
 					round: 3,
-					guesses: [[alice, 40], [bob, 50], [charlie, 60], [derek, 70]]
+					guesses: [[alice, 40], [bob, 50], [charlie, 60], [derek, 70]],
 				});
 				
 				phase.submitBet(alice.privateId, "AllTooHigh", 10);
@@ -999,7 +1006,7 @@ describe("BettingPhase", () => {
 				const phase = makeBettingPhase({
 					answer: 52,
 					round: 3,
-					guesses: [[alice, 40], [bob, 50], [charlie, 60], [derek, 70]]
+					guesses: [[alice, 40], [bob, 50], [charlie, 60], [derek, 70]],
 				});
 				
 				phase.submitBet(alice.privateId, "AllTooHigh", 10);
@@ -1033,7 +1040,7 @@ describe("BettingPhase", () => {
 				const phase = makeBettingPhase({
 					answer: 62,
 					round: 3,
-					guesses: [[alice, 40], [bob, 50], [charlie, 60], [derek, 70]]
+					guesses: [[alice, 40], [bob, 50], [charlie, 60], [derek, 70]],
 				});
 				
 				phase.submitBet(alice.privateId, "AllTooHigh", 10);
@@ -1067,7 +1074,7 @@ describe("BettingPhase", () => {
 				const phase = makeBettingPhase({
 					answer: 72,
 					round: 3,
-					guesses: [[alice, 40], [bob, 50], [charlie, 60], [derek, 70]]
+					guesses: [[alice, 40], [bob, 50], [charlie, 60], [derek, 70]],
 				});
 				
 				phase.submitBet(alice.privateId, "AllTooHigh", 10);
@@ -1104,7 +1111,7 @@ describe("BettingPhase", () => {
 				const phase = makeBettingPhase({
 					answer: 32,
 					round: 3,
-					guesses: [[alice, 40], [bob, 50], [charlie, 60], [derek, 70], [elizabeth, 80]]
+					guesses: [[alice, 40], [bob, 50], [charlie, 60], [derek, 70], [elizabeth, 80]],
 				});
 				
 				phase.submitBet(alice.privateId, "AllTooHigh", 10);
@@ -1143,7 +1150,7 @@ describe("BettingPhase", () => {
 				const phase = makeBettingPhase({
 					answer: 42,
 					round: 3,
-					guesses: [[alice, 40], [bob, 50], [charlie, 60], [derek, 70], [elizabeth, 80]]
+					guesses: [[alice, 40], [bob, 50], [charlie, 60], [derek, 70], [elizabeth, 80]],
 				});
 				
 				phase.submitBet(alice.privateId, "AllTooHigh", 10);
@@ -1182,7 +1189,7 @@ describe("BettingPhase", () => {
 				const phase = makeBettingPhase({
 					answer: 52,
 					round: 3,
-					guesses: [[alice, 40], [bob, 50], [charlie, 60], [derek, 70], [elizabeth, 80]]
+					guesses: [[alice, 40], [bob, 50], [charlie, 60], [derek, 70], [elizabeth, 80]],
 				});
 				
 				phase.submitBet(alice.privateId, "AllTooHigh", 10);
@@ -1222,7 +1229,7 @@ describe("BettingPhase", () => {
 				const phase = makeBettingPhase({
 					answer: 62,
 					round: 3,
-					guesses: [[alice, 40], [bob, 50], [charlie, 60], [derek, 70], [elizabeth, 80]]
+					guesses: [[alice, 40], [bob, 50], [charlie, 60], [derek, 70], [elizabeth, 80]],
 				});
 				
 				phase.submitBet(alice.privateId, "AllTooHigh", 10);
@@ -1261,7 +1268,7 @@ describe("BettingPhase", () => {
 				const phase = makeBettingPhase({
 					answer: 72,
 					round: 3,
-					guesses: [[alice, 40], [bob, 50], [charlie, 60], [derek, 70], [elizabeth, 80]]
+					guesses: [[alice, 40], [bob, 50], [charlie, 60], [derek, 70], [elizabeth, 80]],
 				});
 				
 				phase.submitBet(alice.privateId, "AllTooHigh", 10);
@@ -1301,7 +1308,7 @@ describe("BettingPhase", () => {
 				const phase = makeBettingPhase({
 					answer: 82,
 					round: 3,
-					guesses: [[alice, 40], [bob, 50], [charlie, 60], [derek, 70], [elizabeth, 80]]
+					guesses: [[alice, 40], [bob, 50], [charlie, 60], [derek, 70], [elizabeth, 80]],
 				});
 				
 				phase.submitBet(alice.privateId, "AllTooHigh", 10);
@@ -1344,7 +1351,7 @@ describe("BettingPhase", () => {
 				const phase = makeBettingPhase({
 					answer: 32,
 					round: 3,
-					guesses: [[alice, 40], [bob, 50], [charlie, 60], [derek, 70], [elizabeth, 80], [frieren, 90]]
+					guesses: [[alice, 40], [bob, 50], [charlie, 60], [derek, 70], [elizabeth, 80], [frieren, 90]],
 				});
 				
 				phase.submitBet(alice.privateId, "AllTooHigh", 10);
@@ -1389,7 +1396,7 @@ describe("BettingPhase", () => {
 				const phase = makeBettingPhase({
 					answer: 42,
 					round: 3,
-					guesses: [[alice, 40], [bob, 50], [charlie, 60], [derek, 70], [elizabeth, 80], [frieren, 90]]
+					guesses: [[alice, 40], [bob, 50], [charlie, 60], [derek, 70], [elizabeth, 80], [frieren, 90]],
 				});
 				
 				phase.submitBet(alice.privateId, "AllTooHigh", 10);
@@ -1434,7 +1441,7 @@ describe("BettingPhase", () => {
 				const phase = makeBettingPhase({
 					answer: 52,
 					round: 3,
-					guesses: [[alice, 40], [bob, 50], [charlie, 60], [derek, 70], [elizabeth, 80], [frieren, 90]]
+					guesses: [[alice, 40], [bob, 50], [charlie, 60], [derek, 70], [elizabeth, 80], [frieren, 90]],
 				});
 				
 				phase.submitBet(alice.privateId, "AllTooHigh", 10);
@@ -1480,7 +1487,7 @@ describe("BettingPhase", () => {
 				const phase = makeBettingPhase({
 					answer: 62,
 					round: 3,
-					guesses: [[alice, 40], [bob, 50], [charlie, 60], [derek, 70], [elizabeth, 80], [frieren, 90]]
+					guesses: [[alice, 40], [bob, 50], [charlie, 60], [derek, 70], [elizabeth, 80], [frieren, 90]],
 				});
 				
 				phase.submitBet(alice.privateId, "AllTooHigh", 10);
@@ -1525,7 +1532,7 @@ describe("BettingPhase", () => {
 				const phase = makeBettingPhase({
 					answer: 72,
 					round: 3,
-					guesses: [[alice, 40], [bob, 50], [charlie, 60], [derek, 70], [elizabeth, 80], [frieren, 90]]
+					guesses: [[alice, 40], [bob, 50], [charlie, 60], [derek, 70], [elizabeth, 80], [frieren, 90]],
 				});
 				
 				phase.submitBet(alice.privateId, "AllTooHigh", 10);
@@ -1571,7 +1578,7 @@ describe("BettingPhase", () => {
 				const phase = makeBettingPhase({
 					answer: 82,
 					round: 3,
-					guesses: [[alice, 40], [bob, 50], [charlie, 60], [derek, 70], [elizabeth, 80], [frieren, 90]]
+					guesses: [[alice, 40], [bob, 50], [charlie, 60], [derek, 70], [elizabeth, 80], [frieren, 90]],
 				});
 				
 				phase.submitBet(alice.privateId, "AllTooHigh", 10);
@@ -1617,7 +1624,7 @@ describe("BettingPhase", () => {
 				const phase = makeBettingPhase({
 					answer: 92,
 					round: 3,
-					guesses: [[alice, 40], [bob, 50], [charlie, 60], [derek, 70], [elizabeth, 80], [frieren, 90]]
+					guesses: [[alice, 40], [bob, 50], [charlie, 60], [derek, 70], [elizabeth, 80], [frieren, 90]],
 				});
 				
 				phase.submitBet(alice.privateId, "AllTooHigh", 10);
@@ -1666,7 +1673,7 @@ describe("BettingPhase", () => {
 				const phase = makeBettingPhase({
 					answer: 32,
 					round: 3,
-					guesses: [[alice, 40], [bob, 50], [charlie, 60], [derek, 70], [elizabeth, 80], [frieren, 90], [george, 100]]
+					guesses: [[alice, 40], [bob, 50], [charlie, 60], [derek, 70], [elizabeth, 80], [frieren, 90], [george, 100]],
 				});
 				
 				phase.submitBet(alice.privateId, "AllTooHigh", 10);
@@ -1717,7 +1724,7 @@ describe("BettingPhase", () => {
 				const phase = makeBettingPhase({
 					answer: 42,
 					round: 3,
-					guesses: [[alice, 40], [bob, 50], [charlie, 60], [derek, 70], [elizabeth, 80], [frieren, 90], [george, 100]]
+					guesses: [[alice, 40], [bob, 50], [charlie, 60], [derek, 70], [elizabeth, 80], [frieren, 90], [george, 100]],
 				});
 				
 				phase.submitBet(alice.privateId, "AllTooHigh", 10);
@@ -1768,7 +1775,7 @@ describe("BettingPhase", () => {
 				const phase = makeBettingPhase({
 					answer: 52,
 					round: 3,
-					guesses: [[alice, 40], [bob, 50], [charlie, 60], [derek, 70], [elizabeth, 80], [frieren, 90], [george, 100]]
+					guesses: [[alice, 40], [bob, 50], [charlie, 60], [derek, 70], [elizabeth, 80], [frieren, 90], [george, 100]],
 				});
 				
 				phase.submitBet(alice.privateId, "AllTooHigh", 10);
@@ -1820,7 +1827,7 @@ describe("BettingPhase", () => {
 				const phase = makeBettingPhase({
 					answer: 62,
 					round: 3,
-					guesses: [[alice, 40], [bob, 50], [charlie, 60], [derek, 70], [elizabeth, 80], [frieren, 90], [george, 100]]
+					guesses: [[alice, 40], [bob, 50], [charlie, 60], [derek, 70], [elizabeth, 80], [frieren, 90], [george, 100]],
 				});
 				
 				phase.submitBet(alice.privateId, "AllTooHigh", 10);
@@ -1871,7 +1878,7 @@ describe("BettingPhase", () => {
 				const phase = makeBettingPhase({
 					answer: 72,
 					round: 3,
-					guesses: [[alice, 40], [bob, 50], [charlie, 60], [derek, 70], [elizabeth, 80], [frieren, 90], [george, 100]]
+					guesses: [[alice, 40], [bob, 50], [charlie, 60], [derek, 70], [elizabeth, 80], [frieren, 90], [george, 100]],
 				});
 				
 				phase.submitBet(alice.privateId, "AllTooHigh", 10);
@@ -1922,7 +1929,7 @@ describe("BettingPhase", () => {
 				const phase = makeBettingPhase({
 					answer: 82,
 					round: 3,
-					guesses: [[alice, 40], [bob, 50], [charlie, 60], [derek, 70], [elizabeth, 80], [frieren, 90], [george, 100]]
+					guesses: [[alice, 40], [bob, 50], [charlie, 60], [derek, 70], [elizabeth, 80], [frieren, 90], [george, 100]],
 				});
 				
 				phase.submitBet(alice.privateId, "AllTooHigh", 10);
@@ -1974,7 +1981,7 @@ describe("BettingPhase", () => {
 				const phase = makeBettingPhase({
 					answer: 92,
 					round: 3,
-					guesses: [[alice, 40], [bob, 50], [charlie, 60], [derek, 70], [elizabeth, 80], [frieren, 90], [george, 100]]
+					guesses: [[alice, 40], [bob, 50], [charlie, 60], [derek, 70], [elizabeth, 80], [frieren, 90], [george, 100]],
 				});
 				
 				phase.submitBet(alice.privateId, "AllTooHigh", 10);
@@ -2026,7 +2033,7 @@ describe("BettingPhase", () => {
 				const phase = makeBettingPhase({
 					answer: 102,
 					round: 3,
-					guesses: [[alice, 40], [bob, 50], [charlie, 60], [derek, 70], [elizabeth, 80], [frieren, 90], [george, 100]]
+					guesses: [[alice, 40], [bob, 50], [charlie, 60], [derek, 70], [elizabeth, 80], [frieren, 90], [george, 100]],
 				});
 				
 				phase.submitBet(alice.privateId, "AllTooHigh", 10);
@@ -2075,7 +2082,7 @@ describe("BettingPhase", () => {
 				answer: 42,
 				round: 3,
 				guesses: [[alice, 50]],
-				spectators: [bob]
+				spectators: [bob],
 			});
 			
 			phase.submitBet(bob.privateId, "AllTooHigh", 10);
@@ -2088,13 +2095,50 @@ describe("BettingPhase", () => {
 				earnings: {
 					[alice.publicId]: 0,
 				},
+				spectatorWinners: [],
 				spectatorEarnings: {
 					[bob.publicId]: 10 + 6*10,
-				}
+				},
 			});
 			
 			// Bob wins 6x his bet.
 			expect(bob.chips).to.equal(100 + 6 * 10);
+		});
+		
+		test("pays out spectator bonus chips", () => {
+			const alice = makePlayer("Alice");
+			const bob = makeSpectator("Bob");
+			const charlie = makeSpectator("Charlie");
+			const derek = makeSpectator("Derek");
+			const elizabeth = makeSpectator("Elizabeth");
+			const phase = makeBettingPhase({
+				answer: 42,
+				round: 3,
+				guesses: [[alice, 30]],
+				spectators: [bob, charlie, derek, elizabeth],
+				specGuesses: [[bob, 20], [charlie, 30], [derek, 42], [elizabeth, 50]],
+			});
+			
+			const conclusion = phase.resolve();
+			expect(conclusion).to.deep.equal({
+				type: "conclusion",
+				winners: [alice.publicId],
+				earnings: {
+					[alice.publicId]: 3,
+				},
+				spectatorWinners: [charlie.publicId, derek.publicId],
+				spectatorEarnings: {
+					[bob.publicId]: 0,
+					[charlie.publicId]: 3,
+					[derek.publicId]: 3,
+					[elizabeth.publicId]: 0,
+				},
+			});
+			
+			expect(bob.chips).to.equal(100);
+			expect(charlie.chips).to.equal(100 + 3);
+			expect(derek.chips).to.equal(100 + 3);
+			expect(elizabeth.chips).to.equal(100);
 		});
 	});
 });

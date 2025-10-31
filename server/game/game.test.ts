@@ -67,7 +67,7 @@ describe("Game", () => {
 			const bob = makeSpectator("Bob");
 			const game = makeGame("id", "Game", [alice], [bob]);
 			
-			expect(game.toJson(alice.privateId)).to.deep.equal({
+			expect(game.toJson(alice.privateId)).toEqual({
 				title: "Game",
 				host: alice.publicId,
 				players: [{
@@ -102,7 +102,7 @@ describe("Game", () => {
 			game.submitGuess(alice.privateId, 42);
 			game.submitGuess(bob.privateId, 42);
 			
-			expect(game.toJson(alice.privateId)).to.deep.equal({
+			expect(game.toJson(alice.privateId)).toEqual({
 				title: "Game",
 				host: alice.publicId,
 				players: [
@@ -444,7 +444,7 @@ describe("Game", () => {
 		expect(bob.name).to.equal("Bob");
 		expect(bob.chips).to.equal(2);
 		
-		expect(game.toJson(bob.privateId)).to.deep.equal({
+		expect(game.toJson(bob.privateId)).toEqual({
 			title: "Game",
 			host: alice.publicId,
 			players: [{

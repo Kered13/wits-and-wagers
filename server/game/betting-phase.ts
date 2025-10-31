@@ -28,6 +28,20 @@ export const DEFAULT_BETTING_PHASE_OPTIONS: BettingPhaseOptions = {
 };
 
 
+function sortGuesses<T extends Participant>(guesses: Map<T, number>): GuessJson[] {
+	return Array.from(guesses)
+		.sort((first, second) => first[1] - second[1])
+		.map(([player, guess], i): GuessJson => {
+			const target = guessToTarget(guesses.size, i);
+			return {
+				player: player.publicId,
+				target: target,
+				guess: guess,
+			};
+		});
+}
+
+
 function guessToTarget(numPlayers: number, guessIdx: number): GuessTarget {
 	const targetMap: GuessTarget[][] = [
 		[],
@@ -84,6 +98,7 @@ export class BettingPhase implements Phase {
 	private readonly bets: Bet[] = [];
 	private readonly spectatorBets: Bet[] = [];
 	private readonly guesses: GuessJson[];
+	private readonly specGuesses: GuessJson[];
 	private readonly endPhaseSubj = new Subject<void>();
 	private readonly timeout: NodeJS.Timeout | undefined;
 	// Phase end time as millisecond timestamp.
@@ -95,17 +110,10 @@ export class BettingPhase implements Phase {
 			private readonly spectators: PlayerManager<Spectator>,
 			private readonly round: number,
 			guesses: Map<Player, number>,
+			specGuesses: Map<Spectator, number>,
 			private readonly options: BettingPhaseOptions) {
-		this.guesses = Array.from(guesses)
-			.sort((first, second) => first[1] - second[1])
-			.map(([player, guess], i): GuessJson => {
-				const target = guessToTarget(guesses.size, i);
-				return {
-					player: player.publicId,
-					target: target,
-					guess: guess,
-				};
-			});
+		this.guesses = sortGuesses(guesses);
+		this.specGuesses = sortGuesses(specGuesses);
 		
 		if (options.bettingPhaseDuration) {
 			// Add a small fudge factor to the round duration. This is just to
@@ -141,16 +149,18 @@ export class BettingPhase implements Phase {
 		
 		const player = this.players.tryGetPrivatePlayer(playerId);
 		if (player) {
-			return this.doSubmitBet(player, this.bets, target, wager);
+			this.doSubmitBet(player, this.bets, target, wager);
+			return;
 		}
 		const spectator = this.spectators.tryGetPrivatePlayer(playerId);
 		if (spectator) {
-			return this.doSubmitBet(spectator, this.spectatorBets, target, wager);
+			this.doSubmitBet(spectator, this.spectatorBets, target, wager);
+			return;
 		}
 		throw new HttpError(404, `Player or spectator private ID ${playerId} not found.`);
 	}
 	
-	private doSubmitBet(player: Participant, bets: Bet[], target: BetTarget, wager: number) {
+	private doSubmitBet(player: Participant, bets: Bet[], target: BetTarget, wager: number): void {
 		// Normalize bet by moving it to the highest valued target with the same
 		// guess. This gives the player the best possible payout.
 		target = this.normalizeTarget(target);
@@ -179,6 +189,7 @@ export class BettingPhase implements Phase {
 			type: "conclusion",
 			winners: [],
 			earnings: Object.fromEntries(this.players.getAll().map(player => [player.publicId, 0])),
+			spectatorWinners: [],
 			spectatorEarnings: Object.fromEntries(this.spectators.getAll().map(player => [player.publicId, 0]))
 		};
 		
@@ -215,14 +226,25 @@ export class BettingPhase implements Phase {
 		// Award bonus chips to the player who got the correct guess. Handle
 		// ties by awarding bonus chips to all players with the same guess.
 		if (winningGuess) {
-			this.guesses
-				.filter(guess => guess.guess === winningGuess.guess)
-				.map(guess => this.players.getPublicPlayer(guess.player))
-				.forEach(player => {
+			for (const guess of this.guesses ) {
+				if (guess.guess === winningGuess.guess) {
+					const player = this.players.getPublicPlayer(guess.player);
 					player.chips += this.round;
 					conclusion.winners.push(player.publicId);
 					conclusion.earnings[player.publicId]! += this.round;
-				});
+				}
+			}
+		}
+		
+		// Distribute bonus chips to spectators who guessed as good or better
+		// than the winning player.
+		for (const guess of this.specGuesses) {
+			if (guess.guess >= (winningGuess?.guess ?? 0) && guess.guess <= this.questionInfo.answer) {
+				const spectator = this.spectators.getPublicPlayer(guess.player)!;
+				spectator.chips += this.round;
+				conclusion.spectatorWinners.push(spectator.publicId);
+				conclusion.spectatorEarnings[spectator.publicId]! += this.round;
+			}
 		}
 		
 		return conclusion;
@@ -239,8 +261,8 @@ export class BettingPhase implements Phase {
 			})),
 			bets: this.bets,
 			spectatorBets: this.filterBetsForSpectator(forPlayer),
-			...this.options.bettingPhaseDuration && { roundDuration: this.options.bettingPhaseDuration },
-			...this.endTime && { roundEnd: this.endTime }
+			roundDuration: this.options.bettingPhaseDuration,
+			roundEnd: this.endTime
 		};
 	}
 	

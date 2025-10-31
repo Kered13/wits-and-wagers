@@ -25,8 +25,8 @@ export class Game {
 	private readonly host: ParticipantParams;
 	
 	private round: number = 1;
-	private question: QuestionAnswerInfo;
-	private phase: Phase;
+	private question!: QuestionAnswerInfo;
+	private phase!: Phase;
 	
 	constructor(
 			private readonly id: GameId,
@@ -37,9 +37,8 @@ export class Game {
 		this.host = this.options.host;
 		this.players = new PlayerManager(players.map(player => new Player(player)));
 		this.spectators = new PlayerManager(spectators.map(player => new Spectator(player)));
-		this.question = this.questionGenerator.nextQuestion();
-		this.phase = new QuestionPhase(this.question, this.players, this.options);
-		this.startPhase(this.phase);
+		
+		this.startQuestionPhase();
 	}
 	
 	public getId(): GameId {
@@ -94,12 +93,12 @@ export class Game {
 	
 	private startNextPhase(): void {
 		if (this.phase instanceof QuestionPhase) {
-			const guesses = this.phase.getGuesses();
+			const [guesses, specGuesses] = this.phase.getGuesses();
 			if (guesses.size == 0) {
 				// Skip the betting phase if no one submitted guesses.
 				this.startIntermissionPhase({ type: "skipped" });
 			} else {
-				this.startBettingPhase(guesses);
+				this.startBettingPhase(guesses, specGuesses);
 			}
 		} else if (this.phase instanceof BettingPhase) {
 			this.startIntermissionPhase(this.phase.resolve());
@@ -121,10 +120,10 @@ export class Game {
 	
 	private startQuestionPhase(): void {
 		this.question = this.questionGenerator.nextQuestion();
-		this.startPhase(new QuestionPhase(this.question, this.players, this.options));
+		this.startPhase(new QuestionPhase(this.question, this.players, this.spectators, this.options));
 	}
 	
-	private startBettingPhase(guesses: Map<Player, number>): void {
+	private startBettingPhase(guesses: Map<Player, number>, specGuesses: Map<Spectator, number>): void {
 		this.startPhase(
 			new BettingPhase(
 				this.question,
@@ -132,6 +131,7 @@ export class Game {
 				this.spectators,
 				this.round,
 				guesses,
+				specGuesses,
 				this.options))
 	}
 

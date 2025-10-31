@@ -1,7 +1,7 @@
 import { describe, expect, test, vi } from "vitest";
 
-import { QuestionPhase, questionPhaseDefaultOptions, QuestionPhaseOptions } from "./question-phase.js";
-import { Player } from "../player/player.js";
+import { QuestionPhase, DEFAULT_QUESTION_PHASE_OPTIONS, QuestionPhaseOptions } from "./question-phase.js";
+import { Player, Spectator } from "../player/player.js";
 import { PlayerManager } from "../player/player-manager.js";
 import { QuestionAnswerInfo } from "../../shared/game/question.js";
 
@@ -16,108 +16,50 @@ function makePlayer(name: string): Player {
 };
 
 
+function makeSpectator(name: string): Spectator {
+	return new Spectator({
+		name: name,
+		publicId: `public-${name}`,
+		privateId: `private-${name}`,
+	});
+};
+
+
 function makeQuestionPhase(
 		obj: {
 			players: Player[],
+			spectators?: Spectator[],
 			qa?: QuestionAnswerInfo | string,
 			options?: Partial<QuestionPhaseOptions>
 		}): QuestionPhase {
 	const players = new PlayerManager(obj.players);
+	const spectators = new PlayerManager(obj.spectators ?? []);
 	const question = typeof(obj.qa) !== "object" ?
 		{ question: obj.qa ?? "What is the answer?", answer: 7 } :
 		obj.qa;
 	const options = Object.assign({},
-		questionPhaseDefaultOptions,
+		DEFAULT_QUESTION_PHASE_OPTIONS,
 		{ endQuestionPhaseWhenAllGuessesSubmitted: false },
 		obj.options);
-	return new QuestionPhase(question, players, options);
+	return new QuestionPhase(question, players, spectators, options);
 }
 
 
 describe("QuestionPhase", () => {
-	test("toJson shows only own players guess", () => {
+	test("toJson shows only own player's guess", () => {
 		const alice = makePlayer("Alice");
 		const bob = makePlayer("Bob");
 		const charlie = makePlayer("Charlie");
 		
 		const phase = makeQuestionPhase({
 			qa: "What is the answer?",
-			players: [alice, bob, charlie]
-		});
-		
-		expect(phase.toJson(alice.privateId)).to.deep.equal({
-			phase: "question",
-			questionInfo: {
-				question: "What is the answer?",
-			},
-			guesses: {
-				"public-Alice": false,
-				"public-Bob": false,
-				"public-Charlie": false
-			}
-		});
-		expect(phase.toJson(bob.privateId)).to.deep.equal({
-			phase: "question",
-			questionInfo: {
-				question: "What is the answer?",
-			},
-			guesses: {
-				"public-Alice": false,
-				"public-Bob": false,
-				"public-Charlie": false
-			}
-		});
-		expect(phase.toJson(charlie.privateId)).to.deep.equal({
-			phase: "question",
-			questionInfo: {
-				question: "What is the answer?",
-			},
-			guesses: {
-				"public-Alice": false,
-				"public-Bob": false,
-				"public-Charlie": false
-			}
+			players: [alice, bob, charlie],
 		});
 		
 		phase.submitGuess(alice.privateId, 42);
-		
-		expect(phase.toJson(alice.privateId)).to.deep.equal({
-			phase: "question",
-			questionInfo: {
-				question: "What is the answer?",
-			},
-			guesses: {
-				"public-Alice": 42,
-				"public-Bob": false,
-				"public-Charlie": false
-			}
-		});
-		expect(phase.toJson(bob.privateId)).to.deep.equal({
-			phase: "question",
-			questionInfo: {
-				question: "What is the answer?",
-			},
-			guesses: {
-				"public-Alice": true,
-				"public-Bob": false,
-				"public-Charlie": false
-			}
-		});
-		expect(phase.toJson(charlie.privateId)).to.deep.equal({
-			phase: "question",
-			questionInfo: {
-				question: "What is the answer?",
-			},
-			guesses: {
-				"public-Alice": true,
-				"public-Bob": false,
-				"public-Charlie": false
-			}
-		});
-		
 		phase.submitGuess(charlie.privateId, 7);
 		
-		expect(phase.toJson(alice.privateId)).to.deep.equal({
+		expect(phase.toJson(alice.privateId)).toEqual({
 			phase: "question",
 			questionInfo: {
 				question: "What is the answer?",
@@ -125,10 +67,10 @@ describe("QuestionPhase", () => {
 			guesses: {
 				"public-Alice": 42,
 				"public-Bob": false,
-				"public-Charlie": true
-			}
+				"public-Charlie": true,
+			},
 		});
-		expect(phase.toJson(bob.privateId)).to.deep.equal({
+		expect(phase.toJson(bob.privateId)).toEqual({
 			phase: "question",
 			questionInfo: {
 				question: "What is the answer?",
@@ -136,10 +78,10 @@ describe("QuestionPhase", () => {
 			guesses: {
 				"public-Alice": true,
 				"public-Bob": false,
-				"public-Charlie": true
-			}
+				"public-Charlie": true,
+			},
 		});
-		expect(phase.toJson(charlie.privateId)).to.deep.equal({
+		expect(phase.toJson(charlie.privateId)).toEqual({
 			phase: "question",
 			questionInfo: {
 				question: "What is the answer?",
@@ -147,8 +89,52 @@ describe("QuestionPhase", () => {
 			guesses: {
 				"public-Alice": true,
 				"public-Bob": false,
-				"public-Charlie": 7
-			}
+				"public-Charlie": 7,
+			},
+		});
+	});
+	
+	test("toJson only reports own spectator's guess", () => {
+		const alice = makePlayer("Alice");
+		const bob = makeSpectator("Bob");
+		const charlie = makeSpectator("Charlie");
+		
+		const phase = makeQuestionPhase({
+			qa: "What is the answer?",
+			players: [alice],
+			spectators: [bob, charlie],
+		});
+		
+		phase.submitGuess(alice.privateId, 42);
+		phase.submitGuess(bob.privateId, 7);
+		
+		expect(phase.toJson(alice.privateId)).toEqual({
+			phase: "question",
+			questionInfo: {
+				question: "What is the answer?",
+			},
+			guesses: {
+				"public-Alice": 42,
+			},
+		});
+		expect(phase.toJson(bob.privateId)).toEqual({
+			phase: "question",
+			questionInfo: {
+				question: "What is the answer?",
+			},
+			guesses: {
+				"public-Alice": true,
+			},
+			spectatorGuess: 7,
+		});
+		expect(phase.toJson(charlie.privateId)).toEqual({
+			phase: "question",
+			questionInfo: {
+				question: "What is the answer?",
+			},
+			guesses: {
+				"public-Alice": true,
+			},
 		});
 	});
 	
@@ -164,7 +150,7 @@ describe("QuestionPhase", () => {
 			options: { questionPhaseDuration: 60_000 },
 		});
 		
-		expect(phase.toJson(alice.privateId)).to.deep.equal({
+		expect(phase.toJson(alice.privateId)).toEqual({
 			phase: "question",
 			questionInfo: {
 				question: "What is the answer?",
@@ -173,7 +159,7 @@ describe("QuestionPhase", () => {
 				"public-Alice": false,
 			},
 			roundDuration: 60_000,
-			roundEnd: 1_060_300
+			roundEnd: 1_060_300,
 		});
 	});
 	
@@ -192,7 +178,7 @@ describe("QuestionPhase", () => {
 			players: [alice, bob, charlie]
 		});
 		
-		expect(phase.toJson(alice.privateId)).to.deep.equal({
+		expect(phase.toJson(alice.privateId)).toEqual({
 			phase: "question",
 			questionInfo: {
 				question: "What is the answer?",
@@ -202,7 +188,7 @@ describe("QuestionPhase", () => {
 			guesses: {
 				"public-Alice": false,
 				"public-Bob": false,
-				"public-Charlie": false
+				"public-Charlie": false,
 			}
 		});
 	});
@@ -211,18 +197,32 @@ describe("QuestionPhase", () => {
 		const alice = makePlayer("Alice");
 		const bob = makePlayer("Bob");
 		const charlie = makePlayer("Charlie");
+		const derek = makeSpectator("Derek");
 		
-		const phase = makeQuestionPhase({ players: [alice, bob, charlie] });
+		const phase = makeQuestionPhase({
+			players: [alice, bob, charlie],
+			spectators: [derek]
+		});
 		
-		expect(phase.getGuesses()).to.deep.equal(new Map());
+		expect(phase.getGuesses()).to.deep.equal([new Map(), new Map()]);
 		
 		phase.submitGuess(alice.privateId, 42);
-		
-		expect(phase.getGuesses()).to.deep.equal(new Map([[alice, 42]]));
+		expect(phase.getGuesses()).to.deep.equal([
+			new Map([[alice, 42]]),
+			new Map(),
+		]);
 		
 		phase.submitGuess(charlie.privateId, 7);
+		expect(phase.getGuesses()).to.deep.equal([
+			new Map([[alice, 42], [charlie, 7]]),
+			new Map(),
+		]);
 		
-		expect(phase.getGuesses()).to.deep.equal(new Map([[alice, 42], [charlie, 7]]));
+		phase.submitGuess(derek.privateId, 100);
+		expect(phase.getGuesses()).to.deep.equal([
+			new Map([[alice, 42], [charlie, 7]]),
+			new Map([[derek, 100]]),
+		]);
 	});
 	
 	test("all guesses submitted ends phase when option set", () => {
@@ -231,7 +231,7 @@ describe("QuestionPhase", () => {
 		const charlie = makePlayer("Charlie");
 		const phase = makeQuestionPhase({
 			players: [alice, bob, charlie],
-			options: { endQuestionPhaseWhenAllGuessesSubmitted: true }
+			options: { endQuestionPhaseWhenAllGuessesSubmitted: true },
 		});
 		
 		const callback = vi.fn();
@@ -293,7 +293,7 @@ describe("QuestionPhase", () => {
 		const alice = makePlayer("Alice");
 		const phase = makeQuestionPhase({
 			players: [alice],
-			options: { questionPhaseDuration: 60_000 }
+			options: { questionPhaseDuration: 60_000 },
 		});
 		
 		const callback = vi.fn();
