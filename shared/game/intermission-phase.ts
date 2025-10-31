@@ -11,12 +11,17 @@ export const SkippedBettingPhaseSchema = strictObject({
 export type SkippedBettingPhase = InferOutput<typeof SkippedBettingPhaseSchema>;
 
 
+export const BettingResultsSchema = strictObject({
+	winners: array(PublicIdSchema),
+	earnings: record(PublicIdSchema, pipe(number(), integer())),
+});
+export type BettingResults = InferOutput<typeof BettingResultsSchema>;
+
+
 export const BettingConclusionSchema = strictObject({
 	type: literal("conclusion"),
-	winners: array(PublicIdSchema),
-	spectatorWinners: array(PublicIdSchema),
-	earnings: record(PublicIdSchema, pipe(number(), integer())),
-	spectatorEarnings: record(PublicIdSchema, pipe(number(), integer())),
+	players: BettingResultsSchema,
+	spectators: BettingResultsSchema,
 });
 export type BettingConclusion = InferOutput<typeof BettingConclusionSchema>;
 

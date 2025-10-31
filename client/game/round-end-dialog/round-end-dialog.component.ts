@@ -29,7 +29,7 @@ export class RoundEndDialog {
 	}
 	
 	earnings(conclusion: BettingConclusion): { id: PublicId, name: string, earnings: number }[] {
-		return Object.entries(conclusion.earnings)
+		return Object.entries(conclusion.players.earnings)
 			.map(([publicId, earnings]) => ({
 				id: publicId,
 				name: this.getNameForPlayer(publicId),

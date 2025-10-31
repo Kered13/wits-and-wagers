@@ -6,7 +6,7 @@ import { type PlayerManager } from "../player/player-manager.js";
 import { HttpError } from "../utils/httperror.js";
 import { type Bet, type BetTarget, type BettingPhaseState, type Guess as GuessJson, type GuessTarget } from "../../shared/game/betting-phase.js";
 import { type PrivateId, type PublicId } from "../../shared/player.js";
-import { type BettingConclusion } from "../../shared/game/intermission-phase.js";
+import { type BettingConclusion, type BettingResults } from "../../shared/game/intermission-phase.js";
 import { stripAnswer, type QuestionAnswerInfo } from "../../shared/game/question.js";
 
 
@@ -91,30 +91,6 @@ function reservedChipsFor(bet: Bet, bets: Bet[]): number {
 	// gets one chip back for each bet. But a player can never get back more
 	// than they wagered.
 	return Math.min(bet.wager, [0, 2, 1][numBets]!);
-}
-
-
-function addWinners<T extends Participant>(
-		guesses: GuessJson[],
-		playerManager: PlayerManager,
-		winningGuess: number,
-		answer: number,
-		round: number,
-		winners: PublicId[],
-		earnings: { [x: string]: number; }) {
-	for (const guess of guesses) {
-		if (guess.guess >= winningGuess && guess.guess <= answer) {
-			const player = playerManager.getPublicPlayer(guess.player);
-			addWinner(player, round, winners, earnings);
-		}
-	}
-}
-
-
-function addWinner(player: Participant, round: number, winners: PublicId[], earnings: { [x: string]: number; }) {
-	player.chips += round;
-	winners.push(player.publicId);
-	earnings[player.publicId]! += round;
 }
 
 
@@ -205,10 +181,14 @@ export class BettingPhase implements Phase {
 	public resolve(): BettingConclusion {
 		const conclusion: BettingConclusion = {
 			type: "conclusion",
-			winners: [],
-			earnings: Object.fromEntries(this.playerManager.getAllPlayers().map(player => [player.publicId, 0])),
-			spectatorWinners: [],
-			spectatorEarnings: Object.fromEntries(this.playerManager.getAllSpectators().map(spectator => [spectator.publicId, 0]))
+			players: {
+				winners: [],
+				earnings: Object.fromEntries(this.playerManager.getAllPlayers().map(player => [player.publicId, 0])),
+			},
+			spectators: {
+				winners: [],
+				earnings: Object.fromEntries(this.playerManager.getAllSpectators().map(spectator => [spectator.publicId, 0]))
+			},
 		};
 		
 		let winningGuessIdx = -1;
@@ -230,7 +210,7 @@ export class BettingPhase implements Phase {
 			
 			const player = this.playerManager.getPublicPlayer(bet.player);
 			player.chips += payout;
-			conclusion.earnings[player.publicId]! += payout;
+			conclusion.players.earnings[player.publicId]! += payout;
 		}
 		
 		for (const bet of this.spectatorBets) {
@@ -238,30 +218,29 @@ export class BettingPhase implements Phase {
 			
 			const player = this.playerManager.getPublicSpectator(bet.player);
 			player.chips += payout;
-			conclusion.spectatorEarnings[player.publicId]! += payout;
+			conclusion.spectators.earnings[player.publicId]! += payout;
 		}
 		
 		// Award bonus chips to the player who got the correct guess. Handle
 		// ties by awarding bonus chips to all players with the same guess.
-		if (winningGuess) {
-			for (const guess of this.guesses ) {
-				if (guess.guess === winningGuess.guess) {
-					const player = this.playerManager.getPublicPlayer(guess.player);
-					addWinner(player, this.round, conclusion.winners, conclusion.earnings);
-				}
-			}
-		}
+		this.addWinners(this.guesses, winningGuess?.guess ?? 0, conclusion.players);
 		
-		// Distribute bonus chips to spectators who guessed as good or better
+		// Distribute bonus chips to spectators who guessed as well or better
 		// than the winning player.
-		for (const guess of this.specGuesses) {
-			if (guess.guess >= (winningGuess?.guess ?? 0) && guess.guess <= this.questionInfo.answer) {
-				const spectator = this.playerManager.getPublicSpectator(guess.player)!;
-				addWinner(spectator, this.round, conclusion.spectatorWinners, conclusion.spectatorEarnings);
-			}
-		}
+		this.addWinners(this.specGuesses, winningGuess?.guess ?? 0, conclusion.spectators);
 		
 		return conclusion;
+	}
+	
+	private addWinners(guesses: GuessJson[], winningGuess: number, bettingResults: BettingResults) {
+		for (const guess of guesses) {
+			if (guess.guess >= winningGuess && guess.guess <= this.questionInfo.answer) {
+				const player = this.playerManager.getPublicParticipant(guess.player)!;
+				player.chips += this.round;
+				bettingResults.winners.push(player.publicId);
+				bettingResults.earnings[player.publicId]! += this.round;
+			}
+		}
 	}
 	
 	public toJson(forPlayer: PrivateId): BettingPhaseState {

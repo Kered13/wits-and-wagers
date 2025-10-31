@@ -5,7 +5,7 @@
 	@if (intermission.outcome.type === "skipped") {
 		<p>No one had any guesses? This round was skipped!</p>
 	} @else {
-		<p>{{ formatWinners(intermission.outcome.winners) }}</p>
+		<p>{{ formatWinners(intermission.outcome.players.winners) }}</p>
 		<br/>
 		@for (tuple of earnings(intermission.outcome); track tuple.id) {
 			<p>{{ tuple.name }}: +{{ tuple.earnings }}</p>

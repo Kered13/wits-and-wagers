@@ -434,12 +434,16 @@ describe("BettingPhase", () => {
 			
 			expect(conclusion).to.deep.equal({
 				type: "conclusion",
-				winners: [alice.publicId],
-				earnings: {
-					[alice.publicId]: 3*15 + 1 + 3
+				players: {
+					winners: [alice.publicId],
+					earnings: {
+						[alice.publicId]: 3*15 + 1 + 3
+					},
 				},
-				spectatorWinners: [],
-				spectatorEarnings: {},
+				spectators: {
+					winners: [],
+					earnings: {},
+				},
 			});
 			
 			// Alice wins 2x her bet on 0 and loses her bet on AllTooHigh, but
@@ -461,12 +465,16 @@ describe("BettingPhase", () => {
 			
 			expect(conclusion).to.deep.equal({
 				type: "conclusion",
-				winners: [],
-				earnings: {
-					[alice.publicId]: 7 * 10 + 1
+				players: {
+					winners: [],
+					earnings: {
+						[alice.publicId]: 7 * 10 + 1
+					},
 				},
-				spectatorWinners: [],
-				spectatorEarnings: {},
+				spectators: {
+					winners: [],
+					earnings: {},
+				},
 			});
 			
 			// Alice wins 6x her bet on AllTooHigh and loses her bet on 0, but
@@ -521,16 +529,20 @@ describe("BettingPhase", () => {
 			
 			expect(conclusion).to.deep.equal({
 				type: "conclusion",
-				winners: [alice.publicId, bob.publicId, charlie.publicId, derek.publicId],
-				earnings: {
-					[alice.publicId]: 3,
-					[bob.publicId]: 3,
-					[charlie.publicId]: 3,
-					[derek.publicId]: 3,
-					[elizabeth.publicId]: 0,
+				players: {
+					winners: [alice.publicId, bob.publicId, charlie.publicId, derek.publicId],
+					earnings: {
+						[alice.publicId]: 3,
+						[bob.publicId]: 3,
+						[charlie.publicId]: 3,
+						[derek.publicId]: 3,
+						[elizabeth.publicId]: 0,
+					},
 				},
-				spectatorWinners: [],
-				spectatorEarnings: {},
+				spectators: {
+					winners: [],
+					earnings: {},
+				},
 			});
 			
 			// No one bets, but the four-way tie pays out the round bonus to all
@@ -562,16 +574,20 @@ describe("BettingPhase", () => {
 			
 			expect(conclusion).to.deep.equal({
 				type: "conclusion",
-				winners: [bob.publicId, charlie.publicId, derek.publicId],
-				earnings: {
-					[alice.publicId]: 4*10,
-					[bob.publicId]: 4*10 + 3,
-					[charlie.publicId]: 4*10 + 3,
-					[derek.publicId]: 3,
-					[elizabeth.publicId]: 0,
+				players: {
+					winners: [bob.publicId, charlie.publicId, derek.publicId],
+					earnings: {
+						[alice.publicId]: 4*10,
+						[bob.publicId]: 4*10 + 3,
+						[charlie.publicId]: 4*10 + 3,
+						[derek.publicId]: 3,
+						[elizabeth.publicId]: 0,
+					},
 				},
-				spectatorWinners: [],
-				spectatorEarnings: {},
+				spectators: {
+					winners: [],
+					earnings: {},
+				},
 			});
 			
 			// Alice wins 3x her bet on 1.
@@ -2090,13 +2106,17 @@ describe("BettingPhase", () => {
 			
 			expect(conclusion).to.deep.equal({
 				type: "conclusion",
-				winners: [],
-				earnings: {
-					[alice.publicId]: 0,
+				players: {
+					winners: [],
+					earnings: {
+						[alice.publicId]: 0,
+					},
 				},
-				spectatorWinners: [],
-				spectatorEarnings: {
-					[bob.publicId]: 10 + 6*10,
+				spectators: {
+					winners: [],
+					earnings: {
+						[bob.publicId]: 10 + 6*10,
+					},
 				},
 			});
 			
@@ -2121,16 +2141,20 @@ describe("BettingPhase", () => {
 			const conclusion = phase.resolve();
 			expect(conclusion).to.deep.equal({
 				type: "conclusion",
-				winners: [alice.publicId],
-				earnings: {
-					[alice.publicId]: 3,
+				players: {
+					winners: [alice.publicId],
+					earnings: {
+						[alice.publicId]: 3,
+					},
 				},
-				spectatorWinners: [charlie.publicId, derek.publicId],
-				spectatorEarnings: {
-					[bob.publicId]: 0,
-					[charlie.publicId]: 3,
-					[derek.publicId]: 3,
-					[elizabeth.publicId]: 0,
+				spectators: {
+					winners: [charlie.publicId, derek.publicId],
+					earnings: {
+						[bob.publicId]: 0,
+						[charlie.publicId]: 3,
+						[derek.publicId]: 3,
+						[elizabeth.publicId]: 0,
+					},
 				},
 			});
 			
