@@ -228,8 +228,11 @@ describe("QuestionPhase", () => {
 		const alice = makePlayer("Alice");
 		const bob = makePlayer("Bob");
 		const charlie = makePlayer("Charlie");
+		// We do not wait for spectators.
+		const derek = makeSpectator("Derek");
 		const phase = makeQuestionPhase({
 			players: [alice, bob, charlie],
+			spectators: [derek],
 			options: { endQuestionPhaseWhenAllGuessesSubmitted: true },
 		});
 		
