@@ -1,4 +1,5 @@
 import { Subject, type Observable } from "rxjs";
+import { parse } from "valibot";
 
 
 import { type LobbyOptions } from "./lobby-option.js";
@@ -7,7 +8,7 @@ import { type GameFactory } from "../game/game-factory.js";
 import { type Participant, Player, Spectator } from "../player/player.js";
 import { HttpError } from "../utils/httperror.js";
 import { COLORS } from "../../shared/color.js";
-import { type GameId } from "../../shared/game/game.js";
+import { GameIdSchema, type GameId } from "../../shared/game/game.js";
 import { type LobbyState, type LobbyId } from "../../shared/lobby/lobby.js";
 import { type LobbyBeginGame, type LobbyCanceled, type LobbyUpdate } from "../../shared/lobby/notifications.js";
 import { type PrivateId, type PrivatePlayer, type PublicId } from "../../shared/player.js";
@@ -21,7 +22,7 @@ export class Lobby {
 	private readonly host: PrivatePlayer;
 	
 	public static gameIdFromLobbyId(lobbyId: LobbyId): GameId {
-		return lobbyId;
+		return parse(GameIdSchema, lobbyId);
 	}
 	
 	constructor(

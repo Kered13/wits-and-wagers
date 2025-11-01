@@ -1,4 +1,4 @@
-import { array, nonEmpty, pipe, strictObject, string, type InferOutput } from "valibot";
+import { array, brand, nonEmpty, pipe, strictObject, string, type InferOutput } from "valibot";
 
 import { PublicIdSchema } from "../player.js";
 import { RgbSchema } from "../rgb.js";
@@ -8,7 +8,7 @@ export const LOBBY_API_ROOT = "/api/lobby";
 
 
 // ID and join code of the lobby. This will become the GameId.
-export const LobbyIdSchema = pipe(string(), nonEmpty());
+export const LobbyIdSchema = pipe(string(), nonEmpty(), brand("LobbyId"));
 export type LobbyId = InferOutput<typeof LobbyIdSchema>;
 
 
@@ -37,7 +37,7 @@ export const LobbyStateSchema = strictObject({
 	// Title of the lobby and subsequent game.
 	title: pipe(string(), nonEmpty()),
 	// Public ID of the host.
-	host: pipe(PublicIdSchema, nonEmpty()),
+	host: PublicIdSchema,
 	// The public information of each player in the lobby.
 	players: array(LobbyPlayerSchema),
 	// The public information of each spectator in the lobby.

@@ -1,7 +1,7 @@
 import { Injectable } from "@angular/core";
 import { Observable, map, filter, take, catchError, NEVER } from "rxjs";
 import { WebSocketSubject } from "rxjs/webSocket";
-import { assert, is } from "valibot";
+import { assert, is, safeParse } from "valibot";
 
 import { BackendService } from "../utils/backend.service.js";
 import { Closeable, RefCounted } from "../utils/refcounted.js";
@@ -26,7 +26,7 @@ import { WebSocketRequest } from "../../shared/websocket.interface.js";
 
 @Injectable({providedIn: "root"})
 export class LobbyService {
-	private readonly lobbyInstances = new Map<PrivateId, RefCounted<LobbyInstanceService>>();
+	private readonly lobbyInstances = new Map<LobbyId, RefCounted<LobbyInstanceService>>();
 	
 	constructor(private backend: BackendService) {}
 	
@@ -35,10 +35,10 @@ export class LobbyService {
 	}
 	
 	public getLobbyInstanceService(lobbyId: LobbyId, privateId: PrivateId): RefCounted<LobbyInstanceService> {
-		let lobbyInstanceService = this.lobbyInstances.get(privateId);
+		let lobbyInstanceService = this.lobbyInstances.get(lobbyId);
 		if (!lobbyInstanceService) {
 			lobbyInstanceService = this.createLobbyInstanceService(lobbyId, privateId);
-			this.lobbyInstances.set(privateId, lobbyInstanceService);
+			this.lobbyInstances.set(lobbyId, lobbyInstanceService);
 		}
 		return lobbyInstanceService;
 	}
@@ -81,7 +81,10 @@ export class LobbyInstanceService extends Closeable {
 		this.wsSubject = this.backend.webSocket(LOBBY_API_ROOT + SUBSCRIBE_PATH);
 		
 		const notifications: Observable<LobbyNotification> =
-			this.wsSubject.pipe(filter(object => is(LobbyNotificationSchema, object)));
+			this.wsSubject.pipe(
+				map(object => safeParse(LobbyNotificationSchema, object)),
+				filter(parsed => parsed.success),
+				map(parsed => parsed.output));
 		
 		this.lobbyUpdate = notifications.pipe(
 			// Filter out errors. They can be caught by subscribing to the error

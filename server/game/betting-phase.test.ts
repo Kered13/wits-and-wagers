@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { BettingPhase, BettingPhaseOptions, DEFAULT_BETTING_PHASE_OPTIONS } from "./betting-phase.js";
 import { Player, Spectator } from "../player/player.js";
+import { privateId, publicId } from "../player/player-id.js";
 import { PlayerManager } from "../player/player-manager.js";
 import { type BettingPhaseState } from "../../shared/game/betting-phase.js";
 
@@ -9,8 +10,8 @@ import { type BettingPhaseState } from "../../shared/game/betting-phase.js";
 function makePlayer(name: string): Player {
 	const player = new Player({
 		name: name,
-		publicId: `public-${name}`,
-		privateId: `private-${name}`,
+		publicId: publicId(`public-${name}`),
+		privateId: privateId(`private-${name}`),
 		color: "#FF0000"
 	});
 	player.chips = 100;
@@ -21,8 +22,8 @@ function makePlayer(name: string): Player {
 function makeSpectator(name: string): Spectator {
 	const player = new Spectator({
 		name: name,
-		publicId: `public-${name}`,
-		privateId: `private-${name}`,
+		publicId: publicId(`public-${name}`),
+		privateId: privateId(`private-${name}`),
 	});
 	player.chips = 100;
 	return player;
@@ -218,16 +219,16 @@ describe("BettingPhase", () => {
 				question: "What is the question?",
 			},
 			guesses: [
-				{ player: "public-Alice", target: 4, guess: 42 },
-				{ player: "public-Bob", target: 2, guess: 13 },
-				{ player: "public-Charlie", target: 1, guess: 7 },
-				{ player: "public-Derek", target: 5, guess: 60 }
+				{ player: publicId("public-Alice"), target: 4, guess: 42 },
+				{ player: publicId("public-Bob"), target: 2, guess: 13 },
+				{ player: publicId("public-Charlie"), target: 1, guess: 7 },
+				{ player: publicId("public-Derek"), target: 5, guess: 60 }
 			],
 			bets: [
-				{ player: "public-Alice", target: "AllTooHigh", wager: 37 },
-				{ player: "public-Bob", target: "Red", wager: 10 },
-				{ player: "public-Charlie", target: "Black", wager: 50 },
-				{ player: "public-Derek", target: 2, wager: 60 },
+				{ player: publicId("public-Alice"), target: "AllTooHigh", wager: 37 },
+				{ player: publicId("public-Bob"), target: "Red", wager: 10 },
+				{ player: publicId("public-Charlie"), target: "Black", wager: 50 },
+				{ player: publicId("public-Derek"), target: 2, wager: 60 },
 			],
 			spectatorBets: [],
 		};
@@ -261,10 +262,10 @@ describe("BettingPhase", () => {
 				question: "What is the question?",
 			},
 			guesses: [
-				{ player: "public-Alice", target: 3, guess: 42 },
+				{ player: publicId("public-Alice"), target: 3, guess: 42 },
 			],
 			bets: [
-				{ player: "public-Alice", target: "AllTooHigh", wager: 37 },
+				{ player: publicId("public-Alice"), target: "AllTooHigh", wager: 37 },
 			],
 			spectatorBets: [],
 		};
@@ -278,7 +279,7 @@ describe("BettingPhase", () => {
 		const bobExpected: BettingPhaseState = {
 			...baseExpected,
 			spectatorBets: [
-				{ player: "public-Bob", target: "Red", wager: 10 },
+				{ player: publicId("public-Bob"), target: "Red", wager: 10 },
 			],
 		};
 		expectBettingPhaseStateEqual(phase.toJson(bob.privateId), bobExpected);
@@ -286,7 +287,7 @@ describe("BettingPhase", () => {
 		const charlieExpected: BettingPhaseState = {
 			...baseExpected,
 			spectatorBets: [
-				{ player: "public-Charlie", target: "Black", wager: 50 },
+				{ player: publicId("public-Charlie"), target: "Black", wager: 50 },
 			],
 		};
 		expectBettingPhaseStateEqual(phase.toJson(charlie.privateId), charlieExpected);

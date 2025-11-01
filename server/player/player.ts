@@ -1,5 +1,6 @@
 import * as uuid from "uuid";
 
+import { privateId, publicId } from "./player-id.js";
 import { type GamePlayer, type GameSpectator } from "../../shared/game/game.js";
 import { type LobbyPlayer, type LobbySpectator } from "../../shared/lobby/lobby.js";
 import { type PrivateId, type PrivatePlayer, type PublicId } from "../../shared/player.js";
@@ -8,8 +9,8 @@ import { type Rgb } from "../../shared/rgb.js";
 
 export type ParticipantParams = {
 	name: string,
-	publicId: string,
-	privateId: string,
+	publicId: PublicId,
+	privateId: PrivateId,
 	// Initial chips, mostly for testing. Initial chips are 2 if not specified.
 	chips?: number;
 };
@@ -50,8 +51,8 @@ export abstract class Participant {
 	
 	private static generatePlayerIds(): { privateId: PrivateId, publicId: PublicId } {
 		return {
-			privateId: uuid.v4(),
-			publicId: uuid.v4()
+			privateId: privateId(uuid.v4()),
+			publicId: publicId(uuid.v4()),
 		};
 	}
 	

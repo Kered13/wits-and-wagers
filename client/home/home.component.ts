@@ -3,9 +3,11 @@ import { MatButton } from "@angular/material/button";
 import { MatCardModule } from "@angular/material/card";
 import { FormsModule } from "@angular/forms";
 import { MatInputModule } from "@angular/material/input";
+import { parse } from "valibot";
 
 import { GAME_ID, USERNAME } from "../app/localstorage.keys.js";
 import { RoutingService } from "../routes/routing.service.js";
+import { LobbyIdSchema } from "../../shared/lobby/lobby.js";
 
 
 @Component({
@@ -34,7 +36,7 @@ export class HomeComponent {
 	onJoinGame(): void {
 		if (this.username && this.joinCode) {
 			localStorage.setItem(USERNAME, this.username);
-			this.routing.toLobby(this.joinCode);
+			this.routing.toLobby(parse(LobbyIdSchema, this.joinCode));
 		}
 	}
 }

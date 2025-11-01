@@ -2,6 +2,7 @@ import { inject } from "@angular/core";
 import { RedirectCommand, Router } from "@angular/router";
 import { TypedRouteSnapshot as TypedActivatedRouteSnapshot } from "ngx-typed-router";
 import { firstValueFrom } from "rxjs";
+import { parse } from "valibot";
 
 import { GameRoute, HomeRoute } from "./routes.js";
 import { HasGameId, HasLobbyId, HasPlayer } from "./types.js";
@@ -9,7 +10,7 @@ import { ResolveFn, StringLiterals } from "./utils.js";
 import { GAME_ID, PRIVATE_ID, PUBLIC_ID, USERNAME } from "../app/localstorage.keys.js";
 import { GameService } from "../game/game.service.js";
 import { LobbyService } from "../lobby/lobby.service.js";
-import { PrivatePlayer } from "../../shared/player.js";
+import { PrivateIdSchema, PrivatePlayer, PublicIdSchema } from "../../shared/player.js";
 
 
 function getLocalStorageKey(key: string): ResolveFn<string> {
@@ -40,7 +41,8 @@ export async function resolveLobby(route: TypedActivatedRouteSnapshot<HasPlayer,
 		return new RedirectCommand(router.createUrlTree(homeRoute.url()));
 	}
 	
-	const privateId = localStorage.getItem(PRIVATE_ID) ?? undefined;
+	const idStr = localStorage.getItem(PRIVATE_ID);
+	const privateId = idStr !== undefined ? parse(PrivateIdSchema, idStr) : undefined;
 	const response = await firstValueFrom(lobbyService.joinLobby(lobbyId, username, privateId));
 	if ("player" in response) {
 		localStorage.setItem(PUBLIC_ID, response.player.publicId);
@@ -67,14 +69,14 @@ export function resolveGame(route: TypedActivatedRouteSnapshot<HasPlayer, HasGam
 	const homeRoute = inject(HomeRoute);
 
 	const username = localStorage.getItem(USERNAME);
-	const publicId = localStorage.getItem(PUBLIC_ID);
-	const privateId = localStorage.getItem(PRIVATE_ID);
+	const publicId = parse(PublicIdSchema, localStorage.getItem(PUBLIC_ID));
+	const privateId = parse(PrivateIdSchema, localStorage.getItem(PRIVATE_ID));
 	if (!username || !publicId || !privateId) {
 		return new RedirectCommand(router.createUrlTree(homeRoute.url()));
 	}
 	return {
 		name: username,
 		publicId: publicId,
-		privateId: privateId
+		privateId: privateId,
 	};
 }

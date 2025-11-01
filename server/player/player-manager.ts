@@ -36,35 +36,26 @@ type PKind = "Player" | "Spectator";
 
 
 export class PlayerManager {
-	private readonly publicPlayers: Map<PublicId, Player>;
-	private readonly privatePlayers: Map<PrivateId, Player>;
-	private readonly publicSpectators: Map<PublicId, Spectator>;
-	private readonly privateSpectators: Map<PrivateId, Spectator>;
 	private readonly maps: {
 		[PUBLIC]: {
 			[PLAYER]: Map<PublicId, Player>,
 			[SPECTATOR]: Map<PublicId, Spectator>,
 		},
 		[PRIVATE]: {
-			[PLAYER]: Map<PublicId, Player>,
-			[SPECTATOR]: Map<PublicId, Spectator>,
+			[PLAYER]: Map<PrivateId, Player>,
+			[SPECTATOR]: Map<PrivateId, Spectator>,
 		},
 	};
 	
 	constructor(players: Player[], spectators: Spectator[]) {
-		this.publicPlayers = buildPlayerMap(players, byPublicId);
-		this.privatePlayers = buildPlayerMap(players, byPrivateId);
-		this.publicSpectators = buildPlayerMap(spectators, byPublicId);
-		this.privateSpectators = buildPlayerMap(spectators, byPrivateId);
-		
 		this.maps = {
 			[PUBLIC]: {
-				[PLAYER]: this.publicPlayers,
-				[SPECTATOR]: this.publicSpectators,
+				[PLAYER]: buildPlayerMap(players, byPublicId),
+				[SPECTATOR]: buildPlayerMap(spectators, byPublicId),
 			},
 			[PRIVATE]: {
-				[PLAYER]: this.privatePlayers,
-				[SPECTATOR]: this.privateSpectators,
+				[PLAYER]: buildPlayerMap(players, byPrivateId),
+				[SPECTATOR]: buildPlayerMap(spectators, byPrivateId),
 			},
 		};
 	}
@@ -75,7 +66,9 @@ export class PlayerManager {
 	private tryGet(a: typeof PRIVATE, b: typeof SPECTATOR, id: PrivateId): Spectator | undefined;
 	private tryGet(a: IdKind, b: PKind, id: PublicId | PrivateId): Participant | undefined;
 	private tryGet(a: IdKind, b: PKind, id: PublicId | PrivateId) {
-		return this.maps[a][b].get(id);
+		// Typescript is not able to deduce the typing here, and type hints are
+		// not powerful enough.
+		return this.maps[a][b].get(id as any);
 	}
 
 	private get(a: typeof PUBLIC, b: typeof PLAYER, id: PublicId): Player;
@@ -84,7 +77,9 @@ export class PlayerManager {
 	private get(a: typeof PRIVATE, b: typeof SPECTATOR, id: PrivateId): Spectator;
 	private get(a: IdKind, b: PKind, id: PublicId | PrivateId): Participant;
 	private get(a: IdKind, b: PKind, id: PublicId | PrivateId) {
-		const player = this.maps[a][b].get(id);
+		// Typescript is not able to deduce the typing here, and type hints are
+		// not powerful enough.
+		const player = this.maps[a][b].get(id as any);
 		if (!player) {
 			throw new HttpError(404, `${b} ${a} ID ${id} not found.`);
 		}
@@ -139,7 +134,7 @@ export class PlayerManager {
 		return this.getParticipant(PUBLIC, id);
 	}
 	
-	public getPrivateParticipant(id: PublicId): Participant {
+	public getPrivateParticipant(id: PrivateId): Participant {
 		return this.getParticipant(PRIVATE, id);
 	}
 	
@@ -154,11 +149,11 @@ export class PlayerManager {
 	}
 	
 	public getAllPlayers(): Player[] {
-		return mapToArray(this.publicPlayers);
+		return mapToArray(this.maps[PUBLIC][PLAYER]);
 	}
 	
 	public getAllSpectators(): Spectator[] {
-		return mapToArray(this.publicSpectators);
+		return mapToArray(this.maps[PUBLIC][SPECTATOR]);
 	}
 	
 	public getAllParticipants(): Participant[] {

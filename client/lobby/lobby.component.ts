@@ -64,7 +64,7 @@ export class LobbyComponent implements OnDestroy {
 		this.lobbyService = toSignal(instanceService, { requireSync: true });
 		this.lobby = toSignal(
 			instanceService.pipe(switchMap(service => service.get().onLobbyUpdate())),
-			{ initialValue: { title: "", host: "", players: [], spectators: [] } });
+			{ initialValue: { title: "", host: "" as PublicId, players: [], spectators: [] } });
 		
 		this.isThisPlayerHost = computed(() => this.thisParticipant().publicId === this.lobby().host);
 		this.openColorPickers = computed(() => Object.fromEntries(this.lobby().players.map(p => [p.publicId, false])));

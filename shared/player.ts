@@ -1,11 +1,11 @@
-import { nonEmpty, pipe, strictObject, string, type InferOutput } from "valibot";
+import { brand, nonEmpty, pipe, strictObject, string, type InferOutput } from "valibot";
 
 
-export const PublicIdSchema = pipe(string(), nonEmpty());
+export const PublicIdSchema = pipe(string(), nonEmpty(), brand("PublicId"));
 export type PublicId = InferOutput<typeof PublicIdSchema>;
 
 
-export const PrivateIdSchema = pipe(string(), nonEmpty());
+export const PrivateIdSchema = pipe(string(), nonEmpty(), brand("PrivateId"));
 export type PrivateId = InferOutput<typeof PrivateIdSchema>;
 
 

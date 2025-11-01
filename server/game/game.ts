@@ -46,7 +46,7 @@ export class Game {
 	}
 	
 	public addSpectator(name: string, id?: PrivateId): Spectator {
-		const existingSpectator = this.playerManager.tryGetPrivateSpectator(id ?? "");
+		const existingSpectator = this.playerManager.tryGetPrivateSpectator(id ?? "" as PrivateId);
 		if (existingSpectator) {
 			return existingSpectator;
 		}
@@ -57,7 +57,7 @@ export class Game {
 		return spectator;
 	}
 	
-	public submitGuess(playerId: PrivateId, guess: number): void {
+	public submitGuess(playerId: PrivateId, guess?: number): void {
 		if (this.round > this.options.numberOfRounds) {
 			throw new HttpError(400, "Game is over, cannot submit guesses.");
 		}
@@ -179,6 +179,10 @@ export class Game {
 	
 	public getParticipants(): (Player | Spectator)[] {
 		return [...this.playerManager.getAllPlayers(), ...this.playerManager.getAllSpectators()];
+	}
+	
+	public getPlayer(player: PrivateId): Player | undefined {
+		return this.playerManager.tryGetPrivatePlayer(player);
 	}
 	
 	public getRound(): number {

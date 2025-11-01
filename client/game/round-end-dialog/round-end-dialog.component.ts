@@ -29,10 +29,12 @@ export class RoundEndDialog {
 	}
 	
 	earnings(conclusion: BettingConclusion): { id: PublicId, name: string, earnings: number }[] {
+		// `Object.entries()` forgets that the keys are PublicId, so we have to
+		// help the compiler out.
 		return Object.entries(conclusion.players.earnings)
 			.map(([publicId, earnings]) => ({
-				id: publicId,
-				name: this.getNameForPlayer(publicId),
+				id: publicId as PublicId,
+				name: this.getNameForPlayer(publicId as PublicId),
 				earnings: earnings
 			}))
 			// Sort descending.

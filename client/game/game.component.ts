@@ -31,7 +31,7 @@ import { RandomizedList } from "../utils/randomized-list.js";
 import { RefCounted } from "../utils/refcounted.js";
 import { PrivatePlayer, PublicId } from "../../shared/player.js";
 import { Bet, BetTarget, BettingPhaseState } from "../../shared/game/betting-phase.js";
-import { GameOverPhaseState, GamePlayer, GameState } from "../../shared/game/game.js";
+import { GameId, GameOverPhaseState, GamePlayer, GameState } from "../../shared/game/game.js";
 import { QuestionPhaseState } from "../../shared/game/question-phase.js";
 import { IntermissionPhaseState } from "../../shared/game/intermission-phase.js";
 
@@ -323,7 +323,7 @@ export class GameComponent implements OnDestroy {
 		
 		const initialState: GameState = {
 			title: "",
-			host: "",
+			host: "" as PublicId,
 			players: [],
 			spectators: [],
 			round: 0,

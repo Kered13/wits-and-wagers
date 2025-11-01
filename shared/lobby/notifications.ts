@@ -1,6 +1,6 @@
 import { literal, strictObject, variant, type InferOutput } from "valibot";
 
-import { LobbyIdSchema, LobbyStateSchema } from "./lobby.js";
+import { LobbyStateSchema } from "./lobby.js";
 import { GameIdSchema } from "../game/game.js";
 import { WsErrorSchema } from "../ws-error.js";
 

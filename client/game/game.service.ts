@@ -1,7 +1,7 @@
 import { Injectable } from "@angular/core";
 import { Observable, map, filter, catchError, of, NEVER } from "rxjs";
 import { WebSocketSubject } from "rxjs/webSocket";
-import { is } from "valibot";
+import { is, safeParse } from "valibot";
 
 import { BackendService } from "../utils/backend.service.js";
 import { Closeable, RefCounted } from "../utils/refcounted.js";
@@ -63,7 +63,9 @@ export class GameInstanceService extends Closeable {
 		this.wsSubject = this.backend.webSocket(GAME_API_ROOT + SUBSCRIBE_PATH);
 		const notifications: Observable<GameNotification> =
 			this.wsSubject.pipe(
-				filter(object => is(GameNotificationSchema, object)));
+				map(object => safeParse(GameNotificationSchema, object)),
+				filter(parsed => parsed.success),
+				map(parsed => parsed.output));
 		
 		this.gameUpdate = notifications.pipe(
 			// Filter out errors. They can be caught by subscribing to the error

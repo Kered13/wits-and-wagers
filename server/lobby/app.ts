@@ -1,5 +1,5 @@
 import express, { Router, type Request, type Response } from "express";
-import { assert } from "valibot";
+import { assert, parse } from "valibot";
 import { type WebSocket } from "ws";
 
 import { Lobby } from "./lobby.js";
@@ -14,7 +14,7 @@ import { CANCEL_PATH, CancelLobbyRequestSchema } from "../../shared/lobby/cancel
 import { CREATE_PATH, CreateLobbyRequestSchema, CreateLobbyResponseSchema, type CreateLobbyResponse } from "../../shared/lobby/create.js";
 import { JOIN_LOBBY_PATH, JoinLobbyRequestSchema, type JoinLobbyResponse, } from "../../shared/lobby/join-lobby.js";
 import { KICK_PLAYER_PATH, KickPlayerRequestSchema } from "../../shared/lobby/kick-player.js";
-import { type LobbyId } from "../../shared/lobby/lobby.js";
+import { LobbyIdSchema, type LobbyId } from "../../shared/lobby/lobby.js";
 import { MOVE_PLAYER_PATH, MovePlayerRequestSchema } from "../../shared/lobby/move-player.js";
 import { type LobbyNotification } from "../../shared/lobby/notifications.js";
 import { SUBSCRIBE_PATH, SubscribeRequestSchema } from "../../shared/lobby/subscribe.js";
@@ -99,12 +99,12 @@ export class LobbyApp {
 	
 	// TODO
 	private createLobbyId(): LobbyId {
-		return "game" + this.lobbyCounter++;
+		return parse(LobbyIdSchema, "game" + this.lobbyCounter++);
 	}
 	
 	// TODO
 	private createLobbySpectatorId(): LobbyId {
-		return "game-spec" + (this.lobbyCounter - 1);
+		return parse(LobbyIdSchema, "game-spec" + (this.lobbyCounter - 1));
 	}
 	
 	private create(req: Request, res: Response): void {

@@ -2,15 +2,16 @@ import { describe, expect, test, vi } from "vitest";
 
 import { QuestionPhase, DEFAULT_QUESTION_PHASE_OPTIONS, QuestionPhaseOptions } from "./question-phase.js";
 import { Player, Spectator } from "../player/player.js";
-import { PlayerManager } from "../player/player-manager.js";
 import { QuestionAnswerInfo } from "../../shared/game/question.js";
+import { PlayerManager } from "../player/player-manager.js";
+import { privateId, publicId } from "../player/player-id.js";
 
 
 function makePlayer(name: string): Player {
 	return new Player({
 		name: name,
-		publicId: `public-${name}`,
-		privateId: `private-${name}`,
+		publicId: publicId(`public-${name}`),
+		privateId: privateId(`private-${name}`),
 		color: "#FF0000"
 	});
 };
@@ -19,8 +20,8 @@ function makePlayer(name: string): Player {
 function makeSpectator(name: string): Spectator {
 	return new Spectator({
 		name: name,
-		publicId: `public-${name}`,
-		privateId: `private-${name}`,
+		publicId: publicId(`public-${name}`),
+		privateId: privateId(`private-${name}`),
 	});
 };
 

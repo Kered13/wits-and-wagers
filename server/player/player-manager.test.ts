@@ -1,14 +1,15 @@
 import { describe, expect, test } from "vitest";
 
 import { Player, Spectator } from "./player";
+import { privateId, publicId } from "./player-id";
 import { PlayerManager } from "./player-manager";
 
 
 function makePlayer(name: string): Player {
 	return new Player({
 		name: name,
-		publicId: `public-${name}`,
-		privateId: `private-${name}`,
+		publicId: publicId(`public-${name}`),
+		privateId: privateId(`private-${name}`),
 		color: "#FF0000"
 	});
 };
@@ -17,8 +18,8 @@ function makePlayer(name: string): Player {
 function makeSpectator(name: string): Spectator {
 	return new Spectator({
 		name: name,
-		publicId: `public-${name}`,
-		privateId: `private-${name}`,
+		publicId: publicId(`public-${name}`),
+		privateId: privateId(`private-${name}`),
 	});
 };
 
@@ -33,7 +34,7 @@ describe("PlayerManager", () => {
 		
 		test("throws on missing player", () => {
 			const manager = new PlayerManager([], []);
-			expect(() => manager.getPrivatePlayer("nonexistent")).to.throw();
+			expect(() => manager.getPrivatePlayer(privateId("nonexistent"))).to.throw();
 		});
 		
 		test("does not return spectator", () => {
@@ -45,7 +46,7 @@ describe("PlayerManager", () => {
 		test("does not return on public ID", () => {
 			const alice = makePlayer("Alice");
 			const manager = new PlayerManager([], [alice]);
-			expect(() => manager.getPrivatePlayer(alice.publicId)).to.throw();
+			expect(() => manager.getPrivatePlayer(privateId(alice.publicId))).to.throw();
 		});
 	});
 	
@@ -58,7 +59,7 @@ describe("PlayerManager", () => {
 		
 		test("throws on missing spectator", () => {
 			const manager = new PlayerManager([], []);
-			expect(() => manager.getPrivateSpectator("nonexistent")).to.throw();
+			expect(() => manager.getPrivateSpectator(privateId("nonexistent"))).to.throw();
 		});
 		
 		test("does not return player", () => {
@@ -70,7 +71,7 @@ describe("PlayerManager", () => {
 		test("does not return on public ID", () => {
 			const alice = makeSpectator("Alice");
 			const manager = new PlayerManager([], [alice]);
-			expect(() => manager.getPrivateSpectator(alice.publicId)).to.throw();
+			expect(() => manager.getPrivateSpectator(privateId(alice.publicId))).to.throw();
 		});
 	});
 	
@@ -83,7 +84,7 @@ describe("PlayerManager", () => {
 		
 		test("throws on missing player", () => {
 			const manager = new PlayerManager([], []);
-			expect(() => manager.getPublicPlayer("nonexistent")).to.throw();
+			expect(() => manager.getPublicPlayer(publicId("nonexistent"))).to.throw();
 		});
 		
 		test("does not return spectator", () => {
@@ -95,7 +96,7 @@ describe("PlayerManager", () => {
 		test("does not return on private ID", () => {
 			const alice = makePlayer("Alice");
 			const manager = new PlayerManager([], [alice]);
-			expect(() => manager.getPublicPlayer(alice.privateId)).to.throw();
+			expect(() => manager.getPublicPlayer(publicId(alice.privateId))).to.throw();
 		});
 	});
 	
@@ -108,7 +109,7 @@ describe("PlayerManager", () => {
 		
 		test("throws on missing spectator", () => {
 			const manager = new PlayerManager([], []);
-			expect(() => manager.getPublicSpectator("nonexistent")).to.throw();
+			expect(() => manager.getPublicSpectator(publicId("nonexistent"))).to.throw();
 		});
 		
 		test("does not return player", () => {
@@ -120,7 +121,7 @@ describe("PlayerManager", () => {
 		test("does not return on private ID", () => {
 			const alice = makeSpectator("Alice");
 			const manager = new PlayerManager([], [alice]);
-			expect(() => manager.getPublicSpectator(alice.privateId)).to.throw();
+			expect(() => manager.getPublicSpectator(publicId(alice.privateId))).to.throw();
 		});
 	});
 	
@@ -133,7 +134,7 @@ describe("PlayerManager", () => {
 		
 		test("returned undefined on missing player", () => {
 			const manager = new PlayerManager([], []);
-			expect(manager.tryGetPrivatePlayer("nonexistent")).to.be.undefined;
+			expect(manager.tryGetPrivatePlayer(privateId("nonexistent"))).to.be.undefined;
 		});
 		
 		test("does not return spectator", () => {
@@ -145,7 +146,7 @@ describe("PlayerManager", () => {
 		test("does not return on publicId", () => {
 			const alice = makePlayer("Alice");
 			const manager = new PlayerManager([alice], []);
-			expect(manager.tryGetPrivatePlayer(alice.publicId)).to.be.undefined;
+			expect(manager.tryGetPrivatePlayer(privateId(alice.publicId))).to.be.undefined;
 		});
 	});
 	
@@ -158,7 +159,7 @@ describe("PlayerManager", () => {
 		
 		test("returned undefined on missing spectator", () => {
 			const manager = new PlayerManager([], []);
-			expect(manager.tryGetPrivateSpectator("nonexistent")).to.be.undefined;
+			expect(manager.tryGetPrivateSpectator(privateId("nonexistent"))).to.be.undefined;
 		});
 		
 		test("does not return player", () => {
@@ -170,7 +171,7 @@ describe("PlayerManager", () => {
 		test("does not return on publicId", () => {
 			const alice = makeSpectator("Alice");
 			const manager = new PlayerManager([], [alice]);
-			expect(manager.tryGetPrivateSpectator(alice.publicId)).to.be.undefined;
+			expect(manager.tryGetPrivateSpectator(privateId(alice.publicId))).to.be.undefined;
 		});
 	});
 	
@@ -183,7 +184,7 @@ describe("PlayerManager", () => {
 		
 		test("returned undefined on missing player", () => {
 			const manager = new PlayerManager([], []);
-			expect(manager.tryGetPublicPlayer("nonexistent")).to.be.undefined;
+			expect(manager.tryGetPublicPlayer(publicId("nonexistent"))).to.be.undefined;
 		});
 		
 		test("does not return spectator", () => {
@@ -195,7 +196,7 @@ describe("PlayerManager", () => {
 		test("does not return on privateId", () => {
 			const alice = makePlayer("Alice");
 			const manager = new PlayerManager([alice], []);
-			expect(manager.tryGetPublicPlayer(alice.privateId)).to.be.undefined;
+			expect(manager.tryGetPublicPlayer(publicId(alice.privateId))).to.be.undefined;
 		});
 	});
 	
@@ -208,7 +209,7 @@ describe("PlayerManager", () => {
 		
 		test("returned undefined on missing spectator", () => {
 			const manager = new PlayerManager([], []);
-			expect(manager.tryGetPublicSpectator("nonexistent")).to.be.undefined;
+			expect(manager.tryGetPublicSpectator(publicId("nonexistent"))).to.be.undefined;
 		});
 		
 		test("does not return player", () => {
@@ -220,7 +221,7 @@ describe("PlayerManager", () => {
 		test("does not return on privateId", () => {
 			const alice = makeSpectator("Alice");
 			const manager = new PlayerManager([], [alice]);
-			expect(manager.tryGetPublicSpectator(alice.privateId)).to.be.undefined;
+			expect(manager.tryGetPublicSpectator(publicId(alice.privateId))).to.be.undefined;
 		});
 	});
 	

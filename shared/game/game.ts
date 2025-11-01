@@ -1,4 +1,4 @@
-import { array, integer, literal, nonEmpty, number,  pipe, strictObject, string, variant, type InferOutput } from "valibot";
+import { array, brand, integer, literal, nonEmpty, number,  pipe, strictObject, string, variant, type InferOutput } from "valibot";
 
 import { BettingPhaseStateSchema } from "./betting-phase.js";
 import { IntermissionPhaseStateSchema } from "./intermission-phase.js";
@@ -11,7 +11,7 @@ export const GAME_API_ROOT = "/api/game";
 
 
 // ID and join code of the game.
-export const GameIdSchema = pipe(string(), nonEmpty());
+export const GameIdSchema = pipe(string(), nonEmpty(), brand("GameId"));
 export type GameId = InferOutput<typeof GameIdSchema>;
 
 
@@ -19,7 +19,7 @@ export type GameId = InferOutput<typeof GameIdSchema>;
 // cannot submit guesses.
 export const GameSpectatorSchema = strictObject({
 	name: pipe(string(), nonEmpty()),
-	publicId: pipe(string(), nonEmpty()),
+	publicId: PublicIdSchema,
 	chips: pipe(number(), integer())
 });
 export type GameSpectator = InferOutput<typeof GameSpectatorSchema>;

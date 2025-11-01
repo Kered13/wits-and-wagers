@@ -89,7 +89,7 @@ export class GameApp {
 		if (!privateId) {
 			return undefined;
 		}
-		const player = game.tryGetPrivatePlayer(privateId);
+		const player = game.getPlayer(privateId);
 		if (!player) {
 			return undefined;
 		}
