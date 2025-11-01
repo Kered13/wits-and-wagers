@@ -114,7 +114,7 @@
 		<wager-box-bg-text class="payoff">BLACK 1 <span class="payoff-to">to</span> 1</wager-box-bg-text>
 	</color-wager-box>
 	<score-board class="score-board" [players]="game().players"/>
-	@for (cardData of guessCards(); track $index) {
+	@for (cardData of guessCards().entries(); track $index) {
 		@if (cardData) {
 			<guess-card class="guess-card2"
 				[data]="cardData"

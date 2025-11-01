@@ -11,7 +11,6 @@ import { Title } from "@angular/platform-browser";
 import { ActivatedRoute } from "@angular/router";
 import { parseIntSafe } from "complete-common";
 import { combineLatest, concat, delay, map, type Observable, of, pairwise, startWith, Subscription, switchMap, take } from "rxjs";
-import random from "random";
 
 import { GameInstanceService, GameService } from "./game.service.js";
 import { GameEndDialog } from "./game-end-dialog/game-end-dialog.component.js";
@@ -19,6 +18,7 @@ import { GuessCard, GuessCardData } from "./guess-card/guess-card.component.js";
 import { GuessDialog, GuessDialogData } from "./guess-dialog/guess-dialog.component.js";
 import { ScoreBoard } from "./score-board/score-board.component.js";
 import { AllTooHighBox } from "./wager-box/all-too-high-box.component.js";
+import { BetData } from "./wager-box/base-wager-box.component.js";
 import { BettingBox } from "./wager-box/wager-box.component.js";
 import { ColorWagerBox } from "./wager-box/color-wager-box.component.js";
 import { WagerBoxBgText, WagerBoxBottomText } from "./wager-box/wager-box-content.component.js";
@@ -27,13 +27,13 @@ import { GlobalErrorHandler } from "../error-dialog/error-handler.js";
 import { RoundEndDialog, RoundEndDialogData } from "./round-end-dialog/round-end-dialog.component.js";
 import { GameRoute, TypedRouteFor } from "../routes/routes.js";
 import { RoutingService } from "../routes/routing.service.js";
+import { RandomizedList } from "../utils/randomized-list.js";
 import { RefCounted } from "../utils/refcounted.js";
 import { PrivatePlayer, PublicId } from "../../shared/player.js";
 import { Bet, BetTarget, BettingPhaseState } from "../../shared/game/betting-phase.js";
 import { GameOverPhaseState, GamePlayer, GameState } from "../../shared/game/game.js";
 import { QuestionPhaseState } from "../../shared/game/question-phase.js";
 import { IntermissionPhaseState } from "../../shared/game/intermission-phase.js";
-import { BetData } from "./wager-box/base-wager-box.component.js";
 
 
 @Directive({
@@ -211,11 +211,7 @@ function getGuessForTarget(target: BetTarget, game: GameState): GuessCardData | 
 	
 	return phase.guesses
 		.filter(guess => guess.target === target)
-		.map(guess => ({
-			name: nameForPlayer(game, guess.player),
-			value: guess.guess,
-			color: colorForPlayer(game, guess.player),
-		}))[0];
+		.map(guess => guessCardData(game, guess.guess, guess.player))[0];
 }
 
 
@@ -246,14 +242,7 @@ function getGuessCards(game: GameState, thisPlayer: PrivatePlayer): GuessCardDat
 	}
 	const guesses: GuessCardData[] = game.players
 		.filter(player => phase.guesses[player.publicId] !== false)
-		.map(player => {
-			const guess = phase.guesses[player.publicId]
-			return {
-				name: nameForPlayer(game, player.publicId),
-				value: guess,
-				color: colorForPlayer(game, player.publicId),
-			};
-		});
+		.map(player => guessCardData(game, phase.guesses[player.publicId], player.publicId));
 	if (phase.spectatorGuess !== undefined) {
 		guesses.push({
 			name: nameForPlayer(game, thisPlayer.publicId),
@@ -264,50 +253,13 @@ function getGuessCards(game: GameState, thisPlayer: PrivatePlayer): GuessCardDat
 }
 
 
-function updateGuessCards(previousCards: (GuessCardData | undefined)[], newGuesses: GuessCardData[]): (GuessCardData | undefined)[] {
-	// Remove all cards that are no longer on the board. Remaining cards keep
-	// their positions.
-	const newCards = previousCards.map(card => {
-		return newGuesses.find(guess => card !== undefined && guess.color === card.color);
-	});
-	// Trim trailing undefined values from the array.
-	newCards.length = newCards.findLastIndex(card => card !== undefined) + 1;
-
-	for (const guess of newGuesses) {
-		if (!newCards.find(card => card && card.color === guess.color)) {
-			insertNewCard(guess, newCards);
-		}
-	}
-	return newCards;
-}
-
-
-// Insert the given bet into an empty position in chips. We randomly choose
-// among empty positions in the middle of the array, or from the end if there
-// are not enough empty positions in the middle.
-function insertNewCard(guess: GuessCardData, cards: (GuessCardData | undefined)[]): void {
-	const availableSlots = getEmptyIndices(cards);
-	const slot = random.choice(availableSlots)!;
-	cards[slot] = guess;
-}
-
-
-// Return all indices where the array is undefined. If less than 3 indices are
-// undefined, then indices at the end of the array are added until we have 3
-// indices, but we never return an index more than 8 (the number of positions we
-// have hardcoded).
-function getEmptyIndices<T>(array: T[]): number[] {
-	const indices = [];
-	for (let i = 0; i < array.length; i++) {
-		if (array[i] === undefined) {
-			indices.push(i);
-		}
-	}
-	for (let i = array.length; i < 8 && indices.length < 3; i++) {
-		indices.push(i);
-	}
-	return indices;
-}
+function guessCardData(game: GameState, guess: number | boolean, player: PublicId): GuessCardData {
+	return {
+		name: nameForPlayer(game, player),
+		value: guess,
+		color: colorForPlayer(game, player),
+	};
+};
 
 
 @Component({
@@ -347,7 +299,7 @@ export class GameComponent implements OnDestroy {
 	readonly guessField: Signal<NgModel | undefined> = viewChild("guessField");
 	readonly targetField: Signal<NgModel | undefined> = viewChild("targetField");
 	readonly wagerField: Signal<NgModel | undefined> = viewChild("wagerField");
-	readonly guessCards: Signal<(GuessCardData | undefined)[]>;
+	readonly guessCards: Signal<RandomizedList<GuessCardData>>;
 	
 	guess: string = ""
 	target: string = ""
@@ -416,9 +368,12 @@ export class GameComponent implements OnDestroy {
 		effect(() => titleService.setTitle(route.routeConfig!.title! + " - " + this.game().title));
 		
 		const guessData = computed(() => getGuessCards(this.game(), this.thisParticipant()));
-		this.guessCards = linkedSignal<GuessCardData[], (GuessCardData | undefined)[]>({
+		this.guessCards = linkedSignal<GuessCardData[], RandomizedList<GuessCardData>>({
 			source: guessData,
-			computation: (guesses, previous) => updateGuessCards(previous?.value ?? [], guesses),
+			computation: (guesses, previous) => {
+				const old = previous?.value ?? new RandomizedList([], 3, 8);
+				return old.update(guesses);
+			},
 		});
 	}
 	
