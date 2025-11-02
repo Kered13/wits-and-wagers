@@ -1,6 +1,7 @@
 import { describe, expect, test, vi } from "vitest";
 
-import { IntermissionPhase, intermissionPhaseDefaultOptions, IntermissionPhaseOptions } from "./intermission-phase.js";
+import { IntermissionPhase, DEFAULT_INTERMISSION_PHASE_OPTIONS, IntermissionPhaseOptions } from "./intermission-phase.js";
+import { privateId, publicId } from "../player/player-id.js";
 import { BettingConclusion, SkippedBettingPhase } from "../../shared/game/intermission-phase.js";
 
 
@@ -8,7 +9,7 @@ function makeIntermissionPhase(outcome: SkippedBettingPhase | BettingConclusion,
 	return new IntermissionPhase(
 		{ question: "What is the answer?", answer: 42 },
 		outcome,
-		Object.assign({}, intermissionPhaseDefaultOptions, options));
+		Object.assign({}, DEFAULT_INTERMISSION_PHASE_OPTIONS, options));
 }
 
 
@@ -16,7 +17,7 @@ describe("IntermissionPhase", () => {
 	test("skippedBettingPhase toJson", () => {
 		const phase = makeIntermissionPhase({ type: "skipped" });
 		
-		expect(phase.toJson("")).to.deep.equal({
+		expect(phase.toJson(privateId("any"))).to.deep.equal({
 			phase: "intermission",
 			questionInfo: {
 				question: "What is the answer?",
@@ -31,15 +32,20 @@ describe("IntermissionPhase", () => {
 	test("bettingConclusion toJson", () => {
 		const phase = makeIntermissionPhase({
 			type: "conclusion",
-			winners: ["public-Alice"],
-			earnings: {
-				"public-Alice": 100,
-				"public-Bob": 200
+			players: {
+				winners: [publicId("public-Alice")],
+				earnings: {
+					[publicId("public-Alice")]: 100,
+					[publicId("public-Bob")]: 200,
+				},
 			},
-			spectatorEarnings: {},
+			spectators: {
+				winners: [],
+				earnings: {},
+			},
 		});
-
-		expect(phase.toJson("")).to.deep.equal({
+		
+		expect(phase.toJson(privateId("any"))).to.deep.equal({
 			phase: "intermission",
 			questionInfo: {
 				question: "What is the answer?",
@@ -47,12 +53,17 @@ describe("IntermissionPhase", () => {
 			},
 			outcome: {
 				type: "conclusion",
-				winners: ["public-Alice"],
-				earnings: {
-					"public-Alice": 100,
-					"public-Bob": 200
+				players: {
+					winners: ["public-Alice"],
+					earnings: {
+						"public-Alice": 100,
+						"public-Bob": 200
+					},
 				},
-				spectatorEarnings: {},
+				spectators: {
+					winners: [],
+					earnings: {},
+				},
 			}
 		});
 	});
