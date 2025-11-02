@@ -7,7 +7,21 @@
 
 .contents {
 	display: flex;
+	flex-direction: column;
 	gap: 20px;
+}
+
+.lobby-ids {
+	display: flex;
+	flex-direction: row;
+}
+
+.lobby-id {
+	width: 50%;
+	text-align: center;
+	
+	font-size: 18px;
+	font-weight: bold;
 }
 
 .player-column {

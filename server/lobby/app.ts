@@ -76,7 +76,8 @@ export class LobbyApp {
 		sub = lobby.onUpdates().subscribe({
 			next: () => {
 				timeout.refresh();
-				notifier.notifyClients(lobby.makeUpdate());
+				lobby.getParticipants().forEach(
+					player => notifier.notifyPlayer(player.privateId, lobby.makeUpdate(player.privateId)));
 			},
 			complete: () => {
 				clearTimeout(timeout);
@@ -202,7 +203,6 @@ export class LobbyApp {
 		notifier
 			.notifyPlayer(privateId, { type: "kicked" })
 			.closeAndRemovePlayer(privateId)
-			.notifyClients(data.lobby.makeUpdate());
 		res.end();
 	}
 	
@@ -291,7 +291,7 @@ export class LobbyApp {
 				// TODO: Verify that player is in lobby.
 				const { lobby, notifier } = this.getAnyLobby(lobbyId);
 				notifier.addClient(privateId, ws);
-				notifier.notifyClient(ws, lobby.makeUpdate());
+				notifier.notifyClient(ws, lobby.makeUpdate(privateId));
 				
 				ws.onClose(() => {
 					if (!notifier.hasClient(ws)) {

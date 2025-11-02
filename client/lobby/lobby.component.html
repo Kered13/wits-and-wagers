@@ -1,12 +1,20 @@
+@let lobby = lobbyState();
+
 <mat-card class="lobby">
 	<mat-card-header>
-		<h1>{{ lobby().title }}</h1>
+		<h1>{{ lobby.title }}</h1>
 	</mat-card-header>
 	<mat-card-content>
 		<div class="contents">
+			@if (lobby.hostInformation) {
+				<div class="lobby-ids">
+					<span class="lobby-id">Join: {{ lobby.hostInformation.lobbyId }}</span>
+					<span class="lobby-id">Spectate: {{lobby.hostInformation.spectatorId }}</span>
+				</div>
+			}
 			<div class="player-column">
 				<h3>Players</h3>
-				@for (player of lobby().players; track player.publicId) {
+				@for (player of lobby.players; track player.publicId) {
 					<div class="player">
 						@if (isThisPlayerHost()) {
 							<button
@@ -49,7 +57,7 @@
 									@for (color of COLORS; track $index) {
 										<color-button
 											[color]="color"
-											[disabled]="color !== player.color && !isColorAvailable(lobby().players, color)"
+											[disabled]="color !== player.color && !isColorAvailable(lobby.players, color)"
 											(click)="setColor(player.publicId, color); openColorPickers()[player.publicId] = false">
 										</color-button>
 									}
@@ -58,14 +66,14 @@
 						} @else {
 							<div class="color-box" [style.background-color]="player.color"></div>
 						}
-						<span>{{ player.name + (player.publicId === lobby().host ? " (host)" : "") }}</span>
+						<span>{{ player.name + (player.publicId === lobby.host ? " (host)" : "") }}</span>
 					</div>
 				}
 			</div>
-			@if (lobby().spectators.length > 0) {
+			@if (lobby.spectators.length > 0) {
 				<div class="player-column">
 					<h3>Spectators</h3>
-					@for (spectator of lobby().spectators; track spectator.publicId) {
+					@for (spectator of lobby.spectators; track spectator.publicId) {
 						<div class="player">
 							@if (isThisPlayerHost()) {
 								<button
@@ -86,7 +94,7 @@
 									<mat-icon>person</mat-icon>
 								</button>
 							}
-						<span>{{ spectator.name + (spectator.publicId === lobby().host ? " (host)" : "") }}</span>
+						<span>{{ spectator.name + (spectator.publicId === lobby.host ? " (host)" : "") }}</span>
 						</div>
 					}
 				</div>

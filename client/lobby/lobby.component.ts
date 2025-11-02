@@ -40,7 +40,7 @@ export class LobbyComponent implements OnDestroy {
 	
 	readonly COLORS = COLORS;
 	
-	readonly lobby: Signal<LobbyState>;
+	readonly lobbyState: Signal<LobbyState>;
 	readonly thisParticipant: Signal<PrivatePlayer>;
 	readonly openColorPickers: Signal<Record<PublicId, boolean>>;
 	
@@ -61,13 +61,13 @@ export class LobbyComponent implements OnDestroy {
 			.subscribe(([oldService, newService]) => this.onNewLobby(newService!, oldService));
 		
 		this.lobbyService = toSignal(instanceService, { requireSync: true });
-		this.lobby = toSignal(
+		this.lobbyState = toSignal(
 			instanceService.pipe(switchMap(service => service.get().onLobbyUpdate())),
 			{ initialValue: { title: "", host: "" as PublicId, players: [], spectators: [] } });
 		
-		this.openColorPickers = computed(() => Object.fromEntries(this.lobby().players.map(p => [p.publicId, false])));
+		this.openColorPickers = computed(() => Object.fromEntries(this.lobbyState().players.map(p => [p.publicId, false])));
 		
-		effect(() => titleService.setTitle(route.routeConfig!.title! + " - " + this.lobby().title));
+		effect(() => titleService.setTitle(route.routeConfig!.title! + " - " + this.lobbyState().title));
 	}
 	
 	private onNewLobby(newService: RefCounted<LobbyInstanceService>, oldService?: RefCounted<LobbyInstanceService>): void {
@@ -114,7 +114,7 @@ export class LobbyComponent implements OnDestroy {
 	}
 	
 	isHost(player: PublicId): boolean {
-		return player === this.lobby().host;
+		return player === this.lobbyState().host;
 	}
 	
 	isThisPlayerHost(): boolean {

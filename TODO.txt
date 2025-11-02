@@ -3,7 +3,6 @@
   * Make game ID distinct from lobby ID?
   * Support mixing question sets?
 * Implement desktop UI.
-  * Display lobby join code and spectator join code to host.
   * Add a better indication for when it is time to guess or bet.
   * Handle bet normalization.
   * Add instructions to the game.

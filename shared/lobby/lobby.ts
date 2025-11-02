@@ -1,4 +1,4 @@
-import { array, brand, nonEmpty, pipe, strictObject, string, type InferOutput } from "valibot";
+import { array, brand, nonEmpty, optional, pipe, strictObject, string, type InferOutput } from "valibot";
 
 import { PublicIdSchema } from "../player.js";
 import { RgbSchema } from "../rgb.js";
@@ -38,6 +38,11 @@ export const LobbyStateSchema = strictObject({
 	title: pipe(string(), nonEmpty()),
 	// Public ID of the host.
 	host: PublicIdSchema,
+	// Information provided only to the host.
+	hostInformation: optional(strictObject({
+		lobbyId: LobbyIdSchema,
+		spectatorId: LobbyIdSchema,
+	})),
 	// The public information of each player in the lobby.
 	players: array(LobbyPlayerSchema),
 	// The public information of each spectator in the lobby.

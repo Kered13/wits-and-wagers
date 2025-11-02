@@ -77,6 +77,10 @@ export class Lobby {
 		return player;
 	}
 	
+	public getParticipants(): Participant[] {
+		return [...this.players, ...this.spectators];
+	}
+	
 	public addPlayer(name: string, existingId?: PrivateId | PublicId): Player {
 		const existingPlayer = this.players.find(player => player.privateId === existingId || player.publicId === existingId);
 		const existingSpectator = this.spectators.find(player => player.privateId === existingId || player.publicId === existingId);
@@ -180,19 +184,21 @@ export class Lobby {
 		this.updates.complete();
 	}
 	
-	public toJson(): LobbyState {
+	public toJson(forPlayer: PrivateId): LobbyState {
+		const hostInfo = forPlayer === this.getHost().privateId ? { lobbyId: this.id, spectatorId: this.spectatorId } : undefined;
 		return {
 			title: this.options.title,
 			host: this.host.publicId,
+			hostInformation: hostInfo,
 			players: this.players.map(player => player.toLobbyJson()),
 			spectators: this.spectators.map(spectator => spectator.toLobbyJson()),
 		};
 	}
 	
-	public makeUpdate(): LobbyUpdate {
+	public makeUpdate(forPlayer: PrivateId): LobbyUpdate {
 		return {
 			type: "update",
-			state: this.toJson()
+			state: this.toJson(forPlayer)
 		};
 	}
 	
