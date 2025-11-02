@@ -225,6 +225,26 @@ describe("QuestionPhase", () => {
 		]);
 	});
 	
+	test("can withdraw guess", () => {
+		const alice = makePlayer("Alice");
+		const bob = makePlayer("Bob");
+		
+		const phase = makeQuestionPhase({
+			players: [alice, bob],
+		});
+		
+		phase.submitGuess(alice.privateId, 42);
+		expect(phase.getGuesses()).to.deep.equal([
+			new Map([[alice, 42]]),
+			new Map(),
+		]);
+		phase.submitGuess(alice.privateId);
+		expect(phase.getGuesses()).to.deep.equal([
+			new Map(),
+			new Map(),
+		]);
+	});
+	
 	test("all guesses submitted ends phase when option set", () => {
 		const alice = makePlayer("Alice");
 		const bob = makePlayer("Bob");

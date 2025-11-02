@@ -1,7 +1,7 @@
 import { Subject, type Observable } from "rxjs";
 
 import { type Phase } from "./phase.js";
-import { Player, Spectator } from "../player/player.js";
+import { Participant, Player, Spectator } from "../player/player.js";
 import { type PlayerManager } from "../player/player-manager.js";
 import { type QuestionPhaseState } from "../../shared/game/question-phase.js";
 import { type PrivateId } from "../../shared/player.js";
@@ -43,10 +43,10 @@ export class QuestionPhase implements Phase {
 		}
 	}
 	
-	public submitGuess(playerId: PrivateId, guess: number): void {
+	public submitGuess(playerId: PrivateId, guess?: number): void {
 		const player = this.playerManager.getPrivateParticipant(playerId);
 		if (player instanceof Player) {
-			this.guesses.set(player, guess);
+			this.doSubmitGuess(player, this.guesses, guess);
 			
 			// If every player has submitted a guess, end the phase.
 			const submittedPlayers = Array.from(this.guesses.keys());
@@ -55,7 +55,15 @@ export class QuestionPhase implements Phase {
 				this.endPhase();
 			}
 		} else {
-			this.specGuesses.set(player, guess);
+			this.doSubmitGuess(player, this.specGuesses, guess);
+		}
+	}
+	
+	private doSubmitGuess(player: Participant, guesses: Map<Participant, number>, guess?: number): void {
+		if (guess) {
+			guesses.set(player, guess);
+		} else {
+			guesses.delete(player);
 		}
 	}
 	
