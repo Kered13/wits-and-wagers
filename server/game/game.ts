@@ -16,6 +16,7 @@ import { type PrivateId } from "../../shared/player.js";
 import { type GameUpdate } from "../../shared/game/notifications.js";
 import { type BettingConclusion, type SkippedBettingPhase } from "../../shared/game/intermission-phase.js";
 import { type QuestionAnswerInfo } from "../../shared/game/question.js";
+import type { GuessOrWithdraw } from "../../shared/game/submit-guess.js";
 
 
 export class Game {
@@ -57,7 +58,7 @@ export class Game {
 		return spectator;
 	}
 	
-	public submitGuess(playerId: PrivateId, guess?: number): void {
+	public submitGuess(playerId: PrivateId, guess: GuessOrWithdraw): void {
 		if (this.round > this.options.numberOfRounds) {
 			throw new HttpError(400, "Game is over, cannot submit guesses.");
 		}

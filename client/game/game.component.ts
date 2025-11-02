@@ -31,9 +31,10 @@ import { RandomizedList } from "../utils/randomized-list.js";
 import { RefCounted } from "../utils/refcounted.js";
 import { PrivatePlayer, PublicId } from "../../shared/player.js";
 import { Bet, BetTarget, BettingPhaseState } from "../../shared/game/betting-phase.js";
-import { GameId, GameOverPhaseState, GamePlayer, GameState } from "../../shared/game/game.js";
+import { GameOverPhaseState, GamePlayer, GameState } from "../../shared/game/game.js";
 import { QuestionPhaseState } from "../../shared/game/question-phase.js";
 import { IntermissionPhaseState } from "../../shared/game/intermission-phase.js";
+import { GuessOrWithdraw } from "../../shared/game/submit-guess.js";
 
 
 @Directive({
@@ -289,8 +290,8 @@ function guessCardData(game: GameState, guess: number | boolean, player: PublicI
 export class GameComponent implements OnDestroy {
 	private readonly gameService: Signal<RefCounted<GameInstanceService>>;
 	private readonly subs: Subscription[] = [];
-	private guessDialog: MatDialogRef<GuessDialog> | undefined = undefined;
-	private wagerDialog: MatDialogRef<WagerDialog> | undefined = undefined;
+	private guessDialog: MatDialogRef<GuessDialog, GuessOrWithdraw> | undefined = undefined;
+	private wagerDialog: MatDialogRef<WagerDialog, number> | undefined = undefined;
 	private intermissionDialog: MatDialogRef<RoundEndDialog> | undefined = undefined;
 	
 	readonly game: Signal<GameState>;
@@ -462,7 +463,7 @@ export class GameComponent implements OnDestroy {
 		const rect = this.hostElement.nativeElement.querySelector(".board").getBoundingClientRect();
 		const top = rect.top + rect.height / 2 - 180 / 2;
 		this.guessDialog = this.dialog
-			.open<GuessDialog, GuessDialogData>(GuessDialog, {
+			.open<GuessDialog, GuessDialogData, GuessOrWithdraw>(GuessDialog, {
 				data: {
 					initialPosition: top,
 					currentGuess: currentGuess,
@@ -473,8 +474,11 @@ export class GameComponent implements OnDestroy {
 			});
 		this.guessDialog.afterClosed().subscribe(guess => {
 			if (guess !== undefined) {
+				// A return value of 0 indicates that the player wishes to
+				// withdraw their existing guess.
 				this.gameService().get().submitGuess(guess).subscribe();
 			}
+			this.guessDialog = undefined;
 		});
 	}
 	
@@ -499,6 +503,7 @@ export class GameComponent implements OnDestroy {
 			if (wager !== undefined) {
 				this.gameService().get().submitBet(target as BetTarget, wager).subscribe();
 			}
+			this.wagerDialog = undefined;
 		});
 	}
 	

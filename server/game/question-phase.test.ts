@@ -5,6 +5,7 @@ import { Player, Spectator } from "../player/player.js";
 import { QuestionAnswerInfo } from "../../shared/game/question.js";
 import { PlayerManager } from "../player/player-manager.js";
 import { privateId, publicId } from "../player/player-id.js";
+import { WITHDRAW } from "../../shared/game/submit-guess.js";
 
 
 function makePlayer(name: string): Player {
@@ -238,7 +239,7 @@ describe("QuestionPhase", () => {
 			new Map([[alice, 42]]),
 			new Map(),
 		]);
-		phase.submitGuess(alice.privateId);
+		phase.submitGuess(alice.privateId, WITHDRAW);
 		expect(phase.getGuesses()).to.deep.equal([
 			new Map(),
 			new Map(),

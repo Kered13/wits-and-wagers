@@ -6,6 +6,7 @@ import { type PlayerManager } from "../player/player-manager.js";
 import { type QuestionPhaseState } from "../../shared/game/question-phase.js";
 import { type PrivateId } from "../../shared/player.js";
 import { stripAnswer, type QuestionAnswerInfo } from "../../shared/game/question.js";
+import { WITHDRAW, type GuessOrWithdraw } from "../../shared/game/submit-guess.js";
 
 
 export type QuestionPhaseOptions = {
@@ -43,7 +44,7 @@ export class QuestionPhase implements Phase {
 		}
 	}
 	
-	public submitGuess(playerId: PrivateId, guess?: number): void {
+	public submitGuess(playerId: PrivateId, guess: GuessOrWithdraw): void {
 		const player = this.playerManager.getPrivateParticipant(playerId);
 		if (player instanceof Player) {
 			this.doSubmitGuess(player, this.guesses, guess);
@@ -59,11 +60,11 @@ export class QuestionPhase implements Phase {
 		}
 	}
 	
-	private doSubmitGuess(player: Participant, guesses: Map<Participant, number>, guess?: number): void {
-		if (guess) {
-			guesses.set(player, guess);
-		} else {
+	private doSubmitGuess(player: Participant, guesses: Map<Participant, number>, guess: GuessOrWithdraw): void {
+		if (guess === WITHDRAW) {
 			guesses.delete(player);
+		} else {
+			guesses.set(player, guess);
 		}
 	}
 	

@@ -1,6 +1,5 @@
 * Implement game.
   * Generate random lobby/game names.
-  * Allow withdrawing guesses? (Currently, new guesses override old.)
   * Do not allow host to kick themselves.
   * Make game ID distinct from lobby ID?
   * Support mixing question sets?

@@ -12,7 +12,7 @@ import { GAME_API_ROOT, type GameId, type GameState } from "../../shared/game/ga
 import { JOIN_SPECTATOR_PATH, type JoinSpectatorRequest, type JoinSpectatorResponse } from "../../shared/game/join-spectator.js";
 import { GameNotificationSchema, type GameNotification } from "../../shared/game/notifications.js";
 import { SUBMIT_BET_PATH, SubmitBetRequest } from "../../shared/game/submit-bet.js";
-import { SUBMIT_GUESS_PATH, SubmitGuessRequest } from "../../shared/game/submit-guess.js";
+import { GuessOrWithdraw, SUBMIT_GUESS_PATH, SubmitGuessRequest } from "../../shared/game/submit-guess.js";
 import { SUBSCRIBE_PATH, SubscribeRequest } from "../../shared/game/subscribe.js";
 import { PrivateId } from "../../shared/player.js";
 import { type WebSocketRequest } from "../../shared/websocket.interface.js";
@@ -101,7 +101,7 @@ export class GameInstanceService extends Closeable {
 		} satisfies WebSocketRequest<SubscribeRequest>);
 	}
 	
-	public submitGuess(guess: number): Observable<void> {
+	public submitGuess(guess: GuessOrWithdraw): Observable<void> {
 		return this.backend.postJson<SubmitGuessRequest, void>(GAME_API_ROOT + SUBMIT_GUESS_PATH, {
 			gameId: this.gameId,
 			requester: this.privateId,
