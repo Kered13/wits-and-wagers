@@ -20,7 +20,7 @@ import { type LobbyNotification } from "../../shared/lobby/notifications.js";
 import { SUBSCRIBE_PATH, SubscribeRequestSchema } from "../../shared/lobby/subscribe.js";
 import { SET_COLOR_PATH, SetColorRequestSchema } from "../../shared/lobby/set-color.js";
 import { type PrivateId } from "../../shared/player.js";
-import type { Subscription } from "rxjs";
+import { type Subscription } from "rxjs";
 
 
 const LOBBY_GARBAGE_COLLECTION_TIMEOUT_MS = 30*60*1000;
@@ -190,6 +190,10 @@ export class LobbyApp {
 		const { lobby, notifier } = data;
 		if (!lobby.isHost(requester)) {
 			throw new HttpError(403, "Only the lobby host may kick a player.");
+		}
+		
+		if (lobby.isHost(player)) {
+			throw new HttpError(400, "The host may not kick themselves from the lobby.");
 		}
 		
 		const privateId = lobby.getParticipant(player).privateId;

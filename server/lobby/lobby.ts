@@ -47,8 +47,8 @@ export class Lobby {
 		return this.spectatorId;
 	}
 	
-	public isHost(requester: PrivateId): boolean {
-		return requester === this.host.privateId;
+	public isHost(player: PrivateId | PublicId): boolean {
+		return player === this.host.privateId || player === this.host.publicId;
 	}
 	
 	public getHost(): PrivatePlayer {

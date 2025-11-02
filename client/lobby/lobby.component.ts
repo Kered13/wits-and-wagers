@@ -42,7 +42,6 @@ export class LobbyComponent implements OnDestroy {
 	
 	readonly lobby: Signal<LobbyState>;
 	readonly thisParticipant: Signal<PrivatePlayer>;
-	readonly isThisPlayerHost: Signal<boolean>;
 	readonly openColorPickers: Signal<Record<PublicId, boolean>>;
 	
 	isOpen: boolean = false;
@@ -66,7 +65,6 @@ export class LobbyComponent implements OnDestroy {
 			instanceService.pipe(switchMap(service => service.get().onLobbyUpdate())),
 			{ initialValue: { title: "", host: "" as PublicId, players: [], spectators: [] } });
 		
-		this.isThisPlayerHost = computed(() => this.thisParticipant().publicId === this.lobby().host);
 		this.openColorPickers = computed(() => Object.fromEntries(this.lobby().players.map(p => [p.publicId, false])));
 		
 		effect(() => titleService.setTitle(route.routeConfig!.title! + " - " + this.lobby().title));
@@ -113,6 +111,14 @@ export class LobbyComponent implements OnDestroy {
 	public ngOnDestroy(): void {
 		this.closeLobbyService(this.lobbyService());
 		this.instanceSub.unsubscribe();
+	}
+	
+	isHost(player: PublicId): boolean {
+		return player === this.lobby().host;
+	}
+	
+	isThisPlayerHost(): boolean {
+		return this.isHost(this.thisParticipant().publicId);
 	}
 	
 	moveToPlayers(player: PublicId): void {

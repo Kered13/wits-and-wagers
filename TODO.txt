@@ -1,6 +1,5 @@
 * Implement game.
   * Generate random lobby/game names.
-  * Do not allow host to kick themselves.
   * Make game ID distinct from lobby ID?
   * Support mixing question sets?
 * Implement desktop UI.
