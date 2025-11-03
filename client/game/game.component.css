@@ -13,7 +13,7 @@
 	border: 15px solid var(--board-secondary);
 	border-radius: 20px;
 	background: var(--board-primary);
-	padding: 0px 20px 20px 20px;
+	padding: 5px 20px 20px 20px;
 	
 	display: grid;
 	grid-template-columns: 3fr repeat(7, 5fr);
@@ -27,36 +27,43 @@
 	display: flex;
 	flex-direction: row;
 	grid-column: 1 / 9;
+	align-items: center;
 	
 	color: white;
 	font-size: 30px;
 }
 
 .round {
-	width: 50%;
-	padding-right: 6%;
+	width: 25%;
+	padding-left: 10%;
 	box-sizing: border-box;
 	
-	text-align: right;
+	text-align: left;
+}
+
+.phase {
+	width: 25%;
+	text-align: left;
 }
 
 .timer {
 	width: 50%;
+	padding-left: 30%;
+	box-sizing: border-box;
 	
 	display: flex;
 	align-items: center;
-	justify-content: center;
+	justify-content: left;
 }
 
 .timer-icon {
 	font-size: 30px;
 	height: 30px;
-	width: 20%;
-	text-align: right;
+	width: 30px;
+	text-align: center;
 }
 
 .timer-text {
-	width: 80%;
 	text-align: left;
 }
 

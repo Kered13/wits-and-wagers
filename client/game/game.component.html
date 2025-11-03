@@ -3,12 +3,13 @@
 <div class="board">
 	<div class="header">
 		@if (!isGameOverPhase(phase)) {
-			<span class="round">{{ getRound() }}</span>
 			<span class="timer"
 					[style.visibility]="roundTimer() !== undefined ? 'visible' : 'hidden'">
 				<mat-icon class="timer-icon">timer</mat-icon>
 				<span class="timer-text">{{ roundTimer() || "" }}</span>
 			</span>
+			<span class="round">{{ getRound() }}:</span>
+			<span class="phase">{{ getPhase() }}</span>
 		} @else {
 			<span class="game-over">Game Over!</span>
 		}

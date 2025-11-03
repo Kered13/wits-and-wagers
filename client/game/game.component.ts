@@ -604,12 +604,25 @@ export class GameComponent implements OnDestroy {
 		return getGuessForTarget(target, this.game());
 	}
 	
-	getRound() {
+	getRound(): string {
 		const game = this.game();
 		if (isGameOverPhase(game.phase)) {
 			return "Game Over";
 		}
 		return "Round " + game.round;
+	}
+	
+	getPhase(): string {
+		const phase = this.game().phase;
+		if (isQuestionPhase(phase)) {
+			return "Guess";
+		} else if (isBettingPhase(phase)) {
+			return "Bet";
+		} else if (isIntermissionPhase(phase)) {
+			return "Results";
+		} else {
+			return "";
+		}
 	}
 	
 	getQuestion(phase: PhaseState): string {
