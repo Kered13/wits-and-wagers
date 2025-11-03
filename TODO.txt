@@ -8,5 +8,4 @@
   * Provide better indication when a space is not playable?
   * Art pass (fonts, improved colors, etc.).
 * Implement mobile UI.
-* Implement game/lobby expiration.
 * Implement questions upload.

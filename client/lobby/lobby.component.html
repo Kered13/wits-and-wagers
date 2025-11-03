@@ -41,7 +41,7 @@
 									class="host-action-button"
 									#tooltip="matTooltip"
 									matTooltip="Change color"
-									(click)="openColorPickers()[player.publicId] = !openColorPickers()[player.publicId]"
+									(click)="toggleColorPicker(player)"
 									cdkOverlayOrigin
 									#trigger="cdkOverlayOrigin"
 									mat-mini-fab>
@@ -50,15 +50,15 @@
 							<ng-template
 									cdkConnectedOverlay
 									[cdkConnectedOverlayOrigin]="trigger"
-									[cdkConnectedOverlayOpen]="openColorPickers()[player.publicId]"
-									(overlayOutsideClick)="openColorPickers()[player.publicId] = false"
-									(detach)="openColorPickers()[player.publicId] = false">
+									[cdkConnectedOverlayOpen]="isColorPickerOpen(player)"
+									(overlayOutsideClick)="closeColorPicker(player)"
+									(detach)="closeColorPicker(player)">
 								<div class="color-picker">
 									@for (color of COLORS; track $index) {
 										<color-button
 											[color]="color"
 											[disabled]="color !== player.color && !isColorAvailable(lobby.players, color)"
-											(click)="setColor(player.publicId, color); openColorPickers()[player.publicId] = false">
+											(click)="setColor(player.publicId, color); closeColorPicker(player)">
 										</color-button>
 									}
 								</div>

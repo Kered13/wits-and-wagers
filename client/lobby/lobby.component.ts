@@ -1,5 +1,5 @@
 import { OverlayModule } from "@angular/cdk/overlay";
-import { ChangeDetectionStrategy, Component, computed, effect, Inject, OnDestroy, Signal } from "@angular/core";
+import { ChangeDetectionStrategy, Component, computed, effect, Inject, linkedSignal, OnDestroy, Signal } from "@angular/core";
 import { ReactiveFormsModule } from "@angular/forms";
 import { MatButton, MatMiniFabButton } from "@angular/material/button";
 import { MatCardModule } from "@angular/material/card";
@@ -52,7 +52,7 @@ export class LobbyComponent implements OnDestroy {
 	
 	readonly lobbyState: Signal<LobbyState>;
 	readonly thisParticipant: Signal<PrivatePlayer>;
-	readonly openColorPickers: Signal<Record<PublicId, boolean>>;
+	readonly colorPickerState: Signal<Record<PublicId, boolean>>;
 	
 	isOpen: boolean = false;
 	
@@ -75,7 +75,13 @@ export class LobbyComponent implements OnDestroy {
 			instanceService.pipe(switchMap(service => service.get().onLobbyUpdate())),
 			{ initialValue: { title: "", host: "" as PublicId, players: [], spectators: [] } });
 		
-		this.openColorPickers = computed(() => Object.fromEntries(this.lobbyState().players.map(p => [p.publicId, false])));
+		this.colorPickerState = linkedSignal({
+			source: this.lobbyState,
+			computation: (newState, previous) =>
+				Object.fromEntries(
+					newState.players.map(
+						p => [p.publicId, previous?.value[p.publicId] ?? false]))
+		});
 		
 		effect(() => titleService.setTitle(route.routeConfig!.title! + " - " + this.lobbyState().title));
 	}
@@ -165,5 +171,18 @@ export class LobbyComponent implements OnDestroy {
 	
 	isColorAvailable(players: LobbyPlayer[], color: Rgb): boolean {
 		return !players.some(p => p.color === color);
+	}
+	
+	isColorPickerOpen(player: LobbyPlayer): boolean {
+		return this.colorPickerState()[player.publicId];
+	}
+	
+	toggleColorPicker(player: LobbyPlayer): void {
+		const colorPickers = this.colorPickerState();
+		colorPickers[player.publicId] = !colorPickers[player.publicId];
+	}
+	
+	closeColorPicker(player: LobbyPlayer): void {
+		this.colorPickerState()[player.publicId] = false;
 	}
 }
