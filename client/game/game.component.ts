@@ -341,9 +341,9 @@ export class GameComponent implements OnDestroy {
 			},
 		};
 		const gameObs = instanceService.pipe(switchMap(service => service.get().onGameUpdate()));
-		this.subs.push(gameObs.subscribe({
-			next: (state) => {
-				this.onGameUpdate(state);
+		this.subs.push(gameObs.pipe(startWith(undefined), pairwise()).subscribe({
+			next: ([oldState, state]) => {
+				this.onGameUpdate(oldState, state!);
 			},
 			complete: () => {
 				// TODO: Would this be simpler if we react to GameOverPhase?
@@ -409,7 +409,11 @@ export class GameComponent implements OnDestroy {
 		newService.acquire();
 	}
 	
-	private onGameUpdate(state: GameState): void {
+	private onGameUpdate(oldState: GameState | undefined, state: GameState): void {
+		if (oldState && oldState.phase.phase !== state.phase.phase) {
+			this.closeHelpDialog();
+		}
+		
 		if (this.isQuestionPhase(state.phase)) {
 			if (this.shouldOpenGuessDialog(state, this.thisParticipant().publicId)) {
 				this.openGuessDialog();
