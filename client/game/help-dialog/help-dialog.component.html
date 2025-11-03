@@ -1,0 +1,50 @@
+<h1 mat-dialog-title>Instructions</h1>
+<div mat-dialog-content>
+	@if (data.phase === "question") {
+		<p>
+			Enter your best guess for the question above. Try to be closer than
+			all other players, without going over the correct answer.
+		</p>
+		<p>
+			When you are done submitting your guess, your card will appear on
+			the board. You may click this card to change or withdraw your guess.
+		</p>
+		<p>
+			Until the guessing closes, only you can see your own guess. When
+			other players have submitted their guesses, you will see their cards
+			face down on the board.
+		</p>
+	} @else if (data.phase === "betting") {
+		<p>
+			Place bets on which guess you believe is closest to the correct
+			answer, without going over.
+		</p>
+		<p>
+			You may bet on any player's guess, on all Red guesses, on all Black
+			guesses, or that all players have guessed too high. Different bets
+			have different payoffs, shown on the board. You may not be on
+			spaces that have no guess.
+		</p>
+		<p>
+			You may bet on up to 2 positions at a time. When you place a bet,
+			your chips will appear on that space. You can see other player's
+			bets, including how many chips you have wagered, when they place
+			them, and they can see your bet. You may click on your chips to
+			change your wager or withdraw your bet.
+		</p>
+		<p>
+			You have 2 chips that can never be lost, even if placed on a losing
+			space. If you bet on two spaces, then one of these chips will
+			automatically be included in each wager. If you bet on one space,
+			then both chips will be included in that wager. You should always
+			wager at least 2 chips on the board.
+		</p>
+		<p>
+			In addition to wagers, the player with the closest guess without
+			going over will receive bonus chips equal to the current round number.
+		</p>
+	}
+</div>
+<div mat-dialog-actions>
+	<button mat-raised-button mat-dialog-close>Close</button>
+</div>

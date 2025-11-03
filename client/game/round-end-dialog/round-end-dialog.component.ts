@@ -1,4 +1,4 @@
-import { Component, Inject } from "@angular/core";
+import { ChangeDetectionStrategy, Component, Inject } from "@angular/core";
 import { MatButtonModule } from "@angular/material/button";
 import { MAT_DIALOG_DATA, MatDialogModule } from "@angular/material/dialog";
 
@@ -17,7 +17,8 @@ export type RoundEndDialogData = {
 	selector: "round-end-dialog",
 	imports: [MatButtonModule, MatDialogModule],
 	templateUrl: "./round-end-dialog.component.html",
-	styleUrl: "./round-end-dialog.component.css"
+	styleUrl: "./round-end-dialog.component.css",
+	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RoundEndDialog {
 	readonly intermission: IntermissionPhaseState;

@@ -3,7 +3,6 @@
   * Make game ID distinct from lobby ID?
   * Support mixing question sets?
 * Implement desktop UI.
-  * Add instructions to the game.
   * Handle bet normalization.
   * Improve lobby UI.
   * Provide better indication when a space is not playable?

@@ -28,7 +28,17 @@ import { Rgb } from "../../shared/rgb.js";
 
 @Component({
 	selector: "app-lobby",
-	imports: [ColorButton, ReactiveFormsModule, MatButton, MatCardModule, MatIconModule, MatInputModule, MatMenuModule, MatMiniFabButton, MatTooltip, OverlayModule],
+	imports: [
+		ColorButton,
+		ReactiveFormsModule,
+		MatButton,
+		MatCardModule,
+		MatIconModule,
+		MatInputModule,
+		MatMenuModule,
+		MatMiniFabButton,
+		MatTooltip,
+		OverlayModule],
 	templateUrl: "./lobby.component.html",
 	styleUrl: "./lobby.component.scss",
 	changeDetection: ChangeDetectionStrategy.OnPush

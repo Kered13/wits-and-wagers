@@ -10,6 +10,12 @@
 			</span>
 			<span class="round">{{ getRound() }}:</span>
 			<span class="phase">{{ getPhase() }}</span>
+			<button class="help-button"
+					#tooltip="matTooltip"
+					matTooltip="Instructions"
+					(click)="help()">
+				<mat-icon class="help-icon">help_outline</mat-icon>
+			</button>
 		} @else {
 			<span class="game-over">Game Over!</span>
 		}

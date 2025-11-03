@@ -1,4 +1,4 @@
-import { Component } from "@angular/core";
+import { ChangeDetectionStrategy, Component } from "@angular/core";
 import { Ng2FittextModule } from "ng2-fittext";
 
 import { BaseWagerBox } from "./base-wager-box.component.js";
@@ -11,6 +11,7 @@ import { SpectatorChip } from "../spectator-chip/spectator-chip.component.js";
 	imports: [Ng2FittextModule, BettingChip, SpectatorChip],
 	templateUrl: "./base-wager-box.component.html",
 	styleUrl: "./base-wager-box.component.css",
+	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BettingBox extends BaseWagerBox {
 	override chipPositions() {

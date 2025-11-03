@@ -1,4 +1,4 @@
-import { Component, DOCUMENT, HostListener, Inject } from "@angular/core";
+import { ChangeDetectionStrategy, Component, DOCUMENT, HostListener, Inject } from "@angular/core";
 import { AbstractControl, FormControl, FormsModule, ReactiveFormsModule, ValidationErrors, Validators } from "@angular/forms";
 import { MatButtonModule } from "@angular/material/button";
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from "@angular/material/dialog";
@@ -33,7 +33,8 @@ export type GuessDialogData = {
 		ReactiveFormsModule,
 	],
 	templateUrl: "./guess-dialog.component.html",
-	styleUrl: "./guess-dialog.component.css"
+	styleUrl: "./guess-dialog.component.css",
+	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class GuessDialog {
 	readonly currentGuess: number | undefined;

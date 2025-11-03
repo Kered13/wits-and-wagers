@@ -1,4 +1,4 @@
-import { Component, HostListener, Inject, } from "@angular/core";
+import { ChangeDetectionStrategy, Component, HostListener, Inject, } from "@angular/core";
 import { AbstractControl, FormControl, FormsModule, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from "@angular/forms";
 import { MatButtonModule } from "@angular/material/button";
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from "@angular/material/dialog";
@@ -38,7 +38,8 @@ export type WagerDialogData = {
 		ReactiveFormsModule,
 	],
 	templateUrl: "./wager-dialog.component.html",
-	styleUrl: "./wager-dialog.component.css"
+	styleUrl: "./wager-dialog.component.css",
+	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class WagerDialog {
 	readonly wager = new FormControl("", Validators.required);
@@ -46,7 +47,7 @@ export class WagerDialog {
 	constructor(
 			private readonly dialogRef: MatDialogRef<WagerDialog>,
 			@Inject(MAT_DIALOG_DATA) readonly data: WagerDialogData) {
-		this.wager.addValidators(chipValidator(this.data.availableChips));
+		this.wager.addValidators(chipValidator(this.getAvailableChips()));
 		this.wager.setValue(this.data.existingWager?.toString() ?? "");
 	}
 	

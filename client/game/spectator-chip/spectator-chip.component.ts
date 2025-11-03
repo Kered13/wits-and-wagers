@@ -1,4 +1,4 @@
-import { Component, input } from "@angular/core";
+import { ChangeDetectionStrategy, Component, input } from "@angular/core";
 import { Ng2FittextModule } from "ng2-fittext";
 
 
@@ -7,6 +7,7 @@ import { Ng2FittextModule } from "ng2-fittext";
 	imports: [Ng2FittextModule],
 	templateUrl: "./spectator-chip.component.html",
 	styleUrls: ["./spectator-chip.component.css"],
+	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SpectatorChip {
 	readonly value = input.required<number>();

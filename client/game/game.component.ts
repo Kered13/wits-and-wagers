@@ -7,6 +7,7 @@ import { MatCardModule } from "@angular/material/card";
 import { MatDialog, MatDialogRef } from "@angular/material/dialog";
 import { MatIcon } from "@angular/material/icon";
 import { MatError, MatInputModule } from "@angular/material/input";
+import { MatTooltip } from "@angular/material/tooltip";
 import { Title } from "@angular/platform-browser";
 import { ActivatedRoute } from "@angular/router";
 import { parseIntSafe } from "complete-common";
@@ -16,6 +17,7 @@ import { GameInstanceService, GameService } from "./game.service.js";
 import { GameEndDialog } from "./game-end-dialog/game-end-dialog.component.js";
 import { GuessCard, GuessCardData } from "./guess-card/guess-card.component.js";
 import { GuessDialog, GuessDialogData } from "./guess-dialog/guess-dialog.component.js";
+import { HelpDialog, HelpDialogData } from "./help-dialog/help-dialog.component.js";
 import { ScoreBoard } from "./score-board/score-board.component.js";
 import { AllTooHighBox } from "./wager-box/all-too-high-box.component.js";
 import { BetData } from "./wager-box/base-wager-box.component.js";
@@ -274,6 +276,7 @@ function guessCardData(game: GameState, guess: number | boolean, player: PublicI
 		MatError,
 		MatIcon,
 		MatInputModule,
+		MatTooltip,
 		TargetValidator,
 		AllTooHighBox,
 		BettingBox,
@@ -292,6 +295,7 @@ export class GameComponent implements OnDestroy {
 	private readonly subs: Subscription[] = [];
 	private guessDialog: MatDialogRef<GuessDialog, GuessOrWithdraw> | undefined = undefined;
 	private wagerDialog: MatDialogRef<WagerDialog, number> | undefined = undefined;
+	private helpDialog: MatDialogRef<HelpDialog> | undefined = undefined;
 	private intermissionDialog: MatDialogRef<RoundEndDialog> | undefined = undefined;
 	
 	readonly game: Signal<GameState>;
@@ -450,6 +454,7 @@ export class GameComponent implements OnDestroy {
 		this.closeGuessDialog();
 		this.closeWagerDialog();
 		this.closeIntermissionDialog();
+		this.closeHelpDialog();
 		service.release();
 	}
 	
@@ -530,6 +535,25 @@ export class GameComponent implements OnDestroy {
 		if (this.intermissionDialog) {
 			this.intermissionDialog.close();
 			this.intermissionDialog = undefined;
+		}
+	}
+	
+	help(): void {
+		const phase = this.game().phase.phase;
+		if (phase === "question" || phase === "betting") {
+			this.helpDialog = this.dialog
+				.open<HelpDialog, HelpDialogData>(HelpDialog, {
+					data: {
+						phase: phase,
+					},
+				});
+		}
+	}
+	
+	private closeHelpDialog(): void {
+		if (this.helpDialog) {
+			this.helpDialog.close();
+			this.helpDialog = undefined;
 		}
 	}
 	

@@ -1,4 +1,4 @@
-import { Component, HostBinding, HostListener, input, output } from "@angular/core";
+import { ChangeDetectionStrategy, Component, HostBinding, HostListener, input, output } from "@angular/core";
 import { Ng2FittextModule } from "ng2-fittext";
 
 
@@ -16,6 +16,7 @@ export type GuessCardData = {
 	imports: [Ng2FittextModule],
 	templateUrl: "./guess-card.component.html",
 	styleUrl: "./guess-card.component.css",
+	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class GuessCard {
 	readonly data = input.required<GuessCardData>();

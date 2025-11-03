@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from "@angular/core";
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from "@angular/core";
 
 
 @Component({
@@ -6,6 +6,7 @@ import { Component, EventEmitter, Input, Output } from "@angular/core";
 	imports: [],
 	templateUrl: "./color-button.component.html",
 	styleUrl: "./color-button.component.scss",
+	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ColorButton {
 	@Input() color: string = "#000000";
