@@ -1,6 +1,5 @@
 @use "color-box.scss";
 
-
 .lobby {
 	width: 400px;
 }
@@ -8,7 +7,6 @@
 .contents {
 	display: flex;
 	flex-direction: column;
-	gap: 20px;
 }
 
 .lobby-ids {
@@ -24,6 +22,12 @@
 	font-weight: bold;
 }
 
+.participants {
+	display: flex;
+	flex-direction: row;
+	gap: 20px;
+}
+
 .player-column {
 	flex: 1;
 }
@@ -31,9 +35,22 @@
 .player {
 	display: flex;
 	align-items: center;
+	
+	height: 50px;
+}
+
+.color-box-container {
+	width: 40px;
+	height: 40px;
+	margin: 5px 5px 5px 0;
+	
+	align-content: center;
+	justify-content: center;
 }
 
 .host-action-button {
+	width: 40px;
+	height: 40px;
 	margin: 5px 5px 5px 0;
 }
 
@@ -49,4 +66,8 @@
 	margin: 0;
 	position: relative;
 	z-index: 0;
+}
+
+.lobby-actions {
+	gap: 10px;
 }
