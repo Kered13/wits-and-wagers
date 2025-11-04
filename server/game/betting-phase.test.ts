@@ -5,6 +5,7 @@ import { Player, Spectator } from "../player/player.js";
 import { privateId, publicId } from "../player/player-id.js";
 import { PlayerManager } from "../player/player-manager.js";
 import { type BettingPhaseState } from "../../shared/game/betting-phase.js";
+import { BettingResults } from "../../shared/game/intermission-phase.js";
 
 
 function makePlayer(name: string): Player {
@@ -372,7 +373,9 @@ describe("BettingPhase", () => {
 			
 			// Four-way tie. They will pay out 4x, 3x, 2x, 3x respectively.
 			const phase = makeBettingPhase({
-				guesses: [[alice, 42], [bob, 42], [charlie, 42], [derek, 42], [elizabeth, 52]]
+				guesses: [[alice, 42], [bob, 42], [charlie, 42], [derek, 42], [elizabeth, 52]],
+				answer: 50,
+				round: 5,
 			});
 			
 			// All bets should be normalized to 4x.
@@ -381,14 +384,18 @@ describe("BettingPhase", () => {
 			phase.submitBet(charlie.privateId, 3, 10);
 			phase.submitBet(derek.privateId, 4, 10);
 			
-			const expectedBets = [
-				{ player: "public-Alice", target: 1, wager: 10 },
-				{ player: "public-Bob", target: 1, wager: 10 },
-				{ player: "public-Charlie", target: 1, wager: 10 },
-				{ player: "public-Derek", target: 1, wager: 10 }
-			];
+			const expectedConclusion: BettingResults = {
+				winners: [alice.publicId, bob.publicId, charlie.publicId, derek.publicId],
+				earnings: {
+					[alice.publicId]: 5 + 5*10,
+					[bob.publicId]: 5 + 5*10,
+					[charlie.publicId]: 5 + 5*10,
+					[derek.publicId]: 5 + 5*10,
+					[elizabeth.publicId]: 0,
+				},
+			};
 			
-			expect(phase.toJson(alice.privateId).bets).to.have.deep.members(expectedBets);
+			expect(phase.resolve().players).to.deep.equal(expectedConclusion);
 		});
 		
 		test("normalized up", () => {
@@ -400,7 +407,9 @@ describe("BettingPhase", () => {
 			
 			// Four-way tie. They will pay out 3x, 2x, 3x, 4x respectively.
 			const phase = makeBettingPhase({
-				guesses: [[alice, 42], [bob, 52], [charlie, 52], [derek, 52], [elizabeth, 52]]
+				guesses: [[alice, 42], [bob, 52], [charlie, 52], [derek, 52], [elizabeth, 52]],
+				answer: 60,
+				round: 5,
 			});
 			
 			// All bets should be normalized to 4x.
@@ -409,14 +418,18 @@ describe("BettingPhase", () => {
 			phase.submitBet(charlie.privateId, 4, 10);
 			phase.submitBet(derek.privateId, 5, 10);
 			
-			const expectedBets = [
-				{ player: "public-Alice", target: 5, wager: 10 },
-				{ player: "public-Bob", target: 5, wager: 10 },
-				{ player: "public-Charlie", target: 5, wager: 10 },
-				{ player: "public-Derek", target: 5, wager: 10 },
-			];
+			const expectedConclusion: BettingResults = {
+				winners: [bob.publicId, charlie.publicId, derek.publicId, elizabeth.publicId],
+				earnings: {
+					[alice.publicId]: 5 * 10,
+					[bob.publicId]: 5 + 5 * 10,
+					[charlie.publicId]: 5 + 5 * 10,
+					[derek.publicId]: 5 + 5 * 10,
+					[elizabeth.publicId]: 5,
+				},
+			};
 			
-			expect(phase.toJson(alice.privateId).bets).to.have.deep.members(expectedBets);
+			expect(phase.resolve().players).to.deep.equal(expectedConclusion);
 		});
 	});
 	

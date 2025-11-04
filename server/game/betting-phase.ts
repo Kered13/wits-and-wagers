@@ -70,17 +70,6 @@ function payoutForTarget(target: BetTarget): number {
 }
 
 
-function payoutForBet(bet: Bet, bets: Bet[], winningTarget: BetTarget, winningColors: Set<String>): number {
-	const winningPayout = payoutForTarget(winningTarget);
-	const multiplier =
-		bet.target === winningTarget ? winningPayout :
-			(typeof (bet.target) === "string" && winningColors.has(bet.target)) ? 1 : -1;
-
-	// Players always get their reserved chip(s) back, at minimum.
-	return Math.max(reservedChipsFor(bet, bets), (multiplier + 1) * bet.wager);
-}
-
-
 // Returns the number of reserved chips a player should get for each of
 // their losing bets.
 function reservedChipsFor(bet: Bet, bets: Bet[]): number {
@@ -155,10 +144,6 @@ export class BettingPhase implements Phase {
 	}
 	
 	private doSubmitBet(player: Participant, bets: Bet[], target: BetTarget, wager: number): void {
-		// Normalize bet by moving it to the highest valued target with the same
-		// guess. This gives the player the best possible payout.
-		target = this.normalizeTarget(target);
-		
 		const existingBetIdx = bets.findIndex(bet => bet.player === player.publicId && bet.target === target);
 		const existingBet = existingBetIdx >= 0 ? bets[existingBetIdx]! : undefined;
 		this.validateWager(player, bets, wager, existingBet);
@@ -206,7 +191,7 @@ export class BettingPhase implements Phase {
 		// Payout all bets. Ties are handled by normalizing bets on submission,
 		// so they do not need to be handled here.
 		for (const bet of this.bets) {
-			const payout = payoutForBet(bet, this.bets, winningTarget, winningColors);
+			const payout = this.payoutForBet(bet, this.bets, winningTarget, winningColors);
 			
 			const player = this.playerManager.getPublicPlayer(bet.player);
 			player.chips += payout;
@@ -214,7 +199,7 @@ export class BettingPhase implements Phase {
 		}
 		
 		for (const bet of this.spectatorBets) {
-			const payout = payoutForBet(bet, this.spectatorBets, winningTarget, winningColors);
+			const payout = this.payoutForBet(bet, this.spectatorBets, winningTarget, winningColors);
 			
 			const player = this.playerManager.getPublicSpectator(bet.player);
 			player.chips += payout;
@@ -230,6 +215,19 @@ export class BettingPhase implements Phase {
 		this.addWinners(this.specGuesses, winningGuess?.guess ?? 0, conclusion.spectators);
 		
 		return conclusion;
+	}
+	
+	private payoutForBet(bet: Bet, bets: Bet[], winningTarget: BetTarget, winningColors: Set<String>): number {
+		// Normalize bet by moving it to the highest valued target with the same
+		// guess. This gives the player the best possible payout.
+		const target = this.normalizeTarget(bet.target);
+		const winningPayout = payoutForTarget(winningTarget);
+		const multiplier =
+			target === winningTarget ? winningPayout :
+				(typeof (target) === "string" && winningColors.has(target)) ? 1 : -1;
+
+		// Players always get their reserved chip(s) back, at minimum.
+		return Math.max(reservedChipsFor(bet, bets), (multiplier + 1) * bet.wager);
 	}
 	
 	private addWinners(guesses: GuessJson[], winningGuess: number, bettingResults: BettingResults) {
