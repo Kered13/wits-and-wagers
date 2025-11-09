@@ -20,7 +20,8 @@
 	grid-template-rows: 30px 70px 5fr 1fr 80px;
 	gap: 10px;
 	
-	zoom: 100%;
+	/* Scale the board to take up 80% of the screen. */
+	zoom: calc(min(80vw/950px, 80vh/650px, 1.5));
 }
 
 .header {

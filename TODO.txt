@@ -3,7 +3,6 @@
   * Make game ID distinct from lobby ID?
   * Support mixing question sets?
 * Implement desktop UI.
-  * Scale to fit window.
   * Provide better indication when a space is not playable?
   * Art pass (fonts, improved colors, etc.).
 * Implement mobile UI.
