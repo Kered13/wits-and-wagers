@@ -1,16 +1,23 @@
-import { type Rgb } from "./rgb.js";
+import { brand, parse, pipe, string, type InferOutput } from "valibot";
 
 
-export const BLACK: Rgb = "#1d1a06";
-export const GRAY: Rgb = "#b4b4b0";
-export const BROWN: Rgb = "#77362B";
-export const YELLOW: Rgb = "#f5e63d";
-export const PURPLE: Rgb = "#6953ac";
-export const PINK: Rgb = "#efa9b9";
-export const ORANGE: Rgb = "#fd9935";
-export const RED: Rgb = "#df0719";
-export const BLUE: Rgb = "#1cb0ca";
-export const GREEN: Rgb = "#37ae41";
+export const ColorSchema = pipe(
+	string(),
+	brand("Color"),
+);
+export type Color = InferOutput<typeof ColorSchema>;
+
+
+export const BLACK: Color = parse(ColorSchema, "#1d1a06");
+export const GRAY: Color = parse(ColorSchema, "#b4b4b0");
+export const BROWN: Color = parse(ColorSchema, "#77362B");
+export const YELLOW: Color = parse(ColorSchema, "#f5e63d");
+export const PURPLE: Color = parse(ColorSchema, "#6953ac");
+export const PINK: Color = parse(ColorSchema, "#efa9b9");
+export const ORANGE: Color = parse(ColorSchema, "#fd9935");
+export const RED: Color = parse(ColorSchema, "#df0719");
+export const BLUE: Color = parse(ColorSchema, "#1cb0ca");
+export const GREEN: Color = parse(ColorSchema, "#37ae41");
 
 
 export const COLORS = [

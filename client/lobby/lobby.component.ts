@@ -20,10 +20,9 @@ import { GlobalErrorHandler } from "../error-dialog/error-handler.js";
 import { RoutingService } from "../routes/routing.service.js";
 import { RefCounted } from "../utils/refcounted.js";
 import { LobbyRoute, TypedRouteFor } from "../routes/routes.js";
-import { COLORS } from "../../shared/color.js";
+import { Color, COLORS } from "../../shared/color.js";
 import { LobbyPlayer, LobbyState } from "../../shared/lobby/lobby.js";
 import { PrivatePlayer, PublicId } from "../../shared/player.js";
-import { Rgb } from "../../shared/rgb.js";
 
 
 @Component({
@@ -155,7 +154,7 @@ export class LobbyComponent implements OnDestroy {
 		}
 	}
 	
-	setColor(player: PublicId, color: Rgb): void {
+	setColor(player: PublicId, color: Color): void {
 		if (this.isThisPlayerHost() || player === this.thisParticipant().publicId) {
 			this.lobbyService().get().setColor(player, color).subscribe();
 		}
@@ -169,7 +168,7 @@ export class LobbyComponent implements OnDestroy {
 		this.lobbyService().get().cancelLobby().subscribe();
 	}
 	
-	isColorAvailable(players: LobbyPlayer[], color: Rgb): boolean {
+	isColorAvailable(players: LobbyPlayer[], color: Color): boolean {
 		return !players.some(p => p.color === color);
 	}
 	

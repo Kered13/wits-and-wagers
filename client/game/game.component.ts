@@ -31,6 +31,7 @@ import { GameRoute, TypedRouteFor } from "../routes/routes.js";
 import { RoutingService } from "../routes/routing.service.js";
 import { RandomizedList } from "../utils/randomized-list.js";
 import { RefCounted } from "../utils/refcounted.js";
+import { Color } from "../../shared/color.js";
 import { PrivatePlayer, PublicId } from "../../shared/player.js";
 import { Bet, BetTarget, BettingPhaseState } from "../../shared/game/betting-phase.js";
 import { GameOverPhaseState, GamePlayer, GameState } from "../../shared/game/game.js";
@@ -233,7 +234,7 @@ function nameForPlayer(game: GameState, publicId: PublicId): string {
 }
 
 
-function colorForPlayer(game: GameState, publicId: PublicId): string {
+function colorForPlayer(game: GameState, publicId: PublicId): Color {
 	return game.players.find(player => player.publicId === publicId)!.color;
 }
 

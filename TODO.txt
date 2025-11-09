@@ -1,4 +1,3 @@
-* Convert Rgb to branded Color type.
 * Implement game.
   * Generate random lobby/game names.
   * Make game ID distinct from lobby ID?

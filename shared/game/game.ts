@@ -3,8 +3,8 @@ import { array, brand, integer, literal, nonEmpty, number,  pipe, strictObject, 
 import { BettingPhaseStateSchema } from "./betting-phase.js";
 import { IntermissionPhaseStateSchema } from "./intermission-phase.js";
 import { QuestionPhaseStateSchema } from "./question-phase.js";
+import { ColorSchema } from "../color.js";
 import { PublicIdSchema } from "../player.js";
-import { RgbSchema } from "../rgb.js";
 
 
 export const GAME_API_ROOT = "/api/game";
@@ -20,7 +20,7 @@ export type GameId = InferOutput<typeof GameIdSchema>;
 export const GameSpectatorSchema = strictObject({
 	name: pipe(string(), nonEmpty()),
 	publicId: PublicIdSchema,
-	chips: pipe(number(), integer())
+	chips: pipe(number(), integer()),
 });
 export type GameSpectator = InferOutput<typeof GameSpectatorSchema>;
 
@@ -29,13 +29,13 @@ export type GameSpectator = InferOutput<typeof GameSpectatorSchema>;
 // information.
 export const GamePlayerSchema = strictObject({
 	...GameSpectatorSchema.entries,
-	color: RgbSchema
+	color: ColorSchema,
 });
 export type GamePlayer = InferOutput<typeof GamePlayerSchema>;
 
 
 export const GameOverPhaseStateSchema = strictObject({
-	phase: literal("game-over")
+	phase: literal("game-over"),
 });
 export type GameOverPhaseState = InferOutput<typeof GameOverPhaseStateSchema>;
 
@@ -53,6 +53,6 @@ export const GameStateSchema = strictObject({
 	// The current round number.
 	round: pipe(number(), integer()),
 	// The current phase of the round.
-	phase: variant("phase", [QuestionPhaseStateSchema, BettingPhaseStateSchema, IntermissionPhaseStateSchema, GameOverPhaseStateSchema])
+	phase: variant("phase", [QuestionPhaseStateSchema, BettingPhaseStateSchema, IntermissionPhaseStateSchema, GameOverPhaseStateSchema]),
 });
 export type GameState = InferOutput<typeof GameStateSchema>;

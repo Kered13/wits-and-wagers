@@ -3,14 +3,14 @@ import { MatIcon } from "@angular/material/icon";
 import { Ng2FittextModule } from "ng2-fittext";
 
 import { PublicId } from "../../../shared/player";
-import { Rgb } from "../../../shared/rgb";
+import { Color } from "../../../shared/color";
 
 
 export type PlayerScoreCard = {
 	name: string,
 	publicId: PublicId,
 	chips: number,
-	color?: Rgb,
+	color?: Color,
 }
 
 

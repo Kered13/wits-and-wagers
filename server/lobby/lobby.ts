@@ -7,12 +7,11 @@ import { Game } from "../game/game.js";
 import { type GameFactory } from "../game/game-factory.js";
 import { type Participant, Player, Spectator } from "../player/player.js";
 import { HttpError } from "../utils/httperror.js";
-import { COLORS } from "../../shared/color.js";
+import { COLORS, type Color } from "../../shared/color.js";
 import { GameIdSchema, type GameId } from "../../shared/game/game.js";
 import { type LobbyState, type LobbyId } from "../../shared/lobby/lobby.js";
 import { type LobbyBeginGame, type LobbyCanceled, type LobbyUpdate } from "../../shared/lobby/notifications.js";
 import { type PrivateId, type PrivatePlayer, type PublicId } from "../../shared/player.js";
-import { type Rgb } from "../../shared/rgb.js";
 
 
 export class Lobby {
@@ -131,7 +130,7 @@ export class Lobby {
 		this.doRemoveParticipant(this.spectators, id);
 	}
 	
-	public setPlayerColor(playerId: PrivateId | PublicId, color: Rgb): void {
+	public setPlayerColor(playerId: PrivateId | PublicId, color: Color): void {
 		if (!COLORS.includes(color)) {
 			throw new HttpError(400, `Color ${color} is not a valid color.`);
 		}
@@ -215,7 +214,7 @@ export class Lobby {
 		};
 	}
 	
-	private generateColor(): string {
+	private generateColor(): Color {
 		const usedColors = this.players.map(player => player.color);
 		const availableColors = COLORS.filter(color => !usedColors.includes(color));
 		

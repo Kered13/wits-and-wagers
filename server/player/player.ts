@@ -1,10 +1,10 @@
 import * as uuid from "uuid";
 
 import { privateId, publicId } from "./player-id.js";
+import { type Color } from "../../shared/color.js";
 import { type GamePlayer, type GameSpectator } from "../../shared/game/game.js";
 import { type LobbyPlayer, type LobbySpectator } from "../../shared/lobby/lobby.js";
 import { type PrivateId, type PrivatePlayer, type PublicId } from "../../shared/player.js";
-import { type Rgb } from "../../shared/rgb.js";
 
 
 export type ParticipantParams = {
@@ -21,7 +21,7 @@ export type SpectatorParams = ParticipantParams;
 
 // Constructor parameters for Player.
 export type PlayerParams = ParticipantParams & {
-	color: string
+	color: Color
 };
 
 
@@ -102,21 +102,21 @@ export class Spectator extends Participant {
 // Players are like Spectators but can submit guesses. They also have a color
 // assigned to them for UI purposes.
 export class Player extends Participant {
-	public color: Rgb;
+	public color: Color;
 	
 	constructor(player: PlayerParams) {
 		super(player);
 		this.color = player.color;
 	}
 	
-	static generate(name: string, color: Rgb): Player {
+	static generate(name: string, color: Color): Player {
 		return new Player({
 			...Participant.generateParams(name),
 			color: color,
 		});
 	}
 	
-	static fromSpectator(spectator: Spectator, color: Rgb): Player {
+	static fromSpectator(spectator: Spectator, color: Color): Player {
 		return new Player({
 			name: spectator.name,
 			publicId: spectator.publicId,

@@ -6,6 +6,7 @@ import { assert, is, safeParse } from "valibot";
 import { BackendService } from "../utils/backend.service.js";
 import { Closeable, RefCounted } from "../utils/refcounted.js";
 import { WebsocketError } from "../utils/websocket-error.js";
+import { Color } from "../../shared/color.js";
 import { GameId } from "../../shared/game/game.js";
 import { BEGIN_PATH, type BeginGameRequest } from "../../shared/lobby/begin.js";
 import { CANCEL_PATH, type CancelLobbyRequest } from "../../shared/lobby/cancel.js";
@@ -20,7 +21,6 @@ import { SUBSCRIBE_PATH, type SubscribeRequest } from "../../shared/lobby/subscr
 import { PrivateId, PublicId } from "../../shared/player.js";
 import { QUESTIONS_API_ROOT } from "../../shared/questions/questions.js";
 import { GET_QUESTION_SETS_PATH, GetQuestionSetsResponse } from "../../shared/questions/get-question-sets.js";
-import { Rgb } from "../../shared/rgb.js";
 import { WebSocketRequest } from "../../shared/websocket.interface.js";
 
 
@@ -154,7 +154,7 @@ export class LobbyInstanceService extends Closeable {
 		});
 	}
 	
-	public setColor(player: PublicId, color: Rgb): Observable<void> {
+	public setColor(player: PublicId, color: Color): Observable<void> {
 		return this.backend.postJson<SetColorRequest, void>(LOBBY_API_ROOT + SET_COLOR_PATH, {
 			lobbyId: this.lobbyId,
 			player: player,

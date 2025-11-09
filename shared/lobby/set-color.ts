@@ -1,8 +1,8 @@
 import { strictObject, union, type InferOutput } from "valibot";
 
 import { LobbyIdSchema } from "./lobby.js";
+import { ColorSchema } from "../color.js";
 import { PrivateIdSchema, PublicIdSchema } from "../player.js";
-import { RgbSchema } from "../rgb.js";
 
 
 export const SET_COLOR_PATH = "/setcolor";
@@ -15,7 +15,7 @@ export const SetColorRequestSchema = strictObject({
 	// PublicId of the player to set the color for.
 	player: PublicIdSchema,
 	// New color for the player.
-	color: RgbSchema,
+	color: ColorSchema,
 	// PrivateId of the requester. Must be the host or the the player.
 	requester: PrivateIdSchema,
 });

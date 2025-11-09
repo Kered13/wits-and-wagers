@@ -1,7 +1,7 @@
 import { array, brand, nonEmpty, optional, pipe, strictObject, string, type InferOutput } from "valibot";
 
+import { ColorSchema } from "../color.js";
 import { PublicIdSchema } from "../player.js";
-import { RgbSchema } from "../rgb.js";
 
 
 export const LOBBY_API_ROOT = "/api/lobby";
@@ -27,7 +27,7 @@ export const LobbyPlayerSchema = strictObject({
 	// Display name for the user. Not unique.
 	name: pipe(string(), nonEmpty()),
 	// The color for the user. Unique within a lobby or game.
-	color: RgbSchema
+	color: ColorSchema,
 });
 export type LobbyPlayer = InferOutput<typeof LobbyPlayerSchema>;
 
