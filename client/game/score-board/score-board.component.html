@@ -1,6 +1,6 @@
 @for (player of players(); track player.color) {
 	<div class="player">
-		<mat-icon class="icon" [style.color]="player.color">person</mat-icon>
+		<mat-icon class="icon" [style.color]="player.color ?? 'white'">{{ player.color ? "person" : "visibility" }}</mat-icon>
 		<span class="name">{{ player.name }}</span>
 		<span class="chips">${{ player.chips }}</span>
 	</div>

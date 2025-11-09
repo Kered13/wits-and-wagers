@@ -18,7 +18,7 @@ import { GameEndDialog } from "./game-end-dialog/game-end-dialog.component.js";
 import { GuessCard, GuessCardData } from "./guess-card/guess-card.component.js";
 import { GuessDialog, GuessDialogData } from "./guess-dialog/guess-dialog.component.js";
 import { HelpDialog, HelpDialogData } from "./help-dialog/help-dialog.component.js";
-import { ScoreBoard } from "./score-board/score-board.component.js";
+import { PlayerScoreCard, ScoreBoard } from "./score-board/score-board.component.js";
 import { AllTooHighBox } from "./wager-box/all-too-high-box.component.js";
 import { BetData } from "./wager-box/base-wager-box.component.js";
 import { BettingBox } from "./wager-box/wager-box.component.js";
@@ -669,6 +669,12 @@ export class GameComponent implements OnDestroy {
 			return "";
 		}
 		return "Source: " + source + (date ? ` (${date})` : "");
+	}
+	
+	getPlayersForScore(): PlayerScoreCard[] {
+		const game = this.game();
+		const spec = game.spectators.filter(s => s.publicId === this.thisParticipant().publicId);
+		return [...game.players, ...spec];
 	}
 	
 	getCardPosition(index: number): string {

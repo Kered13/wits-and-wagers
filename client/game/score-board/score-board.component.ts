@@ -2,7 +2,16 @@ import { ChangeDetectionStrategy, Component, input } from "@angular/core";
 import { MatIcon } from "@angular/material/icon";
 import { Ng2FittextModule } from "ng2-fittext";
 
-import { GamePlayer } from "../../../shared/game/game";
+import { PublicId } from "../../../shared/player";
+import { Rgb } from "../../../shared/rgb";
+
+
+export type PlayerScoreCard = {
+	name: string,
+	publicId: PublicId,
+	chips: number,
+	color?: Rgb,
+}
 
 
 @Component({
@@ -13,5 +22,5 @@ import { GamePlayer } from "../../../shared/game/game";
 	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ScoreBoard {
-	readonly players = input.required<GamePlayer[]>();
+	readonly players = input.required<PlayerScoreCard[]>();
 };
