@@ -1,12 +1,11 @@
 import { Overlay } from "@angular/cdk/overlay";
 import { ChangeDetectionStrategy, Component, computed, Directive, effect, ElementRef, Inject, input, Input, linkedSignal, OnDestroy, Signal, viewChild } from "@angular/core";
 import { toSignal } from "@angular/core/rxjs-interop";
-import { AbstractControl, FormsModule, NG_VALIDATORS, NgModel, ValidationErrors, Validator } from "@angular/forms";
-import { MatButton } from "@angular/material/button";
+import { FormsModule, NgModel } from "@angular/forms";
 import { MatCardModule } from "@angular/material/card";
 import { MatDialog, MatDialogRef } from "@angular/material/dialog";
 import { MatIcon } from "@angular/material/icon";
-import { MatError, MatInputModule } from "@angular/material/input";
+import { MatInputModule } from "@angular/material/input";
 import { MatTooltip } from "@angular/material/tooltip";
 import { Title } from "@angular/platform-browser";
 import { ActivatedRoute } from "@angular/router";
@@ -38,64 +37,6 @@ import { GameOverPhaseState, GamePlayer, GameState } from "../../shared/game/gam
 import { QuestionPhaseState } from "../../shared/game/question-phase.js";
 import { IntermissionPhaseState } from "../../shared/game/intermission-phase.js";
 import { GuessOrWithdraw } from "../../shared/game/submit-guess.js";
-
-
-@Directive({
-	selector: "[targetValidator]",
-	providers: [{ provide: NG_VALIDATORS, useExisting: TargetValidator, multi: true }]
-})
-export class TargetValidator implements Validator {
-	@Input({ alias: "targetValidator" }) numGuesses = 0;
-	
-	public validate(control: AbstractControl): ValidationErrors | null {
-		if (control.value === "AllTooHigh" || control.value === "Red" || control.value === "Black") {
-			return null;
-		}
-		const value = parseIntSafe(control.value);
-		if (value === undefined || value < 0 || value >= 7) {
-			return { "invalidTarget": true };
-		}
-		return null;
-	}
-}
-
-
-@Directive({
-	selector: "[guessValidator]",
-	providers: [{ provide: NG_VALIDATORS, useExisting: GuessValidator, multi: true }]
-})
-export class GuessValidator implements Validator {
-	public validate(control: AbstractControl): ValidationErrors | null {
-		const value = parseIntSafe(control.value);
-		if (value === undefined) {
-			return { "notAnInteger": true };
-		} else if (value <= 0) {
-			return { "mustBePositive": true };
-		}
-		return null;
-	}
-}
-
-
-@Directive({
-	selector: "[chipValidator]",
-	providers: [{ provide: NG_VALIDATORS, useExisting: ChipValidator, multi: true }]
-})
-export class ChipValidator {
-	readonly availableChips = input.required<number>({ alias: "chipValidator" });
-	
-	public validate(control: AbstractControl): ValidationErrors | null {
-		const value = parseIntSafe(control.value);
-		if (!value) {
-			return { "notAnInteger": true };
-		} else if (value < 0) {
-			return { "mustBePositive": true };
-		} else if (value > this.availableChips()) {
-			return { "insufficientChips": true };
-		}
-		return null;
-	}
-}
 
 
 type PhaseState = QuestionPhaseState
@@ -269,16 +210,11 @@ function guessCardData(game: GameState, guess: number | boolean, player: PublicI
 @Component({
 	selector: "app-game",
 	imports: [
-		ChipValidator,
 		FormsModule,
-		GuessValidator,
-		MatButton,
 		MatCardModule,
-		MatError,
 		MatIcon,
 		MatInputModule,
 		MatTooltip,
-		TargetValidator,
 		AllTooHighBox,
 		BettingBox,
 		ColorWagerBox,
@@ -689,10 +625,5 @@ export class GameComponent implements OnDestroy {
 			"translate(210px, -35px) rotate(5deg)",
 			"translate(20px, -175px) rotate(-5deg)",
 		][index];
-	}
-	
-	// TODO: Remove once dev UI is deleted.
-	tempGameString(): string {
-		return JSON.stringify(this.game(), null, 2)
 	}
 }

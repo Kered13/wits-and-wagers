@@ -4,6 +4,9 @@
 	--black-space: #222;
 	--red-space: red;
 	--green-space: darkgreen;
+	
+	/* Scale the board to take up 80% of the screen. */
+	zoom: calc(min(95cqw/(15px + 20px + 950px + 20px + 15px), 95cqh/(15px + 5px + 650px + 20px + 15px), 1.5));
 }
 
 .board {
@@ -19,9 +22,6 @@
 	grid-template-columns: 3fr repeat(7, 5fr);
 	grid-template-rows: 30px 70px 5fr 1fr 80px;
 	gap: 10px;
-	
-	/* Scale the board to take up 80% of the screen. */
-	zoom: calc(min(80vw/950px, 80vh/650px, 1.5));
 }
 
 .header {

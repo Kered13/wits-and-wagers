@@ -1,10 +1,8 @@
-<main>
-	<div class="main">
-		<div align="center">
-			<nav>
-				<a class="navbar" routerLink="/" routerLinkActive="active">Home</a>
-			</nav>
-			<router-outlet></router-outlet>
-		</div>
-	</div>
-</main>
+<div class="app-root">
+	<nav class="navbar">
+		<a routerLink="/" routerLinkActive="active">Home</a>
+	</nav>
+	<main class="main">
+		<router-outlet></router-outlet>
+	</main>
+</div>
