@@ -1,11 +1,5 @@
-:host {
-}
-
 :host.enabled {
 	cursor: pointer;
-}
-
-:host.enabled:hover {
 }
 
 .guess-card {

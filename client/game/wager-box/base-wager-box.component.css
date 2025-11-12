@@ -6,8 +6,10 @@
 	cursor: pointer;
 }
 
-:host.enabled:hover {
-	--current-bg-color: lch(from var(--bg-color) calc(l + 12) c h);
+@media (hover: hover) {
+	:host.enabled:hover {
+		--current-bg-color: lch(from var(--bg-color) calc(l + 12) c h);
+	}
 }
 
 .wager-box {
