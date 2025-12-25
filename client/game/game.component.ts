@@ -5,7 +5,7 @@ import { MatIcon } from "@angular/material/icon";
 import { MatInputModule } from "@angular/material/input";
 import { MatTooltip } from "@angular/material/tooltip";
 
-import { GamePresenter } from "./game.presenter.js";
+import { GamePresenter, GameView } from "./game.presenter.js";
 import { GuessCard, GuessCardData } from "./guess-card/guess-card.component.js";
 import { PlayerScoreCard, ScoreBoard } from "./score-board/score-board.component.js";
 import { AllTooHighBox } from "./wager-box/all-too-high-box.component.js";
@@ -37,10 +37,16 @@ import { BetTarget } from "../../shared/game/betting-phase.js";
 	styleUrl: "./game.component.css",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class GameComponent implements OnDestroy {
+export class GameComponent implements GameView, OnDestroy {
 	constructor(
-		private readonly presenter: GamePresenter,
-		private readonly hostElement: ElementRef) {}
+			private readonly presenter: GamePresenter,
+			private readonly hostElement: ElementRef) {
+		this.presenter.setView(this);
+	}
+	
+	public getHostElement(): ElementRef {
+		return this.hostElement;
+	}
 	
 	isGameOverPhase(): boolean {
 		return this.presenter.isGameOverPhase();
@@ -55,7 +61,7 @@ export class GameComponent implements OnDestroy {
 	}
 	
 	onHelpClick(): void {
-		this.presenter.openHelpDialog();
+		this.presenter.onHelpClick();
 	}
 	
 	public ngOnDestroy(): void {

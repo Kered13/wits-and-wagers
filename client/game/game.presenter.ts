@@ -1,5 +1,5 @@
 import { Overlay } from "@angular/cdk/overlay";
-import { computed, effect, Inject, Injectable, linkedSignal, Signal } from "@angular/core";
+import { computed, effect, ElementRef, Inject, Injectable, linkedSignal, Signal } from "@angular/core";
 import { toSignal } from "@angular/core/rxjs-interop";
 import { MatDialog, MatDialogRef } from "@angular/material/dialog";
 import { Title } from "@angular/platform-browser";
@@ -212,10 +212,16 @@ function guessCardData(game: GameState, guess: number | boolean, player: PublicI
 };
 
 
+export interface GameView {
+	getHostElement(): ElementRef;
+}
+
+
 @Injectable()
 export class GamePresenter {
 	private readonly gameService: Signal<RefCounted<GameInstanceService>>;
 	private readonly subs: Subscription[] = [];
+	private view: GameView | undefined = undefined;
 	private guessDialog: MatDialogRef<GuessDialog, GuessOrWithdraw> | undefined = undefined;
 	private wagerDialog: MatDialogRef<WagerDialog, number> | undefined = undefined;
 	private helpDialog: MatDialogRef<HelpDialog> | undefined = undefined;
@@ -301,6 +307,10 @@ export class GamePresenter {
 		});
 	}
 	
+	public setView(view: GameView): void {
+		this.view = view;
+	}
+	
 	public isQuestionPhase(): boolean {
 		return isQuestionPhase(this.game().phase);
 	}
@@ -368,12 +378,15 @@ export class GamePresenter {
 	}
 	
 	private openGuessDialog(currentGuess?: number): void {
-		// const rect = this.hostElement.nativeElement
-		// 	.querySelector(".board")
-		// 	.getBoundingClientRect();
+		if (!this.view) {
+			return;
+		}
+		const rect = this.view.getHostElement()
+			.nativeElement
+			.querySelector(".board")
+			.getBoundingClientRect();
 		// TODO: 180 is a hardcoded height. Try to do better than this.
-		// const top = rect.top + rect.height / 2 - 180 / 2;
-		const top = 300;
+		const top = rect.top + rect.height / 2 - 180 / 2;
 		this.guessDialog = this.dialog
 			.open<GuessDialog, GuessDialogData, GuessOrWithdraw>(GuessDialog, {
 				data: {
@@ -445,7 +458,7 @@ export class GamePresenter {
 		}
 	}
 	
-	public openHelpDialog(): void {
+	private openHelpDialog(): void {
 		const phase = this.game().phase.phase;
 		if (phase === "question" || phase === "betting") {
 			this.helpDialog = this.dialog
@@ -494,6 +507,10 @@ export class GamePresenter {
 			return;
 		}
 		this.openWagerDialog(game, phase, target);
+	}
+	
+	public onHelpClick(): void {
+		this.openHelpDialog();
 	}
 	
 	public shouldEnableBetTarget(target: BetTarget): boolean {
