@@ -5,7 +5,7 @@
 	--red-space: red;
 	--green-space: darkgreen;
 	
-	/* Scale the board to take up 80% of the screen. */
+	/* Scale the board to take up 95% of the screen. */
 	zoom: calc(min(95cqw/(15px + 20px + 950px + 20px + 15px), 95cqh/(15px + 5px + 650px + 20px + 15px), 1.5));
 }
 
