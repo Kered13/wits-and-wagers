@@ -1,14 +1,7 @@
 import { Directive, HostBinding, HostListener, input, linkedSignal, output, Signal } from "@angular/core";
 
-import { RandomizedList } from "../../utils/randomized-list";
-
-
-export type BetData = {
-	name: string;
-	value: number;
-	// If color is not provided, this is a spectator bet.
-	color?: string;
-};
+import { BetData } from "../../common/bet-data";
+import { RandomizedList } from "../../../utils/randomized-list";
 
 
 @Directive()

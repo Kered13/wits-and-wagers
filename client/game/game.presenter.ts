@@ -6,16 +6,16 @@ import { Title } from "@angular/platform-browser";
 import { ActivatedRoute } from "@angular/router";
 import { combineLatest, concat, delay, map, type Observable, of, pairwise, startWith, Subscription, switchMap, take } from "rxjs";
 
+import { BetData } from "./common/bet-data.js";
+import { GameEndDialog } from "./common/game-end-dialog/game-end-dialog.component.js";
+import { GuessCardData } from "./common/guess-card/guess-card.component.js";
+import { GuessDialog, GuessDialogData } from "./common/guess-dialog/guess-dialog.component.js";
+import { HelpDialog, HelpDialogData } from "./common/help-dialog/help-dialog.component.js";
+import { PlayerScoreData } from "./common/player-score-data.js";
+import { WagerDialog, WagerDialogData } from "./common/wager-dialog/wager-dialog.component.js";
 import { GameInstanceService, GameService } from "./game.service.js";
-import { GameEndDialog } from "./game-end-dialog/game-end-dialog.component.js";
-import { GuessCardData } from "./guess-card/guess-card.component.js";
-import { GuessDialog, GuessDialogData } from "./guess-dialog/guess-dialog.component.js";
-import { HelpDialog, HelpDialogData } from "./help-dialog/help-dialog.component.js";
-import { PlayerScoreCard } from "./score-board/score-board.component.js";
-import { BetData } from "./wager-box/base-wager-box.component.js";
-import { WagerDialog, WagerDialogData } from "./wager-dialog/wager-dialog.component.js";
 import { GlobalErrorHandler } from "../error-dialog/error-handler.js";
-import { RoundEndDialog, RoundEndDialogData } from "./round-end-dialog/round-end-dialog.component.js";
+import { RoundEndDialog, RoundEndDialogData } from "./common/round-end-dialog/round-end-dialog.component.js";
 import { GameRoute, TypedRouteFor } from "../routes/routes.js";
 import { RoutingService } from "../routes/routing.service.js";
 import { RandomizedList } from "../utils/randomized-list.js";
@@ -566,7 +566,7 @@ export class GamePresenter {
 		return "Source: " + source + (date ? ` (${date})` : "");
 	}
 	
-	public getPlayersForScore(): PlayerScoreCard[] {
+	public getPlayersForScore(): PlayerScoreData[] {
 		const game = this.game();
 		const spec = game.spectators.filter(s => s.publicId === this.thisParticipant().publicId);
 		return [...game.players, ...spec];

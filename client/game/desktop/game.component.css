@@ -1,0 +1,183 @@
+:host {
+	--board-primary: #266e26;
+	--board-secondary: darkgreen;
+	--black-space: #222;
+	--red-space: red;
+	--green-space: darkgreen;
+	
+	/* Scale the board to take up 95% of the screen. */
+	zoom: calc(min(95cqw/(15px + 20px + 950px + 20px + 15px), 95cqh/(15px + 5px + 650px + 20px + 15px), 1.5));
+}
+
+.board {
+	position: relative;
+	height: 650px;
+	width: 950px;
+	border: 15px solid var(--board-secondary);
+	border-radius: 20px;
+	background: var(--board-primary);
+	padding: 5px 20px 20px 20px;
+	
+	display: grid;
+	grid-template-columns: 3fr repeat(7, 5fr);
+	grid-template-rows: 30px 70px 5fr 1fr 80px;
+	gap: 10px;
+}
+
+.header {
+	display: flex;
+	flex-direction: row;
+	grid-column: 1 / 9;
+	align-items: center;
+	
+	color: white;
+	font-size: 30px;
+}
+
+.timer {
+	width: 50%;
+	padding-left: 35%;
+	box-sizing: border-box;
+	
+	display: flex;
+	align-items: center;
+	justify-content: left;
+}
+
+.timer-icon {
+	font-size: 30px;
+	height: 30px;
+	width: 30px;
+	text-align: center;
+}
+
+.timer-text {
+	text-align: left;
+}
+
+.round {
+	width: 20%;
+	padding-left: 5%;
+	box-sizing: border-box;
+	
+	text-align: left;
+}
+
+.phase {
+	width: 10%;
+	text-align: left;
+}
+
+.help-button {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	
+	background: none;
+	border: none;
+	cursor: pointer;
+}
+
+.help-icon {
+	width: 32px;
+	height: 32px;
+	color: white;
+	font-size: 32px;
+}
+
+.game-over {
+	width: 100%;
+	text-align: center;
+}
+
+.question-box {
+	grid-column: 1 / 9;
+	
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	
+	background: var(--board-secondary);
+	border-radius: 9px;
+}
+
+.question {
+	font-size: 20px;
+	color: white;
+}
+
+.source {
+	font-size: 14px;
+	color: gray
+}
+
+.all-too-high-text {
+	writing-mode: sideways-lr;
+	color: white;
+	font-size: 22px;
+	user-select: none;
+	
+	text-shadow:
+		1px 1px black,
+		1px -1px black,
+		-1px 1px black,
+		-1px -1px black;
+}
+
+.red-bet {
+	grid-column: 2 / 5;
+}
+
+.black-bet {
+	grid-column: 6 / 9;
+}
+
+.payoff {
+	font-size: 18pt;
+	color: white;
+	white-space: preserve;
+	user-select: none;
+	
+	display: flex;
+	align-items: center;
+	
+	text-shadow:
+		1px 1px black,
+		1px -1px black,
+		-1px 1px black,
+		-1px -1px black;
+}
+
+.payoff-to {
+	font-size: 14pt;
+	font-variant: petite-caps;
+}
+
+.score-board {
+	grid-column: 1 / 9;
+	
+	background: var(--green-space);
+	border-radius: 9px;
+}
+
+.guess-card {
+	align-self: center;
+	justify-self: center;
+}
+
+.guess-card2 {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+}
+
+.game-state {
+	background: #eee;
+	padding: 1rem;
+	font-family: monospace;
+	word-break: auto-phrase;
+	white-space: preserve nowrap;
+	text-align: start;
+	overflow-x: scroll;
+}
