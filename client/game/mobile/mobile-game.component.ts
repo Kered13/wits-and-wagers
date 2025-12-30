@@ -18,7 +18,7 @@ import { BetTarget } from "../../../shared/game/betting-phase.js";
 
 
 @Component({
-	selector: "desktop-game",
+	selector: "mobile-game",
 	imports: [
 		FormsModule,
 		MatCardModule,
@@ -34,11 +34,11 @@ import { BetTarget } from "../../../shared/game/betting-phase.js";
 		WagerBoxBottomText,
 	],
 	providers: [GamePresenter],
-	templateUrl: "./game.component.html",
-	styleUrl: "./game.component.css",
+	templateUrl: "./mobile-game.component.html",
+	styleUrl: "./mobile-game.component.css",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class DesktopGameComponent implements GameView, OnDestroy {
+export class MobileGameComponent implements GameView, OnDestroy {
 	constructor(
 			private readonly presenter: GamePresenter,
 			private readonly hostElement: ElementRef) {

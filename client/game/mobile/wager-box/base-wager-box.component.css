@@ -34,9 +34,9 @@
 
 .bottom-text {
 	position: absolute;
-	bottom: 1%;
-	left: 0%;
-	width: 100%;
+	right: 1%;
+	top: 0%;
+	height: 100%;
 	z-index: -1;
 	
 	display: flex;
