@@ -7,7 +7,7 @@ import { SpectatorChip } from "../../common/spectator-chip/spectator-chip.compon
 
 
 @Component({
-	selector: "color-wager-box",
+	selector: "mobile-color-wager-box",
 	imports: [Ng2FittextModule, BettingChip, SpectatorChip],
 	templateUrl: "./base-wager-box.component.html",
 	styleUrl: "./base-wager-box.component.css",
