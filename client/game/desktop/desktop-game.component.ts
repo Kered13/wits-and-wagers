@@ -9,10 +9,10 @@ import { ScoreBoard } from "./score-board/score-board.component.js";
 import { AllTooHighBox } from "./wager-box/all-too-high-box.component.js";
 import { BettingBox } from "./wager-box/wager-box.component.js";
 import { ColorWagerBox } from "./wager-box/color-wager-box.component.js";
-import { WagerBoxBgText, WagerBoxBottomText } from "./wager-box/wager-box-content.component.js";
 import { BetData } from "../common/bet-data.js";
 import { GuessCard, GuessCardData } from "../common/guess-card/guess-card.component.js";
 import { PlayerScoreData } from "../common/player-score-data.js";
+import { WagerBoxBgText, WagerBoxBottomText } from "../common/wager-box/wager-box-content.component.js";
 import { GamePresenter, GameView } from "../game.presenter.js";
 import { BetTarget } from "../../../shared/game/betting-phase.js";
 
