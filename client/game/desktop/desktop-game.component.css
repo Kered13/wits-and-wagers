@@ -37,20 +37,20 @@
 }
 
 .header {
-	display: flex;
-	flex-direction: row;
+	display: grid;
 	grid-area: HD;
 	align-items: center;
+	
+	grid-template:
+		".   T   R   P   H" /
+		 35% 20% 15% 10% 20%;
 	
 	color: white;
 	font-size: 30px;
 }
 
 .timer {
-	width: 50%;
-	padding-left: 35%;
-	box-sizing: border-box;
-	
+	grid-area: T;
 	display: flex;
 	align-items: center;
 	justify-content: left;
@@ -68,19 +68,17 @@
 }
 
 .round {
-	width: 20%;
-	padding-left: 5%;
-	box-sizing: border-box;
-	
+	grid-area: R;
 	text-align: left;
 }
 
 .phase {
-	width: 10%;
+	grid-area: P;
 	text-align: left;
 }
 
 .help-button {
+	grid-area: H;
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -98,7 +96,7 @@
 }
 
 .game-over {
-	width: 100%;
+	grid-column: 1 / span 5;
 	text-align: center;
 }
 
