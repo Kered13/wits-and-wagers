@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, ElementRef, OnDestroy } from "@angular/core";
+import { ChangeDetectionStrategy, Component, ElementRef, HostBinding, OnDestroy, Signal, viewChild } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { MatCardModule } from "@angular/material/card";
 import { MatIcon } from "@angular/material/icon";
@@ -39,10 +39,24 @@ import { BetTarget } from "../../../shared/game/betting-phase.js";
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class MobileGameComponent implements GameView, OnDestroy {
+	private board: Signal<ElementRef<HTMLElement>> = viewChild.required("board");
+	
 	constructor(
 			private readonly presenter: GamePresenter,
 			private readonly hostElement: ElementRef) {
 		this.presenter.setView(this);
+	}
+	
+	@HostBinding("style.--board-width")
+	get boardWidth(): string {
+		const width = this.board().nativeElement.offsetWidth;
+		return `${width}px`;
+	}
+	
+	@HostBinding("style.--board-height")
+	get boardHeight(): string {
+		const height = this.board().nativeElement.offsetHeight;
+		return `${height}px`;
 	}
 	
 	public getHostElement(): ElementRef {

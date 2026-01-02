@@ -6,39 +6,33 @@
 	--green-space: darkgreen;
 	
 	/* Scale the board to take up 95% of the screen. */
-	zoom: calc(min(95cqw/(15px + 20px + 510px + 20px + 15px), 95cqh/(15px + 5px + 1185px + 20px + 15px), 1.5));
+	zoom: calc(min(
+		95cqw/var(--board-width),
+		95cqh/var(--board-height),
+		1.5));
 }
 
 .board {
 	position: relative;
-	height: 1180px;
-	width: 470px;
 	border: 15px solid var(--board-secondary);
 	border-radius: 20px;
 	background: var(--board-primary);
 	padding: 5px 20px 20px 20px;
 	
 	display: grid;
-	/* grid-template:
-		"HD  HD  HD  HD  HD  HD  HD  HD" 30px
-		"QS  QS  QS  QS  QS  QS  QS  QS" 70px
-		"ATH G0  G1  G2  G3  G4  G5  G6" 5fr
-		".   RD  RD  RD  .   BK  BK  BK" 1fr
-		"SB  SB  SB  SB  SB  SB  SB  SB" 80px /
-		 3fr 5fr 5fr 5fr 5fr 5fr 5fr 5fr; */
 	grid-template:
 		"HD  HD" 30px
 		"QS  QS" 70px
-		"G6  BK" 5fr
-		"G5  BK" 5fr
-		"G4  BK" 5fr
-		"G3  . " 5fr
-		"G2  RD" 5fr
-		"G1  RD" 5fr
-		"G0  RD" 5fr
-		"ATH . " 4fr
+		"G6  BK" 115px
+		"G5  BK" 115px
+		"G4  BK" 115px
+		"G3  . " 115px
+		"G2  RD" 115px
+		"G1  RD" 115px
+		"G0  RD" 115px
+		"ATH . " 92px
 		"SB  SB" 80px /
-		 15fr 4fr;
+		 360px 96px;
 	gap: 10px;
 }
 
