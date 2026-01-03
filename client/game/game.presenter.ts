@@ -251,20 +251,6 @@ export class GamePresenter {
 		this.subs.push(instanceService.pipe(startWith(undefined), pairwise())
 			.subscribe(([oldService, newService]) => this.onNewGame(oldService, newService!)));
 		
-		const initialState: GameState = {
-			title: "",
-			host: "" as PublicId,
-			players: [],
-			spectators: [],
-			round: 0,
-			phase: {
-				phase: "question",
-				questionInfo: {
-					question: "",
-				},
-				guesses: {},
-			},
-		};
 		const gameObs = instanceService.pipe(switchMap(service => service.get().onGameUpdate()));
 		this.subs.push(gameObs.pipe(startWith(undefined), pairwise()).subscribe({
 			next: ([oldState, state]) => {
@@ -288,8 +274,22 @@ export class GamePresenter {
 					.subscribe(_ => this.routing.toHome());
 			}));
 		
-		this.gameService = toSignal(instanceService, { requireSync: true });
+		const initialState: GameState = {
+			title: "",
+			host: "" as PublicId,
+			players: [],
+			spectators: [],
+			round: 0,
+			phase: {
+				phase: "question",
+				questionInfo: {
+					question: "",
+				},
+				guesses: {},
+			},
+		};
 		this.game = toSignal(gameObs, { initialValue: initialState });
+		this.gameService = toSignal(instanceService, { requireSync: true });
 		
 		this.roundTimer = toSignal(
 			gameObs.pipe(switchMap(game => startRoundTimer(game.phase))),

@@ -1,6 +1,6 @@
 :host {
 	display: flex;
-	flex-direction: row;
+	flex-flow: row wrap;
 	justify-content: space-evenly;
 	align-items: center;
 }
@@ -9,22 +9,23 @@
 	display: flex;
 	flex-direction: column;
 	align-items: center;
+	padding: 5px;
 	
 	color: white;
 }
 
 .name {
-	font-size: 14px;
+	font-size: 24px;
 }
 
 .chips {
-	font-size: 16px;
+	font-size: 28px;
 }
 
 .icon {
-	width: 44px;
-	height: 44px;
-	font-size: 44px;
+	width: 60px;
+	height: 60px;
+	font-size: 60px;
 	
 	text-shadow:
 		1px 1px black,

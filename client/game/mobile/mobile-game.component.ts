@@ -4,6 +4,7 @@ import { MatCardModule } from "@angular/material/card";
 import { MatIcon } from "@angular/material/icon";
 import { MatInputModule } from "@angular/material/input";
 import { MatTooltip } from "@angular/material/tooltip";
+import { NgxMutationObserverDirective } from "ngx-mutation-observer";
 
 import { ScoreBoard } from "./score-board/score-board.component.js";
 import { AllTooHighBox } from "./wager-box/all-too-high-box.component.js";
@@ -25,6 +26,7 @@ import { BetTarget } from "../../../shared/game/betting-phase.js";
 		MatIcon,
 		MatInputModule,
 		MatTooltip,
+		NgxMutationObserverDirective,
 		AllTooHighBox,
 		BettingBox,
 		ColorWagerBox,
@@ -47,16 +49,19 @@ export class MobileGameComponent implements GameView, OnDestroy {
 		this.presenter.setView(this);
 	}
 	
-	@HostBinding("style.--board-width")
-	get boardWidth(): string {
-		const width = this.board().nativeElement.offsetWidth;
-		return `${width}px`;
+	ngAfterViewInit(): void {
+		this.updateBoardSize();
 	}
 	
-	@HostBinding("style.--board-height")
-	get boardHeight(): string {
+	onScoreboardResize(event: MutationRecord[]): void {
+		this.updateBoardSize();
+	}
+	
+	private updateBoardSize(): void {
+		const width = this.board().nativeElement.offsetWidth;
 		const height = this.board().nativeElement.offsetHeight;
-		return `${height}px`;
+		this.hostElement.nativeElement.style.setProperty("--board-width", `${width}px`);
+		this.hostElement.nativeElement.style.setProperty("--board-height", `${height}px`);
 	}
 	
 	public getHostElement(): ElementRef {

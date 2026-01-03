@@ -31,7 +31,7 @@
 		"G1  RD" 115px
 		"G0  RD" 115px
 		"ATH . " 92px
-		"SB  SB" 80px /
+		"SB  SB" auto /
 		 360px 96px;
 	gap: 10px;
 }
@@ -200,6 +200,7 @@
 
 .score-board {
 	grid-area: SB;
+	min-height: 133px;
 	
 	background: var(--green-space);
 	border-radius: 9px;

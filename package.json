@@ -36,6 +36,7 @@
     "express-ws": "^5.0.2",
     "multimap": "^1.1.0",
     "ng2-fittext": "^2.0.0",
+    "ngx-mutation-observer": "^2.2.0",
     "ngx-typed-router": "^1.2.0",
     "random": "^5.4.1",
     "rxjs": "~7.8.0",
