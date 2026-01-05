@@ -23,6 +23,16 @@ export class ScoreBoard {
 	readonly mobile = input(false, { transform: isDefined });
 	readonly players = input.required<PlayerScoreData[]>();
 	
+	@HostBinding("class.desktop")
+	private get desktopClass(): boolean {
+		return this.desktop();
+	}
+	
+	@HostBinding("class.mobile")
+	private get mobileClass(): boolean {
+		return this.mobile();
+	}
+	
 	maxFontSize(element: HTMLElement): number {
 		const strVal = element.computedStyleMap().get("--max-font-size")!.toString();
 		return parseInt(strVal);
