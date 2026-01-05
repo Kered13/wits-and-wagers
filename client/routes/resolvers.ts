@@ -42,7 +42,7 @@ export async function resolveLobby(route: TypedActivatedRouteSnapshot<HasPlayer,
 	}
 	
 	const idStr = localStorage.getItem(PRIVATE_ID);
-	const privateId = idStr !== undefined ? parse(PrivateIdSchema, idStr) : undefined;
+	const privateId = idStr !== null ? parse(PrivateIdSchema, idStr) : undefined;
 	const response = await firstValueFrom(lobbyService.joinLobby(lobbyId, username, privateId));
 	if ("player" in response) {
 		localStorage.setItem(PUBLIC_ID, response.player.publicId);

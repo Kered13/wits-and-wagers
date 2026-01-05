@@ -40,7 +40,7 @@ export class GuessCard {
 	}
 	
 	@HostListener("click")
-	private click(): void {
+	click(): void {
 		if (!this.disabled()) {
 			this.onClick.emit();
 		}

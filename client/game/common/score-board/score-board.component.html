@@ -1,0 +1,28 @@
+@for (player of players(); track player.color) {
+	<div class="player"
+			[class.desktop]="desktop()"
+			[class.mobile]="mobile()">
+		<mat-icon class="icon"
+				[class.desktop]="desktop()"
+				[class.mobile]="mobile()"
+				[style.color]="player.color ?? 'white'">
+			{{ player.color ? "person" : "visibility" }}
+		</mat-icon>
+		<span #name class="name"
+				[class.desktop]="desktop()"
+				[class.mobile]="mobile()"
+				[fittext]="true"
+				[modelToWatch]="player"
+				[maxFontSize]="maxFontSize(name)">
+			{{ player.name }}
+		</span>
+		<span #chips class="chips"
+				[class.desktop]="desktop()"
+				[class.mobile]="mobile()"
+				[fittext]="true"
+				[modelToWatch]="player"
+				[maxFontSize]="maxFontSize(chips)">
+			${{ player.chips }}
+		</span>
+	</div>
+}

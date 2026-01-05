@@ -126,7 +126,7 @@
 			(onClick)="onWagerBoxClick('Black')">
 		<wager-box-bg-text class="payoff">BLACK 1 <span class="payoff-to">to</span> 1</wager-box-bg-text>
 	</desktop-color-wager-box>
-	<score-board class="score-board"
+	<score-board desktop class="score-board"
 		[players]="getPlayersForScore()"
 		(onMutation)="onScoreboardResize($event)"
 		[mutationConfig]="{childList: true}" />
