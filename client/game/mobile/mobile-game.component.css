@@ -20,20 +20,42 @@
 	padding: 5px 20px 20px 20px;
 	
 	display: grid;
-	grid-template:
-		"HD  HD" 30px
-		"QS  QS" 70px
-		"G6  BK" 115px
-		"G5  BK" 115px
-		"G4  BK" 115px
-		"G3  . " 115px
-		"G2  RD" 115px
-		"G1  RD" 115px
-		"G0  RD" 115px
-		"ATH . " 92px
-		"SB  SB" auto /
-		 360px 96px;
 	gap: 10px;
+}
+
+@media (min-aspect-ratio: 1/2) {
+	.board {
+		grid-template:
+			"HD    HD    HD" 30px
+			"SB    QS    QS" 70px
+			"SB    G6    BK" 115px
+			"SB    G5    BK" 115px
+			"SB    G4    BK" 115px
+			"SB    G3    . " 115px
+			"SB    G2    RD" 115px
+			"SB    G1    RD" 115px
+			"SB    G0    RD" 115px
+			"SB    ATH   . " 92px /
+			110px 360px 96px;
+	}
+}
+
+@media (max-aspect-ratio: 1/2) {
+	.board {
+		grid-template:
+			"HD    HD" 30px
+			"QS    QS" 70px
+			"G6    BK" 115px
+			"G5    BK" 115px
+			"G4    BK" 115px
+			"G3    . " 115px
+			"G2    RD" 115px
+			"G1    RD" 115px
+			"G0    RD" 115px
+			"ATH   . " 92px
+			"SB    SB" auto /
+			360px 96px;
+	}
 }
 
 .header {

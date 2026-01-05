@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, ElementRef, OnDestroy, Signal, viewChild } from "@angular/core";
+import { ChangeDetectionStrategy, Component, ElementRef, HostListener, OnDestroy, Signal, viewChild } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { MatCardModule } from "@angular/material/card";
 import { MatIcon } from "@angular/material/icon";
@@ -47,6 +47,11 @@ export class DesktopGameComponent implements GameView, OnDestroy {
 			private readonly presenter: GamePresenter,
 			private readonly hostElement: ElementRef) {
 		this.presenter.setView(this);
+	}
+	
+	@HostListener("window:resize")
+	onResize(): void {
+		this.updateBoardSize();
 	}
 	
 	ngAfterViewInit(): void {
