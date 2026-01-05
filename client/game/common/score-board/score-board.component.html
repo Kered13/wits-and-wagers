@@ -3,12 +3,14 @@
 		<mat-icon class="icon" [style.color]="player.color ?? 'white'">
 			{{ player.color ? "person" : "visibility" }}
 		</mat-icon>
-		<span #name class="name"
-				[fittext]="true"
-				[modelToWatch]="player"
-				[maxFontSize]="maxFontSize(name)">
-			{{ player.name }}
-		</span>
+		<div #name class="name">
+			<span
+					[fittext]="true"
+					[modelToWatch]="player"
+					[maxFontSize]="maxFontSize(name)">
+				{{ player.name }}
+			</span>
+		</div>
 		<span #chips class="chips"
 				[fittext]="true"
 				[modelToWatch]="player"
