@@ -6,7 +6,6 @@ import { PlayerScoreData } from "../player-score-data.js";
 
 
 function isDefined(value: string | undefined): boolean {
-	console.log(`isDefined: value = ${value}, returning ${value !== undefined}`);
 	return value !== undefined;
 }
 
