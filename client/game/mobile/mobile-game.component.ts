@@ -4,6 +4,7 @@ import { MatCardModule } from "@angular/material/card";
 import { MatIcon } from "@angular/material/icon";
 import { MatInputModule } from "@angular/material/input";
 import { MatTooltip } from "@angular/material/tooltip";
+import { RouterLink, RouterLinkActive } from "@angular/router";
 import { NgxMutationObserverDirective } from "ngx-mutation-observer";
 
 import { AllTooHighBox } from "./wager-box/all-too-high-box.component.js";
@@ -27,6 +28,8 @@ import { BetTarget } from "../../../shared/game/betting-phase.js";
 		MatInputModule,
 		MatTooltip,
 		NgxMutationObserverDirective,
+		RouterLink,
+		RouterLinkActive,
 		AllTooHighBox,
 		BettingBox,
 		ColorWagerBox,

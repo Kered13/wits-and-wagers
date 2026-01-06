@@ -4,13 +4,10 @@
   * Support mixing question sets?
 * Implement desktop UI.
   * Add end phase button.
-  * Move Home button onto board.
   * Provide better indication when a space is not playable?
   * Art pass (fonts, improved colors, etc.).
 * Implement mobile UI.
   * Fix position and sizing of guess cards.
   * Fix position of wager chips.
-  * Fix size of help button.
   * Add end phase button.
-  * Move Home button onto board.
 * Implement questions upload.

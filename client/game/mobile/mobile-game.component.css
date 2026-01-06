@@ -26,7 +26,7 @@
 @media (min-aspect-ratio: 1/2) {
 	.board {
 		grid-template:
-			"HD    HD    HD" 30px
+			"HD    HD    HD" 40px
 			"SB    QS    QS" 70px
 			"SB    G6    BK" 115px
 			"SB    G5    BK" 115px
@@ -43,7 +43,7 @@
 @media (max-aspect-ratio: 1/2) {
 	.board {
 		grid-template:
-			"HD    HD" 30px
+			"HD    HD" 40px
 			"QS    QS" 70px
 			"G6    BK" 115px
 			"G5    BK" 115px
@@ -65,24 +65,47 @@
 	align-items: center;
 	
 	grid-template:
-		".   T   R   P   H" /
-		 0%  30% 30% 20% 20%;
+		"HOME  ROUND TIMER  HELP" /
+		 13%   54%   22%    11%;
 	
 	color: white;
-	font-size: 30px;
+	font-size: 35px;
+	
+	margin-left: -15px;
+	margin-right: -15px;
+}
+
+.home-button {
+	grid-area: HOME;
+	display: flex;
+	align-items: center;
+	justify-content: left;
+}
+
+.home-icon {
+	width: 50px;
+	height: 50px;
+	font-size: 50px;
+	color: white;
+}
+
+.round {
+	grid-area: ROUND;
+	text-align: left;
+	white-space-collapse: preserve;
 }
 
 .timer {
-	grid-area: T;
+	grid-area: TIMER;
 	display: flex;
 	align-items: center;
 	justify-content: left;
 }
 
 .timer-icon {
-	font-size: 30px;
-	height: 30px;
-	width: 30px;
+	font-size: 40px;
+	height: 40px;
+	width: 40px;
 	text-align: center;
 }
 
@@ -90,32 +113,23 @@
 	text-align: left;
 }
 
-.round {
-	grid-area: R;
-	text-align: left;
-}
-
-.phase {
-	grid-area: P;
-	text-align: left;
-}
-
 .help-button {
-	grid-area: H;
+	grid-area: HELP;
 	display: flex;
 	align-items: center;
-	justify-content: center;
+	justify-content: right;
 	
 	background: none;
 	border: none;
 	cursor: pointer;
+	padding: 0px;
 }
 
 .help-icon {
-	width: 32px;
-	height: 32px;
+	width: 50px;
+	height: 50px;
+	font-size: 50px;
 	color: white;
-	font-size: 32px;
 }
 
 .game-over {

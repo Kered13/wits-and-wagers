@@ -4,7 +4,7 @@ import { RouterOutlet, RouterLink, RouterLinkActive } from "@angular/router";
 
 @Component({
 	selector: "app-root",
-	imports: [RouterOutlet, RouterOutlet, RouterLink, RouterLinkActive],
+	imports: [RouterOutlet],
 	templateUrl: "./root.component.html",
 	styleUrl: "./root.component.css",
 	changeDetection: ChangeDetectionStrategy.OnPush

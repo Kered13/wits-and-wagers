@@ -36,15 +36,34 @@
 	align-items: center;
 	
 	grid-template:
-		".   T   R   P   H" /
-		 35% 20% 15% 10% 20%;
+		"HOME  ROUND TIMER HELP" /
+		 25%   40%   25%   10%;
 	
 	color: white;
 	font-size: 30px;
 }
 
+.home-button {
+	grid-area: HOME;
+	display: flex;
+	align-items: center;
+	justify-content: left;
+}
+
+.home-icon {
+	width: 32px;
+	height: 32px;
+	font-size: 32px;
+	color: white;
+}
+
+.round {
+	grid-area: ROUND;
+	text-align: left;
+}
+
 .timer {
-	grid-area: T;
+	grid-area: TIMER;
 	display: flex;
 	align-items: center;
 	justify-content: left;
@@ -61,21 +80,11 @@
 	text-align: left;
 }
 
-.round {
-	grid-area: R;
-	text-align: left;
-}
-
-.phase {
-	grid-area: P;
-	text-align: left;
-}
-
 .help-button {
-	grid-area: H;
+	grid-area: HELP;
 	display: flex;
 	align-items: center;
-	justify-content: center;
+	justify-content: right;
 	
 	background: none;
 	border: none;
@@ -90,7 +99,7 @@
 }
 
 .game-over {
-	grid-column: 1 / span 5;
+	grid-column: 2 / span 3;
 	text-align: center;
 }
 

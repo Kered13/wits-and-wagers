@@ -1,28 +1,8 @@
-.app-root {
+.main {
 	height: 100vh;
 	width: 100vw;
 	/* Prevent the vertical scroll bar from causing horizontal overflow. */
 	max-width: 100%;
-	
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-}
-
-.navbar {
-	font-size: 24px;
-	margin: 10px;
-}
-
-.navbar a {
-	color: white;
-}
-
-.main {
-	flex-grow: 1;
-	flex-shrink: 0;
-	
-	width: 100%;
 	
 	/* TODO: There is some kind of fuckery going on here.
 	         Check that resizing is working correctly. */
@@ -31,4 +11,5 @@
 	display: flex;
 	flex-direction: column;
 	align-items: center;
+	justify-content: center;
 }
