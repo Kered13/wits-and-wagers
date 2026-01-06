@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, ElementRef, HostBinding, HostListener, OnDestroy, Signal, viewChild } from "@angular/core";
+import { ChangeDetectionStrategy, Component, ElementRef, HostListener, OnDestroy, Signal, viewChild } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { MatCardModule } from "@angular/material/card";
 import { MatIcon } from "@angular/material/icon";
@@ -65,6 +65,10 @@ export class MobileGameComponent implements GameView, OnDestroy {
 		this.updateBoardSize();
 	}
 	
+	public ngOnDestroy(): void {
+		this.presenter.destroy();
+	}
+	
 	private updateBoardSize(): void {
 		const width = this.board().nativeElement.offsetWidth;
 		const height = this.board().nativeElement.offsetHeight;
@@ -80,6 +84,10 @@ export class MobileGameComponent implements GameView, OnDestroy {
 		return this.presenter.isGameOverPhase();
 	}
 	
+	isHost(): boolean {
+		return this.presenter.isHost();
+	}
+	
 	roundTimer(): number | undefined {
 		return this.presenter.roundTimer();
 	}
@@ -88,17 +96,12 @@ export class MobileGameComponent implements GameView, OnDestroy {
 		return this.presenter.guessCards();
 	}
 	
+	onSkipPhaseClick(): void {
+		this.presenter.onSkipPhaseClick();
+	}
+	
 	onHelpClick(): void {
 		this.presenter.onHelpClick();
-	}
-	
-	public ngOnDestroy(): void {
-		this.presenter.destroy();
-	}
-	
-	// TODO: Restore UI button.
-	onEndPhase(): void {
-		// this.gameService().get().endPhase().subscribe();
 	}
 	
 	onGuessCardClick(): void {

@@ -60,16 +60,15 @@
 
 .header {
 	display: grid;
-	flex-direction: row;
 	grid-area: HD;
-	align-items: center;
+	align-items: start;
 	
 	grid-template:
 		"HOME  ROUND TIMER  HELP" /
 		 13%   54%   22%    11%;
 	
 	color: white;
-	font-size: 35px;
+	font-size: 36px;
 	
 	margin-left: -15px;
 	margin-right: -15px;
@@ -94,8 +93,41 @@
 
 .round {
 	grid-area: ROUND;
-	text-align: left;
-	white-space-collapse: preserve;
+	
+	display: flex;
+	align-items: center;
+	justify-content: left;
+}
+
+.skip-button {
+	background: unset;
+	color: unset;
+	border: unset;
+	padding: unset;
+	font: unset;
+	
+	cursor: pointer;
+	
+	display: flex;
+	align-items: center;
+	justify-content: left;
+}
+
+.skip-span {
+	margin-left: 12px;
+}
+
+.skip-icon {
+	font-size: 40px;
+	height: 40px;
+	width: 40px;
+	text-align: center;
+}
+
+@media (max-aspect-ratio: 1/2) {
+	.skip-icon {
+		display: none;
+	}
 }
 
 .timer {
@@ -106,14 +138,10 @@
 }
 
 .timer-icon {
-	font-size: 40px;
-	height: 40px;
-	width: 40px;
+	font-size: 36px;
+	height: 36px;
+	width: 36px;
 	text-align: center;
-}
-
-.timer-text {
-	text-align: left;
 }
 
 .help-span {

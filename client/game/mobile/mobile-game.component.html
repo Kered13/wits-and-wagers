@@ -10,12 +10,22 @@
 			</a>
 		</span>
 		@if (!isGameOverPhase()) {
+			<span class="round">
+				{{ getRound() }}:
+				@if (isHost()) {
+					<button class="skip-span skip-button" (click)="onSkipPhaseClick()">
+						{{ getPhase() }}
+						<mat-icon class="skip-icon">skip_next</mat-icon>
+					</button>
+				} @else {
+					<span class="skip-span">{{ getPhase() }}</span>
+				}
+			</span>
 			<span class="timer"
 					[style.visibility]="roundTimer() !== undefined ? 'visible' : 'hidden'">
 				<mat-icon class="timer-icon">timer</mat-icon>
-				<span class="timer-text">{{ roundTimer() || "" }}</span>
+				{{ roundTimer() || "" }}
 			</span>
-			<span class="round">{{ getRound() }}:&ensp;{{ getPhase() }}</span>
 			<span class="help-span">
 				<button class="help-button"
 						#tooltip="matTooltip"
@@ -32,7 +42,8 @@
 		<span class="question">{{ getQuestion() }}</span>
 		<span class="source">{{ getSource() }}</span>
 	</div>
-	<mobile-all-too-high-box class="all-too-high-box"
+	<mobile-all-too-high-box
+			class="all-too-high-box"
 			color="var(--green-space)"
 			[disabled]="!shouldEnableBetTarget('AllTooHigh')"
 			[bets]="getBetsOnTarget('AllTooHigh')"

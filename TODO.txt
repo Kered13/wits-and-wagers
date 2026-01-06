@@ -3,11 +3,10 @@
   * Make game ID distinct from lobby ID?
   * Support mixing question sets?
 * Implement desktop UI.
-  * Add end phase button.
   * Provide better indication when a space is not playable?
   * Art pass (fonts, improved colors, etc.).
 * Implement mobile UI.
   * Fix position and sizing of guess cards.
   * Fix position of wager chips.
-  * Add end phase button.
+  * Implement automatic UI switcher.
 * Implement questions upload.

@@ -33,7 +33,7 @@
 .header {
 	display: grid;
 	grid-area: HD;
-	align-items: center;
+	align-items: start;
 	
 	grid-template:
 		"HOME  ROUND TIMER HELP" /
@@ -55,18 +55,51 @@
 }
 
 .home-icon {
-	width: 32px;
-	height: 32px;
-	font-size: 32px;
+	width: 40px;
+	height: 40px;
+	font-size: 40px;
 }
 
 .round {
 	grid-area: ROUND;
-	text-align: left;
+	
+	height: 40px;
+	
+	display: flex;
+	align-items: center;
+	justify-content: left;
+}
+
+.skip-button {
+	background: unset;
+	color: unset;
+	border: unset;
+	padding: unset;
+	font: unset;
+	
+	cursor: pointer;
+	
+	display: flex;
+	align-items: center;
+	justify-content: left;
+}
+
+.skip-span {
+	margin-left: 12px;
+}
+
+.skip-icon {
+	font-size: 40px;
+	height: 40px;
+	width: 40px;
+	text-align: center;
 }
 
 .timer {
 	grid-area: TIMER;
+	
+	height: 40px;
+	
 	display: flex;
 	align-items: center;
 	justify-content: left;
@@ -79,10 +112,6 @@
 	text-align: center;
 }
 
-.timer-text {
-	text-align: left;
-}
-
 .help-span {
 	grid-area: HELP;
 	display: flex;
@@ -92,17 +121,17 @@
 
 .help-button {
 	background: unset;
-	color: unset;
 	border: unset;
+	color: unset;
 	padding: unset;
 	
 	cursor: pointer;
 }
 
 .help-icon {
-	width: 32px;
-	height: 32px;
-	font-size: 32px;
+	width: 38px;
+	height: 38px;
+	font-size: 38px;
 }
 
 .game-over {
@@ -138,8 +167,6 @@
 }
 
 .all-too-high-text {
-	grid-area: ATH;
-	
 	writing-mode: sideways-lr;
 	color: white;
 	font-size: 22px;

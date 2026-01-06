@@ -327,6 +327,10 @@ export class GamePresenter {
 		return isGameOverPhase(this.game().phase);
 	}
 	
+	public isHost(): boolean {
+		return this.game().host === this.thisParticipant().publicId;
+	}
+	
 	public guessCards(): (GuessCardData | undefined)[] {
 		return this.guessCardsList().entries();
 	}
@@ -484,8 +488,10 @@ export class GamePresenter {
 		}
 	}
 	
-	public onEndPhase(): void {
-		this.gameService().get().endPhase().subscribe();
+	public onSkipPhaseClick(): void {
+		if (this.isHost()) {
+			this.gameService().get().endPhase().subscribe();
+		}
 	}
 	
 	public onGuessCardClick(): void {
@@ -540,7 +546,7 @@ export class GamePresenter {
 		} else if (isBettingPhase(phase)) {
 			return "Bet";
 		} else if (isIntermissionPhase(phase)) {
-			return "Results";
+			return "Result";
 		} else {
 			return "";
 		}
