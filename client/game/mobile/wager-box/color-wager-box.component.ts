@@ -16,14 +16,14 @@ import { BaseWagerBox } from "../../common/wager-box/base-wager-box.component.js
 export class ColorWagerBox extends BaseWagerBox {
 	override chipPositions() {
 		return [
-			"25% 20%",
-			"5% 74%",
-			"26% 60%",
-			"2% 33%",
-			"0% 7%",
-			"-4% 47%",
-			"17% 88%",
-			"40% -4%",
+			"100px 30px",
+			"50px 5px",
+			"230px 15px",
+			"185px 42px",
+			"275px 0px",
+			"145px 0px",
+			"5px 30px",
+			"305px 40px",
 		];
 	}
 };

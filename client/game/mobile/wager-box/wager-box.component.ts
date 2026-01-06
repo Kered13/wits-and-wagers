@@ -16,14 +16,14 @@ import { BaseWagerBox } from "../../common/wager-box/base-wager-box.component.js
 export class BettingBox extends BaseWagerBox {
 	override chipPositions() {
 		return [
-			"60% 52%",
-			"65% 5%",
-			"26% 50%",
-			"76% 50%",
-			"17% 10%",
-			"7% 55%",
-			"81% 3%",
-			"-1% 10%",
+			"52px 55px",
+			"25px 240px",
+			"5px 40px",
+			"45px 5px",
+			"0px 290px",
+			"55px 280px",
+			"60px 200px",
+			"0px 90px",
 		];
 	}
 };
