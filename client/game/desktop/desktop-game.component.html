@@ -1,12 +1,14 @@
 <div #board class="board">
 	<div class="header">
-		<a class="home-button"
-				routerLink="/"
-				routerLinkActive="active"
-				#tooltip="matTooltip"
-				matTooltip="Home">
-			<mat-icon class="home-icon">home</mat-icon>
-		</a>
+		<span class="home-span">
+			<a class="home-button"
+					routerLink="/"
+					routerLinkActive="active"
+					#tooltip="matTooltip"
+					matTooltip="Home">
+				<mat-icon class="home-icon">home</mat-icon>
+			</a>
+		</span>
 		@if (!isGameOverPhase()) {
 			<span class="timer"
 					[style.visibility]="roundTimer() !== undefined ? 'visible' : 'hidden'">
@@ -14,12 +16,14 @@
 				<span class="timer-text">{{ roundTimer() || "" }}</span>
 			</span>
 			<span class="round">{{ getRound() }}:&ensp;{{ getPhase() }}</span>
-			<button class="help-button"
-					#tooltip="matTooltip"
-					matTooltip="Instructions"
-					(click)="onHelpClick()">
-				<mat-icon class="help-icon">help_outline</mat-icon>
-			</button>
+			<span class="help-span">
+				<button class="help-button"
+						#tooltip="matTooltip"
+						matTooltip="Instructions"
+						(click)="onHelpClick()">
+					<mat-icon class="help-icon">help_outline</mat-icon>
+				</button>
+			</span>
 		} @else {
 			<span class="game-over">Game Over!</span>
 		}

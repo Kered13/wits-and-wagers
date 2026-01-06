@@ -75,18 +75,21 @@
 	margin-right: -15px;
 }
 
-.home-button {
+.home-span {
 	grid-area: HOME;
 	display: flex;
 	align-items: center;
 	justify-content: left;
 }
 
+.home-button {
+	color: unset;
+}
+
 .home-icon {
 	width: 50px;
 	height: 50px;
 	font-size: 50px;
-	color: white;
 }
 
 .round {
@@ -113,27 +116,30 @@
 	text-align: left;
 }
 
-.help-button {
+.help-span {
 	grid-area: HELP;
 	display: flex;
 	align-items: center;
 	justify-content: right;
+}
+
+.help-button {
+	background: unset;
+	border: unset;
+	color: unset;
+	padding: unset;
 	
-	background: none;
-	border: none;
 	cursor: pointer;
-	padding: 0px;
 }
 
 .help-icon {
 	width: 50px;
 	height: 50px;
 	font-size: 50px;
-	color: white;
 }
 
 .game-over {
-	grid-column: 1 / span 5;
+	grid-column: 2 / span 3;
 	text-align: center;
 }
 

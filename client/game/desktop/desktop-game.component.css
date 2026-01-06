@@ -43,18 +43,21 @@
 	font-size: 30px;
 }
 
-.home-button {
+.home-span {
 	grid-area: HOME;
 	display: flex;
 	align-items: center;
 	justify-content: left;
 }
 
+.home-button {
+	color: unset;
+}
+
 .home-icon {
 	width: 32px;
 	height: 32px;
 	font-size: 32px;
-	color: white;
 }
 
 .round {
@@ -80,21 +83,25 @@
 	text-align: left;
 }
 
-.help-button {
+.help-span {
 	grid-area: HELP;
 	display: flex;
 	align-items: center;
 	justify-content: right;
+}
+
+.help-button {
+	background: unset;
+	color: unset;
+	border: unset;
+	padding: unset;
 	
-	background: none;
-	border: none;
 	cursor: pointer;
 }
 
 .help-icon {
 	width: 32px;
 	height: 32px;
-	color: white;
 	font-size: 32px;
 }
 
