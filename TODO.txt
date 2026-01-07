@@ -6,5 +6,5 @@
   * Provide better indication when a space is not playable?
   * Art pass (fonts, improved colors, etc.).
 * Implement mobile UI.
-  * Implement automatic UI switcher.
+  * Refactor mobile/desktop code.
 * Implement questions upload.

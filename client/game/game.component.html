@@ -1,1 +1,5 @@
-<desktop-game></desktop-game>
+@if (isMobile()) {
+	<mobile-game></mobile-game>
+} @else {
+	<desktop-game></desktop-game>
+}
