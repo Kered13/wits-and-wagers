@@ -53,7 +53,7 @@
 		</wager-box-bg-text>
 		<wager-box-bottom-text class="payoff">6 <span class="payoff-to">to</span> 1</wager-box-bottom-text>
 	</desktop-all-too-high-box>
-	<desktop-betting-box
+	<desktop-wager-box
 			class="guess0-box"
 			color="var(--red-space)"
 			[disabled]="!shouldEnableBetTarget(0)"
@@ -63,8 +63,8 @@
 			<guess-card class="guess-card" [data]="guess" />
 		}
 		<wager-box-bottom-text class="payoff">5 <span class="payoff-to">to</span> 1</wager-box-bottom-text>
-	</desktop-betting-box>
-	<desktop-betting-box
+	</desktop-wager-box>
+	<desktop-wager-box
 			class="guess1-box"
 			color="var(--red-space)"
 			[disabled]="!shouldEnableBetTarget(1)"
@@ -74,8 +74,8 @@
 			<guess-card class="guess-card" [data]="guess" />
 		}
 		<wager-box-bottom-text class="payoff">4 <span class="payoff-to">to</span> 1</wager-box-bottom-text>
-	</desktop-betting-box>
-	<desktop-betting-box
+	</desktop-wager-box>
+	<desktop-wager-box
 			class="guess2-box"
 			color="var(--red-space)"
 			[disabled]="!shouldEnableBetTarget(2)"
@@ -85,8 +85,8 @@
 			<guess-card class="guess-card" [data]="guess" />
 		}
 		<wager-box-bottom-text class="payoff">3 <span class="payoff-to">to</span> 1</wager-box-bottom-text>
-	</desktop-betting-box>
-	<desktop-betting-box
+	</desktop-wager-box>
+	<desktop-wager-box
 			class="guess3-box"
 			color="var(--green-space)"
 			[disabled]="!shouldEnableBetTarget(3)"
@@ -96,8 +96,8 @@
 			<guess-card class="guess-card" [data]="guess" />
 		}
 		<wager-box-bottom-text class="payoff">2 <span class="payoff-to">to</span> 1</wager-box-bottom-text>
-	</desktop-betting-box>
-	<desktop-betting-box
+	</desktop-wager-box>
+	<desktop-wager-box
 			class="guess4-box"
 			color="var(--black-space)"
 			[disabled]="!shouldEnableBetTarget(4)"
@@ -107,8 +107,8 @@
 			<guess-card class="guess-card" [data]="guess" />
 		}
 		<wager-box-bottom-text class="payoff">3 <span class="payoff-to">to</span> 1</wager-box-bottom-text>
-	</desktop-betting-box>
-	<desktop-betting-box
+	</desktop-wager-box>
+	<desktop-wager-box
 			class="guess5-box"
 			color="var(--black-space)"
 			[disabled]="!shouldEnableBetTarget(5)"
@@ -118,8 +118,8 @@
 			<guess-card class="guess-card" [data]="guess" />
 		}
 		<wager-box-bottom-text class="payoff">4 <span class="payoff-to">to</span> 1</wager-box-bottom-text>
-	</desktop-betting-box>
-	<desktop-betting-box
+	</desktop-wager-box>
+	<desktop-wager-box
 			class="guess6-box"
 			color="var(--black-space)"
 			[disabled]="!shouldEnableBetTarget(6)"
@@ -129,7 +129,7 @@
 			<guess-card class="guess-card" [data]="guess" />
 		}
 		<wager-box-bottom-text class="payoff">5 <span class="payoff-to">to</span> 1</wager-box-bottom-text>
-	</desktop-betting-box>
+	</desktop-wager-box>
 	<desktop-color-wager-box
 			class="red-box"
 			color="var(--red-space)"
@@ -152,7 +152,7 @@
 		[mutationConfig]="{childList: true}" />
 	@for (cardData of guessCards(); track $index) {
 		@if (cardData) {
-			<guess-card class="guess-card2"
+			<guess-card class="guess-card guess-card-guess"
 				[data]="cardData"
 				[style.transform]="getCardPosition($index)"
 				[disabled]="typeof(cardData.value) !== 'number'"

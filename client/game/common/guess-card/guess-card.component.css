@@ -1,19 +1,15 @@
-:host.enabled {
-	cursor: pointer;
-}
-
-.guess-card {
-	/* TODO: Convert to pixels. */
-	width: 88px;
-	height: 49px;
-	border: 5px solid;
-	border-radius: 8px;
+:host {
+	box-sizing: border-box;
 	border-color: var(--card-color);
 	background-color: white;
 	
 	display: flex;
 	align-items: center;
 	justify-content: center;
+}
+
+:host.enabled {
+	cursor: pointer;
 }
 
 .spec-contents {

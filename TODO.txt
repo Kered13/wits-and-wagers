@@ -6,7 +6,5 @@
   * Provide better indication when a space is not playable?
   * Art pass (fonts, improved colors, etc.).
 * Implement mobile UI.
-  * Fix position and sizing of guess cards.
-  * Fix position of wager chips.
   * Implement automatic UI switcher.
 * Implement questions upload.

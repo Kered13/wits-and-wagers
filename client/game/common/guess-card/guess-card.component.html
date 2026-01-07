@@ -1,28 +1,26 @@
 @let guessVal = data();
-<div class="guess-card">
-	@if (guessVal.color) {
-		@if (typeof(guessVal.value) === "number") {
-			<span class="guess-value" [fittext]="true" [modelToWatch]="guessVal">
+@if (guessVal.color) {
+	@if (typeof(guessVal.value) === "number") {
+		<span class="guess-value" [fittext]="true" [modelToWatch]="guessVal">
+			{{ guessVal.value }}
+		</span>
+	} @else {
+		<div class="card-back"></div>
+	}
+} @else if(guessVal.name) {
+	@if (typeof(guessVal.value) === "number") {
+		<div class="spec-contents">
+			<span class="spec-name" [fittext]="true" [maxFontSize]="10" [modelToWatch]="guessVal">
+				{{ guessVal.name }}
+			</span>
+			<span class="guess-value" [fittext]="true" [maxFontSize]="20" [modelToWatch]="guessVal">
 				{{ guessVal.value }}
 			</span>
-		} @else {
-			<div class="card-back"></div>
-		}
-	} @else if(guessVal.name) {
-		@if (typeof(guessVal.value) === "number") {
-			<div class="spec-contents">
-				<span class="spec-name" [fittext]="true" [maxFontSize]="10" [modelToWatch]="guessVal">
-					{{ guessVal.name }}
-				</span>
-				<span class="guess-value" [fittext]="true" [maxFontSize]="20" [modelToWatch]="guessVal">
-					{{ guessVal.value }}
-				</span>
-				<span class="spec-name" [fittext]="true" [maxFontSize]="10" [modelToWatch]="guessVal">
-					{{ guessVal.name }}
-				</span>
-			</div>
-		} @else {
-			<div class="card-back"></div>
-		}
+			<span class="spec-name" [fittext]="true" [maxFontSize]="10" [modelToWatch]="guessVal">
+				{{ guessVal.name }}
+			</span>
+		</div>
+	} @else {
+		<div class="card-back"></div>
 	}
-</div>
+}

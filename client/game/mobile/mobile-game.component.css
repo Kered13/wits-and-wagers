@@ -277,11 +277,14 @@
 }
 
 .guess-card {
-	align-self: center;
-	justify-self: center;
+	width: 131px;
+	height: 78px;
+	border-width: 7px;
+	border-style: solid;
+	border-radius: 12px;
 }
 
-.guess-card2 {
+.guess-card-guess {
 	position: absolute;
 	top: 50%;
 	left: 50%;

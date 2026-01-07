@@ -4,9 +4,9 @@
 	@for (bet of betsOnBoard().entries(); track $index) {
 		@if (bet) {
 			@if (bet.color) {
-				<betting-chip [value]="bet.value" [color]="bet.color" [style.inset]="chipPositions()[$index]" />
+				<betting-chip class="chip" [value]="bet.value" [color]="bet.color" [style.inset]="chipPositions()[$index]" />
 			} @else {
-				<spectator-chip [value]="bet.value" [name]="bet.name" [style.inset]="chipPositions()[$index]" />
+				<spectator-chip class="chip" [value]="bet.value" [name]="bet.name" [style.inset]="chipPositions()[$index]" />
 			}
 		}
 	}

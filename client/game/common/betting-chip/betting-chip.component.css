@@ -1,9 +1,4 @@
-:host {
-	position: absolute;
-}
-
 .bet-chip {
-	position: absolute;
 	width: 38px;
 	aspect-ratio: 1 / 1;
 	border-radius: 50%;

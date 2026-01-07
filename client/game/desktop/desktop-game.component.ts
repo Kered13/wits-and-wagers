@@ -8,7 +8,7 @@ import { RouterLink, RouterLinkActive } from "@angular/router";
 import { NgxMutationObserverDirective } from "ngx-mutation-observer";
 
 import { AllTooHighBox } from "./wager-box/all-too-high-box.component.js";
-import { BettingBox } from "./wager-box/wager-box.component.js";
+import { WagerBox } from "./wager-box/wager-box.component.js";
 import { ColorWagerBox } from "./wager-box/color-wager-box.component.js";
 import { BetData } from "../common/bet-data.js";
 import { GuessCard, GuessCardData } from "../common/guess-card/guess-card.component.js";
@@ -31,10 +31,10 @@ import { BetTarget } from "../../../shared/game/betting-phase.js";
 		RouterLink,
 		RouterLinkActive,
 		AllTooHighBox,
-		BettingBox,
 		ColorWagerBox,
 		GuessCard,
 		ScoreBoard,
+		WagerBox,
 		WagerBoxBgText,
 		WagerBoxBottomText,
 	],

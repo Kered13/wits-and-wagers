@@ -8,7 +8,7 @@ import { RouterLink, RouterLinkActive } from "@angular/router";
 import { NgxMutationObserverDirective } from "ngx-mutation-observer";
 
 import { AllTooHighBox } from "./wager-box/all-too-high-box.component.js";
-import { BettingBox } from "./wager-box/wager-box.component.js";
+import { WagerBox } from "./wager-box/wager-box.component.js";
 import { ColorWagerBox } from "./wager-box/color-wager-box.component.js";
 import { BetData } from "../common/bet-data.js";
 import { GuessCard, GuessCardData } from "../common/guess-card/guess-card.component.js";
@@ -31,10 +31,10 @@ import { BetTarget } from "../../../shared/game/betting-phase.js";
 		RouterLink,
 		RouterLinkActive,
 		AllTooHighBox,
-		BettingBox,
 		ColorWagerBox,
 		GuessCard,
 		ScoreBoard,
+		WagerBox,
 		WagerBoxBgText,
 		WagerBoxBottomText,
 	],
@@ -146,14 +146,14 @@ export class MobileGameComponent implements GameView, OnDestroy {
 	
 	getCardPosition(index: number): string {
 		return [
-			"translate(20px, 5px) rotate(-10deg)",
-			"translate(-130px, 50px) rotate(10deg)",
-			"translate(80px, -100px) rotate(20deg)",
-			"translate(180px, 70px) rotate(-15deg)",
-			"translate(-80px, -130px) rotate(-25deg)",
-			"translate(-190px, -50px) rotate(5deg)",
-			"translate(210px, -35px) rotate(5deg)",
-			"translate(20px, -175px) rotate(-5deg)",
+			"translate(20px, 50px) rotate(-10deg)",
+			"translate(-130px, 150px) rotate(10deg)",
+			"translate(110px, -180px) rotate(20deg)",
+			"translate(100px, 200px) rotate(-15deg)",
+			"translate(-120px, -220px) rotate(-25deg)",
+			"translate(-165px, -70px) rotate(5deg)",
+			"translate(0px, -80px) rotate(-30deg)",
+			"translate(20px, -320px) rotate(-5deg)",
 		][index];
 	}
 }

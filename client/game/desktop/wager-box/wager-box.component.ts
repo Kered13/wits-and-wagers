@@ -7,13 +7,13 @@ import { BaseWagerBox } from "../../common/wager-box/base-wager-box.component.js
 
 
 @Component({
-	selector: "desktop-betting-box",
+	selector: "desktop-wager-box",
 	imports: [Ng2FittextModule, BettingChip, SpectatorChip],
 	templateUrl: "../../common/wager-box/base-wager-box.component.html",
 	styleUrl: "./base-wager-box.component.css",
 	changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class BettingBox extends BaseWagerBox {
+export class WagerBox extends BaseWagerBox {
 	override chipPositions() {
 		return [
 			"60% 52%",
