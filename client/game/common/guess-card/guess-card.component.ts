@@ -20,7 +20,7 @@ export type GuessCardData = {
 })
 export class GuessCard {
 	readonly data = input.required<GuessCardData>();
-	readonly disabled = input<boolean>(false);
+	readonly enabled = input<boolean>(false);
 	
 	readonly onClick = output<void>();
 	
@@ -36,12 +36,12 @@ export class GuessCard {
 	
 	@HostBinding("class.enabled")
 	private get enabledClass(): boolean {
-		return !this.disabled();
+		return this.enabled();
 	}
 	
 	@HostListener("click")
 	click(): void {
-		if (!this.disabled()) {
+		if (this.enabled()) {
 			this.onClick.emit();
 		}
 	}

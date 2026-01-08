@@ -9,7 +9,6 @@
   * Refactor mobile/desktop code.
 * Show spectator their guess during betting phase.
 * Change spectator card/chip
-* Look into cards having pointer cursor when not playable?
 * Improve error when connection lost.
 * Some errors should not be elevated to UI.
 * Improve lobby UI

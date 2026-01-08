@@ -8,7 +8,7 @@ import { RandomizedList } from "../../../utils/randomized-list";
 export abstract class BaseWagerBox {
 	readonly color = input.required<string>();
 	readonly bets = input<BetData[]>([]);
-	readonly disabled = input<boolean>(false);
+	readonly enabled = input<boolean>(false);
 	
 	readonly betsOnBoard: Signal<RandomizedList<BetData>>;
 	
@@ -33,12 +33,12 @@ export abstract class BaseWagerBox {
 	
 	@HostBinding("class.enabled")
 	private get enabledClass() {
-		return !this.disabled();
+		return this.enabled();
 	}
 	
 	@HostListener("click")
 	private click(): void {
-		if (!this.disabled()) {
+		if (this.enabled()) {
 			this.onClick.emit();
 		}
 	}
