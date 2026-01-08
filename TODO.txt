@@ -12,7 +12,7 @@
 * Improve error when connection lost.
 * Some errors should not be elevated to UI.
 * Improve lobby UI
-* Improve round over UI and increase time.
+* Improve round over UI.
 * Implement questions upload.
 * Fix UI allowing >2 bets when a bet is on color or ATH.
 * Cap guess and wager UI digits at like 30.

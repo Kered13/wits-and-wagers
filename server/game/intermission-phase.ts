@@ -12,7 +12,7 @@ export type IntermissionPhaseOptions = {
 };
 
 export const DEFAULT_INTERMISSION_PHASE_OPTIONS: IntermissionPhaseOptions = {
-	intermissionPhaseDuration: 5000
+	intermissionPhaseDuration: 10000
 };
 
 
