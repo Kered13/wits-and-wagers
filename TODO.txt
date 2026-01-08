@@ -13,7 +13,6 @@
 * Some errors should not be elevated to UI.
 * Improve lobby UI
 * Improve round over UI.
-* Implement questions upload.
-* Display commas for large numbers?
 * Strange issues with guess card numbers on iPad. Particularly player portrait
 mode.
+* Implement questions upload.

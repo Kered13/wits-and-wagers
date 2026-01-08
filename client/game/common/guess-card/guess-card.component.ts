@@ -24,6 +24,8 @@ export class GuessCard {
 	
 	readonly onClick = output<void>();
 	
+	readonly numberFormatter = new Intl.NumberFormat();
+	
 	@HostBinding("style.visibility")
 	private get visible(): string {
 		return this.data().value === false ? "hidden" : "visible";
@@ -37,6 +39,10 @@ export class GuessCard {
 	@HostBinding("class.enabled")
 	private get enabledClass(): boolean {
 		return this.enabled();
+	}
+	
+	formattedValue(value: number): string {
+		return this.numberFormatter.format(value);
 	}
 	
 	@HostListener("click")
