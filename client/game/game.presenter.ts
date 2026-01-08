@@ -499,7 +499,7 @@ export class GamePresenter {
 		if (!isQuestionPhase(game.phase)) {
 			return;
 		}
-		const guess = game.phase.guesses[this.thisParticipant().publicId];
+		let guess = game.phase.spectatorGuess ?? game.phase.guesses[this.thisParticipant().publicId];
 		if (typeof(guess) !== "number") {
 			return;
 		}
