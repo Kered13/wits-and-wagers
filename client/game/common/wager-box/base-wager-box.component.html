@@ -1,6 +1,8 @@
 <div class="wager-box">
 	<ng-content />
-	<ng-content select="wager-box-bg-text" />
+	<span class="bg-text">
+		<ng-content select="wager-box-bg-text" />
+	</span>
 	@for (bet of betsOnBoard().entries(); track $index) {
 		@if (bet) {
 			@if (bet.color) {

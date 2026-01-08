@@ -10,7 +10,7 @@ import { BaseWagerBox } from "../../common/wager-box/base-wager-box.component.js
 	selector: "mobile-all-too-high-box",
 	imports: [Ng2FittextModule, BettingChip, SpectatorChip],
 	templateUrl: "../../common/wager-box/base-wager-box.component.html",
-	styleUrl: "./base-wager-box.component.css",
+	styleUrl: "../../common/wager-box/base-wager-box.component.css",
 	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AllTooHighBox extends BaseWagerBox {

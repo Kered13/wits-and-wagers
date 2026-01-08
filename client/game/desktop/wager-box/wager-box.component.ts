@@ -10,7 +10,7 @@ import { BaseWagerBox } from "../../common/wager-box/base-wager-box.component.js
 	selector: "desktop-wager-box",
 	imports: [Ng2FittextModule, BettingChip, SpectatorChip],
 	templateUrl: "../../common/wager-box/base-wager-box.component.html",
-	styleUrl: "./base-wager-box.component.css",
+	styleUrl: "../../common/wager-box/base-wager-box.component.css",
 	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class WagerBox extends BaseWagerBox {

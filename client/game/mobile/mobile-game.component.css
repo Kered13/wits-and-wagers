@@ -247,7 +247,6 @@
 }
 
 .payoff {
-	writing-mode: sideways-lr;
 	font-size: 18pt;
 	color: white;
 	white-space: preserve;

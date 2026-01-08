@@ -14,7 +14,7 @@
 				{{ guessVal.name }}
 			</span>
 			<span class="guess-value" [fittext]="true" [maxFontSize]="20" [modelToWatch]="guessVal">
-				{{ numberFormatter.format(guessVal.value) }}
+				{{ formattedValue(guessVal.value) }}
 			</span>
 			<span class="spec-name" [fittext]="true" [maxFontSize]="10" [modelToWatch]="guessVal">
 				{{ guessVal.name }}
