@@ -6,7 +6,8 @@
 		<input matInput
 			[formControl]="wager"
 			placeholder="Wager"
-			inputmode="numeric" />
+			inputmode="numeric"
+			maxlength="50" />
 		@if (wager.hasError("insufficientChips")) {
 			<mat-error>Insufficient chips.</mat-error>
 		} @else {

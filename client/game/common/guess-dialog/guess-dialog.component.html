@@ -5,6 +5,7 @@
 			[formControl]="guess"
 			placeholder="Guess"
 			inputmode="numeric"
+			maxlength="50"
 			guessValidator />
 		@if (guess.hasError("notAPositiveWholeNumber")) {
 			<mat-error>Guess must be a positive whole number.</mat-error>
