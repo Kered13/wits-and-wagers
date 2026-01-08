@@ -7,4 +7,18 @@
   * Art pass (fonts, improved colors, etc.).
 * Implement mobile UI.
   * Refactor mobile/desktop code.
+* Show spectator their guess during betting phase.
+* Change spectator card/chip
+* Look into cards having pointer cursor when not playable?
+* Improve error when connection lost.
+* Some errors should not be elevated to UI.
+* Improve lobby UI
+* Improve round over UI and increase time.
 * Implement questions upload.
+* Fix UI allowing >2 bets when a bet is on color or ATH.
+* Cap guess and wager UI digits at like 30.
+* Fix UI when placing wager of 0.
+* Allow editing of guess for spectators.
+* Display commas for large numbers?
+* Strange issues with guess card numbers on iPad. Particularly player portrait
+mode.
