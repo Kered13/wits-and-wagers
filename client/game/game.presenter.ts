@@ -101,7 +101,7 @@ function shouldEnableBetTarget(target: BetTarget, game: GameState, publicId: Pub
 	}
 	
 	// Disable target if there are already two bets on other targets.
-	const existingOtherBets = phase.bets.filter(
+	const existingOtherBets = [...phase.bets, ...phase.spectatorBets].filter(
 		bet => bet.player === publicId && bet.target !== target);
 	if (existingOtherBets.length >= 2) {
 		return false;

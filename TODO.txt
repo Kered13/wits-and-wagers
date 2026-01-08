@@ -14,7 +14,6 @@
 * Improve lobby UI
 * Improve round over UI.
 * Implement questions upload.
-* Fix UI allowing >2 bets when a bet is on color or ATH.
 * Cap guess and wager UI digits at like 30.
 * Fix UI when placing wager of 0.
 * Allow editing of guess for spectators.
