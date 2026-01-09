@@ -1,6 +1,7 @@
 import { Directive, HostBinding, HostListener, input, linkedSignal, output, Signal } from "@angular/core";
 
 import { BetData } from "../../common/bet-data";
+import { OrientationObserver } from "../../orientation-observer";
 import { RandomizedList } from "../../../utils/randomized-list";
 
 
@@ -16,7 +17,7 @@ export abstract class BaseWagerBox {
 	
 	abstract chipPositions(): string[];
 	
-	constructor() {
+	constructor(readonly orientation: OrientationObserver) {
 		this.betsOnBoard = linkedSignal<BetData[], RandomizedList<BetData>>({
 			source: this.bets,
 			computation: (bets, previous) => {

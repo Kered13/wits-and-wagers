@@ -7,23 +7,36 @@ import { BaseWagerBox } from "../../common/wager-box/base-wager-box.component.js
 
 
 @Component({
-	selector: "desktop-color-wager-box",
+	selector: "all-too-high-box",
 	imports: [Ng2FittextModule, BettingChip, SpectatorChip],
 	templateUrl: "../../common/wager-box/base-wager-box.component.html",
 	styleUrl: "../../common/wager-box/base-wager-box.component.css",
 	changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ColorWagerBox extends BaseWagerBox {
+export class AllTooHighBox extends BaseWagerBox {
 	override chipPositions() {
-		return [
-			"25% 20%",
-			"5% 74%",
-			"26% 60%",
-			"2% 33%",
-			"0% 7%",
-			"-4% 47%",
-			"17% 88%",
-			"40% -4%",
-		];
+		if (this.orientation.isLandscape()) {
+			return [
+				"43% 16%",
+				"71% 18%",
+				"13% 30%",
+				"57% 10%",
+				"28% 7%",
+				"85% 6%",
+				"-1% 5%",
+				"18% -40%",
+			];
+		} else {
+			return [
+				"20px 145px",
+				"8px 195px",
+				"30px 95px",
+				"5px 50px",
+				"30px 240px",
+				"0px 280px",
+				"30px 5px",
+				"40px 305px",
+			];
+		}
 	}
 };
