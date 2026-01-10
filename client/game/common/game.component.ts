@@ -7,20 +7,21 @@ import { MatTooltip } from "@angular/material/tooltip";
 import { RouterLink, RouterLinkActive } from "@angular/router";
 import { NgxMutationObserverDirective } from "ngx-mutation-observer";
 
-import { BetData } from "../common/bet-data.js";
-import { GuessCard, GuessCardData } from "../common/guess-card/guess-card.component.js";
-import { PlayerScoreData } from "../common/player-score-data.js";
-import { ScoreBoard } from "../common/score-board/score-board.component.js";
-import { AllTooHighBox } from "../common/wager-box/all-too-high-box.component.js";
-import { ColorWagerBox } from "../common/wager-box/color-wager-box.component.js";
-import { WagerBoxBgText, WagerBoxBottomText } from "../common/wager-box/wager-box-content.component.js";
-import { WagerBox } from "../common/wager-box/wager-box.component.js";
+import { BetData } from "./bet-data.js";
+import { GuessCard, GuessCardData } from "./guess-card/guess-card.component.js";
+import { PlayerScoreData } from "./player-score-data.js";
+import { ScoreBoard } from "./score-board/score-board.component.js";
+import { AllTooHighBox } from "./wager-box/all-too-high-box.component.js";
+import { ColorWagerBox } from "./wager-box/color-wager-box.component.js";
+import { WagerBoxBgText, WagerBoxBottomText } from "./wager-box/wager-box-content.component.js";
+import { WagerBox } from "./wager-box/wager-box.component.js";
+import { OrientationObserver } from "../orientation-observer.js";
 import { GamePresenter, GameView } from "../game.presenter.js";
 import { BetTarget } from "../../../shared/game/betting-phase.js";
 
 
 @Component({
-	selector: "desktop-game",
+	selector: "game",
 	imports: [
 		FormsModule,
 		MatCardModule,
@@ -39,16 +40,17 @@ import { BetTarget } from "../../../shared/game/betting-phase.js";
 		WagerBoxBottomText,
 	],
 	providers: [GamePresenter],
-	templateUrl: "../common/game.component.html",
-	styleUrl: "../common/game.component.css",
+	templateUrl: "./game.component.html",
+	styleUrl: "./game.component.css",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class DesktopGameComponent implements GameView, OnDestroy {
+export class GameComponent implements GameView, OnDestroy {
 	private board: Signal<ElementRef<HTMLElement>> = viewChild.required("board");
 	
 	constructor(
 			private readonly presenter: GamePresenter,
-			private readonly hostElement: ElementRef) {
+			private readonly hostElement: ElementRef,
+			private readonly orientation: OrientationObserver) {
 		this.presenter.setView(this);
 	}
 	
@@ -145,15 +147,28 @@ export class DesktopGameComponent implements GameView, OnDestroy {
 	}
 	
 	getCardPosition(index: number): string {
-		return [
-			"translate(20px, 5px) rotate(-10deg)",
-			"translate(-130px, 50px) rotate(10deg)",
-			"translate(80px, -100px) rotate(20deg)",
-			"translate(180px, 70px) rotate(-15deg)",
-			"translate(-80px, -130px) rotate(-25deg)",
-			"translate(-190px, -50px) rotate(5deg)",
-			"translate(210px, -35px) rotate(5deg)",
-			"translate(20px, -175px) rotate(-5deg)",
-		][index];
+		if (this.orientation.isLandscape()) {
+			return [
+				"translate(20px, 5px) rotate(-10deg)",
+				"translate(-130px, 50px) rotate(10deg)",
+				"translate(80px, -100px) rotate(20deg)",
+				"translate(180px, 70px) rotate(-15deg)",
+				"translate(-80px, -130px) rotate(-25deg)",
+				"translate(-190px, -50px) rotate(5deg)",
+				"translate(210px, -35px) rotate(5deg)",
+				"translate(20px, -175px) rotate(-5deg)",
+			][index];
+		} else {
+			return [
+				"translate(20px, 50px) rotate(-10deg)",
+				"translate(-130px, 150px) rotate(10deg)",
+				"translate(110px, -180px) rotate(20deg)",
+				"translate(100px, 200px) rotate(-15deg)",
+				"translate(-120px, -220px) rotate(-25deg)",
+				"translate(-165px, -70px) rotate(5deg)",
+				"translate(0px, -80px) rotate(-30deg)",
+				"translate(20px, -320px) rotate(-5deg)",
+			][index];
+		}
 	}
 }
