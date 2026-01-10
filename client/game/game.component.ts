@@ -82,6 +82,10 @@ export class GameComponent implements GameView, OnDestroy {
 		return this.hostElement;
 	}
 	
+	isBettingPhase(): boolean {
+		return this.presenter.isBettingPhase();
+	}
+	
 	isGameOverPhase(): boolean {
 		return this.presenter.isGameOverPhase();
 	}

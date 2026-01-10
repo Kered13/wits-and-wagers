@@ -10,6 +10,7 @@ export abstract class BaseWagerBox {
 	readonly color = input.required<string>();
 	readonly bets = input<BetData[]>([]);
 	readonly enabled = input<boolean>(false);
+	readonly canDarken = input<boolean>(false);
 	
 	readonly betsOnBoard: Signal<RandomizedList<BetData>>;
 	
@@ -35,6 +36,11 @@ export abstract class BaseWagerBox {
 	@HostBinding("class.enabled")
 	private get enabledClass() {
 		return this.enabled();
+	}
+	
+	@HostBinding("class.darken")
+	private get darkenClass() {
+		return !this.enabled() && this.canDarken();
 	}
 	
 	@HostListener("click")

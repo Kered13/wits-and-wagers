@@ -46,6 +46,7 @@
 			class="all-too-high-box"
 			color="var(--green-space)"
 			[enabled]="shouldEnableBetTarget('AllTooHigh')"
+			[canDarken]="isBettingPhase()"
 			[bets]="getBetsOnTarget('AllTooHigh')"
 			(onClick)="onWagerBoxClick('AllTooHigh')">
 		<wager-box-bg-text class="all-too-high-text">
@@ -57,6 +58,7 @@
 			class="guess0-box"
 			color="var(--red-space)"
 			[enabled]="shouldEnableBetTarget(0)"
+			[canDarken]="isBettingPhase()"
 			[bets]="getBetsOnTarget(0)"
 			(onClick)="onWagerBoxClick(0)">
 		@if (getGuessForTarget(0); as guess) {
@@ -68,6 +70,7 @@
 			class="guess1-box"
 			color="var(--red-space)"
 			[enabled]="shouldEnableBetTarget(1)"
+			[canDarken]="isBettingPhase()"
 			[bets]="getBetsOnTarget(1)"
 			(onClick)="onWagerBoxClick(1)">
 		@if (getGuessForTarget(1); as guess) {
@@ -79,6 +82,7 @@
 			class="guess2-box"
 			color="var(--red-space)"
 			[enabled]="shouldEnableBetTarget(2)"
+			[canDarken]="isBettingPhase()"
 			[bets]="getBetsOnTarget(2)"
 			(onClick)="onWagerBoxClick(2)">
 		@if (getGuessForTarget(2); as guess) {
@@ -90,6 +94,7 @@
 			class="guess3-box"
 			color="var(--green-space)"
 			[enabled]="shouldEnableBetTarget(3)"
+			[canDarken]="isBettingPhase()"
 			[bets]="getBetsOnTarget(3)"
 			(onClick)="onWagerBoxClick(3)">
 		@if (getGuessForTarget(3); as guess) {
@@ -101,6 +106,7 @@
 			class="guess4-box"
 			color="var(--black-space)"
 			[enabled]="shouldEnableBetTarget(4)"
+			[canDarken]="isBettingPhase()"
 			[bets]="getBetsOnTarget(4)"
 			(onClick)="onWagerBoxClick(4)">
 		@if (getGuessForTarget(4); as guess) {
@@ -112,6 +118,7 @@
 			class="guess5-box"
 			color="var(--black-space)"
 			[enabled]="shouldEnableBetTarget(5)"
+			[canDarken]="isBettingPhase()"
 			[bets]="getBetsOnTarget(5)"
 			(onClick)="onWagerBoxClick(5)">
 		@if (getGuessForTarget(5); as guess) {
@@ -123,6 +130,7 @@
 			class="guess6-box"
 			color="var(--black-space)"
 			[enabled]="shouldEnableBetTarget(6)"
+			[canDarken]="isBettingPhase()"
 			[bets]="getBetsOnTarget(6)"
 			(onClick)="onWagerBoxClick(6)">
 		@if (getGuessForTarget(6); as guess) {
@@ -134,6 +142,7 @@
 			class="red-box"
 			color="var(--red-space)"
 			[enabled]="shouldEnableBetTarget('Red')"
+			[canDarken]="isBettingPhase()"
 			[bets]="getBetsOnTarget('Red')"
 			(onClick)="onWagerBoxClick('Red')">
 		<wager-box-bg-text class="payoff">RED&ensp;1 <span class="payoff-to">to</span> 1</wager-box-bg-text>
@@ -142,6 +151,7 @@
 			class="black-box"
 			color="var(--black-space)"
 			[enabled]="shouldEnableBetTarget('Black')"
+			[canDarken]="isBettingPhase()"
 			[bets]="getBetsOnTarget('Black')"
 			(onClick)="onWagerBoxClick('Black')">
 		<wager-box-bg-text class="payoff">BLACK&ensp;1 <span class="payoff-to">to</span> 1</wager-box-bg-text>

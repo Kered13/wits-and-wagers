@@ -1,9 +1,9 @@
 :host {
 	--board-primary: #266e26;
 	--board-secondary: darkgreen;
-	--black-space: #222;
+	--black-space: #444;
 	--red-space: red;
-	--green-space: darkgreen;
+	--green-space: green;
 	
 	/* Scale the board to take up 95% of the screen. */
 	zoom: calc(min(

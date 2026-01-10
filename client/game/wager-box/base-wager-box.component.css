@@ -6,6 +6,10 @@
 	cursor: pointer;
 }
 
+:host.darken {
+	--current-bg-color: lch(from var(--bg-color) calc(0.5*l) c h);
+}
+
 @media (hover: hover) {
 	:host.enabled:hover {
 		--current-bg-color: lch(from var(--bg-color) calc(l + 12) c h);
