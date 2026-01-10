@@ -126,6 +126,10 @@ export class GameComponent implements GameView, OnDestroy {
 		return this.presenter.getGuessForTarget(target);
 	}
 	
+	getSpectatorGuess(): GuessCardData | undefined {
+		return this.presenter.getSpectatorGuess();
+	}
+	
 	getRound(): string {
 		return this.presenter.getRound();
 	}

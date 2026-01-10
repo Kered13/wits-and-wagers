@@ -31,7 +31,7 @@
 			"HD    HD    HD    HD    HD    HD    HD    HD" 30px
 			"QS    QS    QS    QS    QS    QS    QS    QS" 70px
 			"ATH   G0    G1    G2    G3    G4    G5    G6" 360px
-			".     RD    RD    RD    .     BK    BK    BK" 70px
+			".     RD    RD    RD    SG    BK    BK    BK" 70px
 			"SB    SB    SB    SB    SB    SB    SB    SB" 80px /
 			 75px  115px 115px 115px 115px 115px 115px 115px;
 	}
@@ -47,7 +47,7 @@
 			"SB    G6    BK" 115px
 			"SB    G5    BK" 115px
 			"SB    G4    BK" 115px
-			"SB    G3    . " 115px
+			"SB    G3    SG" 115px
 			"SB    G2    RD" 115px
 			"SB    G1    RD" 115px
 			"SB    G0    RD" 115px
@@ -66,7 +66,7 @@
 			"G6    BK" 115px
 			"G5    BK" 115px
 			"G4    BK" 115px
-			"G3    . " 115px
+			"G3    SG" 115px
 			"G2    RD" 115px
 			"G1    RD" 115px
 			"G0    RD" 115px
@@ -347,6 +347,14 @@
 	font-variant: petite-caps;
 }
 
+.spec-guess-card {
+	grid-area: SG;
+	
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
 .score-board {
 	grid-area: SB;
 	
@@ -380,14 +388,4 @@
 	position: absolute;
 	top: 50%;
 	left: 50%;
-}
-
-.game-state {
-	background: #eee;
-	padding: 1rem;
-	font-family: monospace;
-	word-break: auto-phrase;
-	white-space: preserve nowrap;
-	text-align: start;
-	overflow-x: scroll;
 }

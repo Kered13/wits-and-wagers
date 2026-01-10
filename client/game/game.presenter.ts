@@ -165,6 +165,18 @@ function getGuessForTarget(target: BetTarget, game: GameState): GuessCardData | 
 }
 
 
+function getSpectatorGuess(game: GameState): GuessCardData | undefined {
+	const phase = game.phase;
+	if (!isBettingPhase(phase)) {
+		return undefined;
+	}
+	if (phase.spectatorGuess === undefined) {
+		return undefined;
+	}
+	return { value: phase.spectatorGuess };
+}
+
+
 function playerHasGuess(publicId: PublicId, game: GameState): boolean {
 	const phase = game.phase;
 	if (!isQuestionPhase(phase)) {
@@ -194,10 +206,7 @@ function getGuessCards(game: GameState, thisPlayer: PrivatePlayer): GuessCardDat
 		.filter(player => phase.guesses[player.publicId] !== false)
 		.map(player => guessCardData(game, phase.guesses[player.publicId], player.publicId));
 	if (phase.spectatorGuess !== undefined) {
-		guesses.push({
-			name: nameForPlayer(game, thisPlayer.publicId),
-			value: phase.spectatorGuess,
-		});
+		guesses.push({ value: phase.spectatorGuess });
 	}
 	return guesses;
 }
@@ -205,7 +214,6 @@ function getGuessCards(game: GameState, thisPlayer: PrivatePlayer): GuessCardDat
 
 function guessCardData(game: GameState, guess: number | boolean, player: PublicId): GuessCardData {
 	return {
-		name: nameForPlayer(game, player),
 		value: guess,
 		color: colorForPlayer(game, player),
 	};
@@ -529,6 +537,10 @@ export class GamePresenter {
 	
 	public getGuessForTarget(target: BetTarget): GuessCardData | undefined {
 		return getGuessForTarget(target, this.game());
+	}
+	
+	public getSpectatorGuess(): GuessCardData | undefined {
+		return getSpectatorGuess(this.game());
 	}
 	
 	public getRound(): string {

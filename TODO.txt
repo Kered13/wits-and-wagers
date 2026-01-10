@@ -3,6 +3,7 @@
   * Make game ID distinct from lobby ID?
   * Support mixing question sets?
 * Implement UI
+  * Refactor color logic in guess card.
   * Provide better indication when a space is not playable?
   * Show spectator their guess during betting phase.
   * Art pass (fonts, improved colors, etc.).
