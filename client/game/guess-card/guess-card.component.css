@@ -1,4 +1,6 @@
 :host {
+	--spec-icon-size: 60px;
+	
 	box-sizing: border-box;
 	border-color: var(--card-color);
 	background-color: white;
@@ -30,10 +32,20 @@
 	justify-content: center;
 }
 
-.spec-name {
-	flex-grow: 0;
+.spec-icon {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
 	
-	user-select: none;
+	height: var(--spec-icon-size);
+	width: var(--spec-icon-size);
+	font-size: var(--spec-icon-size);
+	color: var(--card-color);
+	
+	text-align: center;
+	
+	z-index: -1;
 }
 
 .card-back {

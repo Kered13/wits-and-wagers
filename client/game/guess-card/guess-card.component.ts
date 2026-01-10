@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, HostBinding, HostListener, input, output } from "@angular/core";
+import { MatIcon } from "@angular/material/icon";
 import { Ng2FittextModule } from "ng2-fittext";
 
 
@@ -13,7 +14,7 @@ export type GuessCardData = {
 
 @Component({
 	selector: "guess-card",
-	imports: [Ng2FittextModule],
+	imports: [Ng2FittextModule, MatIcon],
 	templateUrl: "./guess-card.component.html",
 	styleUrl: "./guess-card.component.css",
 	changeDetection: ChangeDetectionStrategy.OnPush,
@@ -39,6 +40,10 @@ export class GuessCard {
 	@HostBinding("class.enabled")
 	private get enabledClass(): boolean {
 		return this.enabled();
+	}
+	
+	isSpectator(): boolean {
+		return this.data().color === undefined;
 	}
 	
 	formattedValue(value: number): string {

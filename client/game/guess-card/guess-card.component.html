@@ -1,26 +1,11 @@
 @let guessVal = data();
-@if (guessVal.color) {
-	@if (typeof(guessVal.value) === "number") {
-		<span class="guess-value" [fittext]="true" [modelToWatch]="guessVal">
-			{{ formattedValue(guessVal.value) }}
-		</span>
-	} @else {
-		<div class="card-back"></div>
+@if (typeof(guessVal.value) === "number") {
+	@if (isSpectator()) {
+		<mat-icon class="spec-icon">visibility</mat-icon>
 	}
-} @else if(guessVal.name) {
-	@if (typeof(guessVal.value) === "number") {
-		<div class="spec-contents">
-			<span class="spec-name" [fittext]="true" [maxFontSize]="10" [modelToWatch]="guessVal">
-				{{ guessVal.name }}
-			</span>
-			<span class="guess-value" [fittext]="true" [maxFontSize]="20" [modelToWatch]="guessVal">
-				{{ formattedValue(guessVal.value) }}
-			</span>
-			<span class="spec-name" [fittext]="true" [maxFontSize]="10" [modelToWatch]="guessVal">
-				{{ guessVal.name }}
-			</span>
-		</div>
-	} @else {
-		<div class="card-back"></div>
-	}
+	<span class="guess-value" [fittext]="true" [modelToWatch]="guessVal">
+		{{ formattedValue(guessVal.value) }}
+	</span>
+} @else {
+	<div class="card-back"></div>
 }
