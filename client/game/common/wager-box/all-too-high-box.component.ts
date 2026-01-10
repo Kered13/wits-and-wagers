@@ -1,9 +1,9 @@
 import { ChangeDetectionStrategy, Component } from "@angular/core";
 import { Ng2FittextModule } from "ng2-fittext";
 
-import { BettingChip } from "../../common/betting-chip/betting-chip.component.js";
-import { SpectatorChip } from "../../common/spectator-chip/spectator-chip.component.js";
-import { BaseWagerBox } from "../../common/wager-box/base-wager-box.component.js";
+import { BettingChip } from "../betting-chip/betting-chip.component.js";
+import { SpectatorChip } from "../spectator-chip/spectator-chip.component.js";
+import { BaseWagerBox } from "../wager-box/base-wager-box.component.js";
 
 
 @Component({
