@@ -5,11 +5,6 @@ import { Ng2FittextModule } from "ng2-fittext";
 import { PlayerScoreData } from "../player-score-data.js";
 
 
-function isDefined(value: string | undefined): boolean {
-	return value !== undefined;
-}
-
-
 @Component({
 	selector: "score-board",
 	imports: [MatIcon, Ng2FittextModule],

@@ -1,8 +1,8 @@
 import { Directive, HostBinding, HostListener, input, linkedSignal, output, Signal } from "@angular/core";
 
 import { BetData } from "../bet-data";
-import { OrientationObserver } from "../../orientation-observer";
-import { RandomizedList } from "../../../utils/randomized-list";
+import { OrientationObserver } from "../orientation-observer";
+import { RandomizedList } from "../../utils/randomized-list";
 
 
 @Directive()

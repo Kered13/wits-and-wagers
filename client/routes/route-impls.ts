@@ -4,7 +4,7 @@ import { Routes, provideRouter as ngProvideRouter } from "@angular/router";
 import { getLocalStorage, resolveGame, resolveLobby } from "./resolvers.js";
 import { GameRoute, HomeRoute, HostRoute, LobbyRoute } from "./routes.js";
 import { USERNAME } from "../app/localstorage.keys.js";
-import { GameComponent } from "../game/common/game.component.js";
+import { GameComponent } from "../game/game.component.js";
 import { HomeComponent } from "../home/home.component.js";
 import { HostComponent } from "../host/host.component.js";
 import { LobbyComponent } from "../lobby/lobby.component.js";

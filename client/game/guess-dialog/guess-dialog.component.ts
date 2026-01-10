@@ -5,7 +5,7 @@ import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from "@angular/materia
 import { MatError, MatInputModule } from "@angular/material/input";
 import { parseIntSafe } from "complete-common";
 
-import { WITHDRAW } from "../../../../shared/game/submit-guess";
+import { WITHDRAW } from "../../../shared/game/submit-guess";
 
 
 function validateGuess(control: AbstractControl): ValidationErrors | null {

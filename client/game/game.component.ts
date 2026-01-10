@@ -15,9 +15,9 @@ import { AllTooHighBox } from "./wager-box/all-too-high-box.component.js";
 import { ColorWagerBox } from "./wager-box/color-wager-box.component.js";
 import { WagerBoxBgText, WagerBoxBottomText } from "./wager-box/wager-box-content.component.js";
 import { WagerBox } from "./wager-box/wager-box.component.js";
-import { OrientationObserver } from "../orientation-observer.js";
-import { GamePresenter, GameView } from "../game.presenter.js";
-import { BetTarget } from "../../../shared/game/betting-phase.js";
+import { OrientationObserver } from "./orientation-observer.js";
+import { GamePresenter, GameView } from "./game.presenter.js";
+import { BetTarget } from "../../shared/game/betting-phase.js";
 
 
 @Component({

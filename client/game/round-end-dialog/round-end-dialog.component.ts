@@ -2,9 +2,9 @@ import { ChangeDetectionStrategy, Component, Inject } from "@angular/core";
 import { MatButtonModule } from "@angular/material/button";
 import { MAT_DIALOG_DATA, MatDialogModule } from "@angular/material/dialog";
 
-import { type GamePlayer } from "../../../../shared/game/game.js";
-import { type BettingConclusion, type IntermissionPhaseState } from "../../../../shared/game/intermission-phase.js";
-import { type PublicId } from "../../../../shared/player.js";
+import { type GamePlayer } from "../../../shared/game/game.js";
+import { type BettingConclusion, type IntermissionPhaseState } from "../../../shared/game/intermission-phase.js";
+import { type PublicId } from "../../../shared/player.js";
 
 
 export type RoundEndDialogData = {
