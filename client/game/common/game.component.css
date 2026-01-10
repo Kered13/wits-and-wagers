@@ -25,6 +25,8 @@
 
 @media (min-aspect-ratio: 1/1) {
 	.board {
+		--mode: desktop;
+		
 		grid-template:
 			"HD    HD    HD    HD    HD    HD    HD    HD" 30px
 			"QS    QS    QS    QS    QS    QS    QS    QS" 70px
@@ -37,6 +39,8 @@
 
 @media (min-aspect-ratio: 1/2) and (max-aspect-ratio: 1/1) {
 	.board {
+		--mode: mobile;
+		
 		grid-template:
 			"HD    HD    HD" 40px
 			"SB    QS    QS" 70px
@@ -54,6 +58,8 @@
 
 @media (max-aspect-ratio: 1/2) {
 	.board {
+		--mode: mobile;
+		
 		grid-template:
 			"HD    HD" 40px
 			"QS    QS" 70px
@@ -346,12 +352,6 @@
 	
 	background: var(--green-space);
 	border-radius: 9px;
-}
-
-@media (max-aspect-ratio: 1/1) {
-	.score-board {
-		min-height: 133px;
-	}
 }
 
 .guess-card {

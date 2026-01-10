@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, HostBinding, input } from "@angular/core";
+import { ChangeDetectionStrategy, Component, input } from "@angular/core";
 import { MatIcon } from "@angular/material/icon";
 import { Ng2FittextModule } from "ng2-fittext";
 
@@ -18,19 +18,7 @@ function isDefined(value: string | undefined): boolean {
 	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ScoreBoard {
-	readonly desktop = input(false, { transform: isDefined });
-	readonly mobile = input(false, { transform: isDefined });
 	readonly players = input.required<PlayerScoreData[]>();
-	
-	@HostBinding("class.desktop")
-	private get desktopClass(): boolean {
-		return this.desktop();
-	}
-	
-	@HostBinding("class.mobile")
-	private get mobileClass(): boolean {
-		return this.mobile();
-	}
 	
 	maxFontSize(element: HTMLElement): number {
 		const strVal = element.computedStyleMap().get("--max-font-size")!.toString();

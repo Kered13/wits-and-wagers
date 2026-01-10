@@ -5,22 +5,26 @@
 	align-items: center;
 }
 
-:host.desktop {
-	--name-max-font-size: 14px;
-	--name-height: 17px;
-	--chips-max-font-size: 16px;
-	--chips-height: 19px;
-	--icon-size: 44px;
-	--icon-margin: -5px;
+@container style(--mode) {
+	:host {
+		--name-max-font-size: 14px;
+		--name-height: 17px;
+		--chips-max-font-size: 16px;
+		--chips-height: 19px;
+		--icon-size: 44px;
+		--icon-margin: -5px;
+	}
 }
 
-:host.mobile {
-	--name-max-font-size: 24px;
-	--name-height: 30px;
-	--chips-max-font-size: 28px;
-	--chips-height: 34px;
-	--icon-size: 80px;
-	--icon-margin: -10px;
+@container style(--mode: mobile) {
+	:host {
+		--name-max-font-size: 24px;
+		--name-height: 30px;
+		--chips-max-font-size: 28px;
+		--chips-height: 34px;
+		--icon-size: 80px;
+		--icon-margin: -10px;
+	}
 }
 
 .player {

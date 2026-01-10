@@ -39,7 +39,7 @@ import { BetTarget } from "../../../shared/game/betting-phase.js";
 		WagerBoxBottomText,
 	],
 	providers: [GamePresenter],
-	templateUrl: "./desktop-game.component.html",
+	templateUrl: "../common/game.component.html",
 	styleUrl: "../common/game.component.css",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
