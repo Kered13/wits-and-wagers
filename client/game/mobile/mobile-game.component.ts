@@ -40,7 +40,7 @@ import { BetTarget } from "../../../shared/game/betting-phase.js";
 	],
 	providers: [GamePresenter],
 	templateUrl: "./mobile-game.component.html",
-	styleUrl: "./mobile-game.component.css",
+	styleUrl: "../common/game.component.css",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class MobileGameComponent implements GameView, OnDestroy {
