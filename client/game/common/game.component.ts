@@ -21,7 +21,7 @@ import { BetTarget } from "../../../shared/game/betting-phase.js";
 
 
 @Component({
-	selector: "game",
+	selector: "app-game",
 	imports: [
 		FormsModule,
 		MatCardModule,
