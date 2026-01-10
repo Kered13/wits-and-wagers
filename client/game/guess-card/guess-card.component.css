@@ -2,7 +2,7 @@
 	--spec-icon-size: 60px;
 	
 	box-sizing: border-box;
-	border-color: var(--card-color);
+	border-color: var(--player-color);
 	background-color: white;
 	
 	display: flex;
@@ -34,14 +34,11 @@
 
 .spec-icon {
 	position: absolute;
-	top: 50%;
-	left: 50%;
-	transform: translate(-50%, -50%);
 	
 	height: var(--spec-icon-size);
 	width: var(--spec-icon-size);
 	font-size: var(--spec-icon-size);
-	color: var(--card-color);
+	color: var(--player-color);
 	
 	text-align: center;
 	
@@ -52,5 +49,5 @@
 	width: calc(100% - 7px);
 	height: calc(100% - 7px);
 	border-radius: 1px;
-	background-color: var(--card-color);
+	background-color: var(--player-color);
 }

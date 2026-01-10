@@ -18,6 +18,7 @@ export const ORANGE: Color = parse(ColorSchema, "#fd9935");
 export const RED: Color = parse(ColorSchema, "#df0719");
 export const BLUE: Color = parse(ColorSchema, "#1cb0ca");
 export const GREEN: Color = parse(ColorSchema, "#37ae41");
+export const SPECTATOR: Color = parse(ColorSchema, "lightgrey");
 
 
 export const COLORS = [

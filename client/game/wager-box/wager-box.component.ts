@@ -3,12 +3,11 @@ import { Ng2FittextModule } from "ng2-fittext";
 
 import { BaseWagerBox } from "./base-wager-box.component.js";
 import { BettingChip } from "../betting-chip/betting-chip.component.js";
-import { SpectatorChip } from "../spectator-chip/spectator-chip.component.js";
 
 
 @Component({
 	selector: "wager-box",
-	imports: [Ng2FittextModule, BettingChip, SpectatorChip],
+	imports: [Ng2FittextModule, BettingChip],
 	templateUrl: "./base-wager-box.component.html",
 	styleUrl: "./base-wager-box.component.css",
 	changeDetection: ChangeDetectionStrategy.OnPush,

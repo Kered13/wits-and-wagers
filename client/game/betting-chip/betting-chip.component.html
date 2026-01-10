@@ -1,7 +1,10 @@
-<div class="bet-chip" [style.border-color]="color()">
+<div class="bet-chip">
 	<div class="bet-chip-inner">
-		<span class="bet-quantity" [fittext]="true" [modelToWatch]="value" [maxFontSize]="22">
-			{{ value() }}
+		@if (isSpectator()) {
+			<mat-icon class="spec-icon">visibility</mat-icon>
+		}
+		<span class="bet-quantity" [fittext]="true" [modelToWatch]="data()" [maxFontSize]="22">
+			{{ data().value }}
 		</span>
 	</div>
 </div>

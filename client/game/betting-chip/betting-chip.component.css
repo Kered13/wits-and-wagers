@@ -1,8 +1,10 @@
 .bet-chip {
+	--spec-icon-size: 35px;
+	
 	width: 38px;
 	aspect-ratio: 1 / 1;
 	border-radius: 50%;
-	border: 5px dashed;
+	border: 5px dashed var(--player-color);
 	outline: 1px solid black;
 	background-color: white;
 	
@@ -21,4 +23,18 @@
 
 .bet-quantity {
 	user-select: none;
+	z-index: 1;
+}
+
+.spec-icon {
+	position: absolute;
+	
+	height: var(--spec-icon-size);
+	width: var(--spec-icon-size);
+	font-size: var(--spec-icon-size);
+	color: var(--player-color);
+	
+	text-align: center;
+	
+	z-index: 0;
 }

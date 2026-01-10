@@ -3,6 +3,7 @@ import { MatIcon } from "@angular/material/icon";
 import { Ng2FittextModule } from "ng2-fittext";
 
 import { PlayerScoreData } from "../player-score-data.js";
+import { SPECTATOR } from "../../../shared/color.js";
 
 
 @Component({
@@ -14,6 +15,10 @@ import { PlayerScoreData } from "../player-score-data.js";
 })
 export class ScoreBoard {
 	readonly players = input.required<PlayerScoreData[]>();
+	
+	colorFor(player: PlayerScoreData): string {
+		return player.color ?? SPECTATOR;
+	}
 	
 	maxFontSize(element: HTMLElement): number {
 		const strVal = element.computedStyleMap().get("--max-font-size")!.toString();

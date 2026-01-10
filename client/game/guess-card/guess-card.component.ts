@@ -2,6 +2,8 @@ import { ChangeDetectionStrategy, Component, HostBinding, HostListener, input, o
 import { MatIcon } from "@angular/material/icon";
 import { Ng2FittextModule } from "ng2-fittext";
 
+import { SPECTATOR } from "../../../shared/color";
+
 
 export type GuessCardData = {
 	name: string;
@@ -32,9 +34,9 @@ export class GuessCard {
 		return this.data().value === false ? "hidden" : "visible";
 	}
 	
-	@HostBinding("style.--card-color")
+	@HostBinding("style.--player-color")
 	private get color(): string {
-		return this.data().color ?? "lightgrey";
+		return this.data().color ?? SPECTATOR;
 	}
 	
 	@HostBinding("class.enabled")
