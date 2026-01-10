@@ -52,7 +52,7 @@ export class WagerDialog {
 	}
 	
 	@HostListener("keydown.enter", ["$event"])
-	private submit(event: KeyboardEvent) {
+	submit(event: Event) {
 		if (this.wager.valid) {
 			this.dialogRef.close(this.getWager());
 		}

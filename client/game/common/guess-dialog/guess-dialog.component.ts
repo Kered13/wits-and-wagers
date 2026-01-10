@@ -64,7 +64,7 @@ export class GuessDialog {
 	}
 	
 	@HostListener("keyup.enter", ["$event"])
-	private submit(event: KeyboardEvent) {
+	submit(event: Event) {
 		if (this.guess.valid) {
 			this.dialogRef.close(this.getGuess());
 		}
