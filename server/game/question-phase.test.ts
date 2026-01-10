@@ -1,3 +1,4 @@
+import { parse } from "valibot";
 import { describe, expect, test, vi } from "vitest";
 
 import { QuestionPhase, DEFAULT_QUESTION_PHASE_OPTIONS, QuestionPhaseOptions } from "./question-phase.js";
@@ -5,6 +6,7 @@ import { Player, Spectator } from "../player/player.js";
 import { QuestionAnswerInfo } from "../../shared/game/question.js";
 import { PlayerManager } from "../player/player-manager.js";
 import { privateId, publicId } from "../player/player-id.js";
+import { ColorSchema } from "../../shared/color.js";
 import { WITHDRAW } from "../../shared/game/submit-guess.js";
 
 
@@ -13,7 +15,7 @@ function makePlayer(name: string): Player {
 		name: name,
 		publicId: publicId(`public-${name}`),
 		privateId: privateId(`private-${name}`),
-		color: "#FF0000"
+		color: parse(ColorSchema, "#FF0000")
 	});
 };
 

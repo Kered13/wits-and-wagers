@@ -1,9 +1,11 @@
+import { parse } from "valibot";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { BettingPhase, BettingPhaseOptions, DEFAULT_BETTING_PHASE_OPTIONS } from "./betting-phase.js";
 import { Player, Spectator } from "../player/player.js";
 import { privateId, publicId } from "../player/player-id.js";
 import { PlayerManager } from "../player/player-manager.js";
+import { ColorSchema } from "../../shared/color.js";
 import { type BettingPhaseState } from "../../shared/game/betting-phase.js";
 import { BettingResults } from "../../shared/game/intermission-phase.js";
 
@@ -13,7 +15,7 @@ function makePlayer(name: string): Player {
 		name: name,
 		publicId: publicId(`public-${name}`),
 		privateId: privateId(`private-${name}`),
-		color: "#FF0000"
+		color: parse(ColorSchema, "#FF0000"),
 	});
 	player.chips = 100;
 	return player;
@@ -240,6 +242,51 @@ describe("BettingPhase", () => {
 		expectBettingPhaseStateEqual(phase.toJson(derek.privateId), expected);
 	});
 	
+	test("toJson reports only spectator guess for one self", () => {
+		const alice = makePlayer("Alice");
+		const bob = makeSpectator("Bob");
+		const charlie = makeSpectator("Charlie");
+		
+		const phase = makeBettingPhase({
+			question: "What is the question?",
+			answer: 42,
+			round: 1,
+			guesses: [[alice, 42]],
+			specGuesses: [[bob, 30], [charlie, 50]],
+			spectators: [bob, charlie],
+		});
+		
+		const baseExpected: BettingPhaseState = {
+			phase: "betting",
+			questionInfo: {
+				question: "What is the question?",
+			},
+			guesses: [
+				{ player: publicId("public-Alice"), target: 3, guess: 42 },
+			],
+			bets: [],
+			spectatorBets: [],
+		};
+		
+		const aliceExpected: BettingPhaseState = {
+			...baseExpected,
+			spectatorGuess: undefined,
+		};
+		expectBettingPhaseStateEqual(phase.toJson(alice.privateId), aliceExpected);
+		
+		const bobExpected: BettingPhaseState = {
+			...baseExpected,
+			spectatorGuess: 30,
+		};
+		expectBettingPhaseStateEqual(phase.toJson(bob.privateId), bobExpected);
+		
+		const charlieExpected: BettingPhaseState = {
+			...baseExpected,
+			spectatorGuess: 50,
+		};
+		expectBettingPhaseStateEqual(phase.toJson(charlie.privateId), charlieExpected);
+	});
+	
 	test("toJson reports only spectator bet for one self", () => {
 		const alice = makePlayer("Alice");
 		const bob = makeSpectator("Bob");
@@ -308,7 +355,7 @@ describe("BettingPhase", () => {
 			options: { bettingPhaseDuration: 60_000 },
 		});
 		
-		expect(phase.toJson(alice.privateId)).to.deep.equal({
+		expect(phase.toJson(alice.privateId)).toEqual({
 			phase: "betting",
 			questionInfo: {
 				question: "What is the question?",

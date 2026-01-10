@@ -28,13 +28,24 @@ export const DEFAULT_BETTING_PHASE_OPTIONS: BettingPhaseOptions = {
 };
 
 
-function sortGuesses<T extends Participant>(guesses: Map<T, number>): GuessJson[] {
+type Guess = {
+	player: PublicId;
+	guess: number;
+};
+
+
+function sortGuesses<T extends Participant>(guesses: Map<T, number>): Guess[] {
 	return Array.from(guesses)
 		.sort((first, second) => first[1] - second[1])
-		.map(([player, guess], i): GuessJson => {
-			const target = guessToTarget(guesses.size, i);
+		.map(([player, guess]) => ({ player: player.publicId, guess: guess }));
+}
+
+function toGuessJson(guesses: Guess[]): GuessJson[] {
+	return guesses
+		.map(({ player, guess }, i): GuessJson => {
+			const target = guessToTarget(guesses.length, i);
 			return {
-				player: player.publicId,
+				player: player,
 				target: target,
 				guess: guess,
 			};
@@ -87,7 +98,7 @@ export class BettingPhase implements Phase {
 	private readonly bets: Bet[] = [];
 	private readonly spectatorBets: Bet[] = [];
 	private readonly guesses: GuessJson[];
-	private readonly specGuesses: GuessJson[];
+	private readonly specGuesses: Guess[];
 	private readonly endPhaseSubj = new Subject<void>();
 	private readonly timeout: NodeJS.Timeout | undefined;
 	// Phase end time as millisecond timestamp.
@@ -100,7 +111,7 @@ export class BettingPhase implements Phase {
 			specGuesses: Map<Spectator, number>,
 			private readonly round: number,
 			private readonly options: BettingPhaseOptions) {
-		this.guesses = sortGuesses(guesses);
+		this.guesses = toGuessJson(sortGuesses(guesses));
 		this.specGuesses = sortGuesses(specGuesses);
 		
 		if (options.bettingPhaseDuration) {
@@ -230,7 +241,7 @@ export class BettingPhase implements Phase {
 		return Math.max(reservedChipsFor(bet, bets), (multiplier + 1) * bet.wager);
 	}
 	
-	private addWinners(guesses: GuessJson[], winningGuess: number, bettingResults: BettingResults) {
+	private addWinners(guesses: Guess[], winningGuess: number, bettingResults: BettingResults) {
 		for (const guess of guesses) {
 			if (guess.guess >= winningGuess && guess.guess <= this.questionInfo.answer) {
 				const player = this.playerManager.getPublicParticipant(guess.player)!;
@@ -242,6 +253,9 @@ export class BettingPhase implements Phase {
 	}
 	
 	public toJson(forPlayer: PrivateId): BettingPhaseState {
+		const specPublicId = this.playerManager.tryGetPrivateSpectator(forPlayer)?.publicId;
+		const spectatorGuess = this.specGuesses.find(guess => guess.player === specPublicId);
+		
 		return {
 			phase: "betting",
 			questionInfo: stripAnswer(this.questionInfo),
@@ -250,6 +264,7 @@ export class BettingPhase implements Phase {
 				target: guess.target,
 				guess: guess.guess
 			})),
+			spectatorGuess: spectatorGuess?.guess,
 			bets: this.bets,
 			spectatorBets: this.filterBetsForSpectator(forPlayer),
 			roundDuration: this.options.bettingPhaseDuration,

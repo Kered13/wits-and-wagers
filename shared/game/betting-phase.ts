@@ -1,4 +1,4 @@
-import { array, integer, literal, minValue, nonEmpty, number, optional, pipe, strictObject, string, union, type InferOutput } from "valibot";
+import { array, integer, literal, minValue, number, optional, pipe, strictObject, union, type InferOutput } from "valibot";
 
 import { PublicIdSchema } from "../player.js";
 import { QuestionInfoSchema } from "./question.js";
@@ -49,6 +49,7 @@ export const BettingPhaseStateSchema = strictObject({
 	phase: literal("betting"),
 	questionInfo: QuestionInfoSchema,
 	guesses: array(GuessSchema),
+	spectatorGuess: optional(number()),
 	// Bets placed by players.
 	bets: array(BetSchema),
 	// Bets placed by a spectator. Only reported to that spectator.
