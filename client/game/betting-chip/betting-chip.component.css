@@ -2,7 +2,7 @@
 	--spec-icon-size: 35px;
 	
 	width: 38px;
-	aspect-ratio: 1 / 1;
+	height: 38px;
 	border-radius: 50%;
 	border: 5px dashed var(--player-color);
 	outline: 1px solid black;
