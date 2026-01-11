@@ -5,11 +5,9 @@
 	align-items: center;
 }
 
-@container style(--mode) {
+@container style(--mode: desktop) {
 	:host {
-		--name-max-font-size: 14px;
 		--name-height: 17px;
-		--chips-max-font-size: 16px;
 		--chips-height: 19px;
 		--icon-size: 44px;
 		--icon-margin: -5px;
@@ -18,9 +16,7 @@
 
 @container style(--mode: mobile) {
 	:host {
-		--name-max-font-size: 24px;
 		--name-height: 30px;
-		--chips-max-font-size: 28px;
 		--chips-height: 34px;
 		--icon-size: 80px;
 		--icon-margin: -10px;
@@ -28,8 +24,8 @@
 }
 
 .player {
-	width: 100px;
 	max-height: 120px;
+	width: 100px;
 	
 	display: flex;
 	flex-direction: column;
@@ -41,23 +37,20 @@
 
 .name {
 	height: var(--name-height);
+	width: 100%;
 	
-	--max-font-size: var(--name-max-font-size);
-	font-size: var(--max-font-size);
-	text-align: center;
-	
-	display: inline-flex;
+	display: flex;
 	align-items: center;
+	justify-content: center;
 }
 
 .chips {
 	height: var(--chips-height);
+	width: 100%;
 	
-	--max-font-size: var(--chips-max-font-size);
-	font-size: var(--max-font-size);
-	
-	display: inline-flex;
+	display: flex;
 	align-items: center;
+	justify-content: center;
 }
 
 .icon {

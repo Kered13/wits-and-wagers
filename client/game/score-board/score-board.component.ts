@@ -19,9 +19,4 @@ export class ScoreBoard {
 	colorFor(player: PlayerScoreData): string {
 		return player.color ?? SPECTATOR;
 	}
-	
-	maxFontSize(element: HTMLElement): number {
-		const strVal = element.computedStyleMap().get("--max-font-size")!.toString();
-		return parseInt(strVal);
-	}
 };

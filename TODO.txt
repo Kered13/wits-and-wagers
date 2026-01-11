@@ -13,4 +13,3 @@
 * Improve error when connection lost.
 * Some errors should not be elevated to UI.
 * Implement questions upload.
-* getComputedStyleMap not supported by Firefox
