@@ -79,6 +79,7 @@ export class GameInstanceService extends Closeable {
 			map(err => new WebsocketError(err.status, err.message)),
 			catchError(err => {
 				if (err instanceof CloseEvent) {
+					// TODO: Attempt reconnection?
 					return of(new WebsocketError(500, `Server unexpectedly closed the connection: ${err}`))
 				} else {
 					return of(new WebsocketError(0, `Unknown error occured: ${err}`));

@@ -1,5 +1,5 @@
 import { Injectable } from "@angular/core";
-import { Observable, map, filter, take, catchError, NEVER } from "rxjs";
+import { Observable, map, filter, take, catchError, NEVER, of } from "rxjs";
 import { WebSocketSubject } from "rxjs/webSocket";
 import { assert, is, safeParse } from "valibot";
 
@@ -99,7 +99,8 @@ export class LobbyInstanceService extends Closeable {
 			catchError(err => NEVER),
 			filter(notification => notification.type === "begin-game"),
 			map(update => update.gameId),
-			// take(1) instead of first() so we don"t error when the connection is closed.
+			// take(1) instead of first() so we don't error if the connection is
+			// closed before receiving a value.
 			take(1));
 		
 		this.canceled = notifications.pipe(
@@ -108,7 +109,8 @@ export class LobbyInstanceService extends Closeable {
 			catchError(err => NEVER),
 			filter(notification => notification.type === "canceled"),
 			map(_ => undefined),
-			// take(1) instead of first() so we don"t error when the connection is closed.
+			// take(1) instead of first() so we don't error if the connection is
+			// closed before receiving a value.
 			take(1));
 		
 		this.kicked = notifications.pipe(
@@ -117,12 +119,21 @@ export class LobbyInstanceService extends Closeable {
 			catchError(err => NEVER),
 			filter(notification => notification.type === "kicked"),
 			map(_ => undefined),
-			// take(1) instead of first() so we don"t error when the connection is closed.
+			// take(1) instead of first() so we don't error if the connection is
+			// closed before receiving a value.
 			take(1));
 		
 		this.error = notifications.pipe(
 			filter(notification => notification.type === "error"),
-			map(err => new WebsocketError(err.status, err.message)));
+			map(err => new WebsocketError(err.status, err.message)),
+			catchError(err => {
+				if (err instanceof CloseEvent) {
+					// TODO: Attempt reconnection?
+					return of(new WebsocketError(500, `Server unexpectedly closed the connection: ${err}`))
+				} else {
+					return of(new WebsocketError(0, `Unknown error occured: ${err}`));
+				};
+			}));
 		
 		// If the server closes the connection, close this lobby. This does not
 		// handle unexpected closures like the server crashing.

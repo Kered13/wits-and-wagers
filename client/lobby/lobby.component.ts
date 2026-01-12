@@ -112,6 +112,8 @@ export class LobbyComponent implements OnDestroy {
 				this.routing.toHome();
 			}),
 			newService.get().onError().subscribe(err => {
+				// Completes immediately after notifying, so we don't need to
+				// unsubscribe.
 				this.errorHandler.handleError(err)
 					.subscribe(_ => this.routing.toHome());
 			}));
