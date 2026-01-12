@@ -87,7 +87,7 @@ export class Lobby {
 		let player: Player;
 		if (existingPlayer) {
 			return existingPlayer;
-		} else if (this.players.length >= this.options.numberOfPlayers) {
+		} else if (this.players.length >= this.options.maxPlayers) {
 			return this.addSpectator(name, existingId);
 		} else if (existingSpectator) {
 			// Move spectator to player.
@@ -190,6 +190,7 @@ export class Lobby {
 			title: this.options.title,
 			host: this.host.publicId,
 			hostInformation: hostInfo,
+			maxPlayers: this.options.maxPlayers,
 			players: this.players.map(player => player.toLobbyJson()),
 			spectators: this.spectators.map(spectator => spectator.toLobbyJson()),
 		};

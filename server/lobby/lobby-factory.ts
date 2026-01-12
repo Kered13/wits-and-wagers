@@ -8,7 +8,7 @@ import { type LobbyId } from "../../shared/lobby/lobby.js";
 
 
 function validateOptions(options: LobbyOptions): void {
-	if (options.numberOfPlayers && (options.numberOfPlayers < 1 || options.numberOfPlayers > 7)) {
+	if (options.maxPlayers && (options.maxPlayers < 1 || options.maxPlayers > 7)) {
 		throw new HttpError(400, "Number of players must be between 1 and 7.");
 	}
 	if (options.numberOfRounds && (options.numberOfRounds < 1)) {

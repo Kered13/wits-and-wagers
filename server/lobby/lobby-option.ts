@@ -8,14 +8,14 @@ export type LobbyOptions = QuestionPhaseOptions & BettingPhaseOptions & Intermis
 	title: string,
 	host: string,
 	questionSet: number,
-	numberOfPlayers: number,
+	maxPlayers: number,
 	numberOfRounds: number,
 };
 
 
 export const DEFAULT_LOBBY_OPTIONS = Object.assign(
 	{
-		numberOfPlayers: 7,
+		maxPlayers: 7,
 		numberOfRounds: 7,
 	},
 	DEFAULT_QUESTION_PHASE_OPTIONS,

@@ -72,7 +72,7 @@ export class LobbyComponent implements OnDestroy {
 		this.lobbyService = toSignal(instanceService, { requireSync: true });
 		this.lobbyState = toSignal(
 			instanceService.pipe(switchMap(service => service.get().onLobbyUpdate())),
-			{ initialValue: { title: "", host: "" as PublicId, players: [], spectators: [] } });
+			{ initialValue: { title: "", host: "" as PublicId, maxPlayers: 7, players: [], spectators: [] } });
 		
 		this.colorPickerState = linkedSignal({
 			source: this.lobbyState,

@@ -1,4 +1,4 @@
-import { boolean, nonEmpty, number, optional, pipe, strictObject, string, type InferOutput } from "valibot";
+import { boolean, integer, maxValue, minValue, nonEmpty, number, optional, pipe, strictObject, string, type InferOutput } from "valibot";
 
 import { LobbyIdSchema } from "./lobby.js";
 import { PrivatePlayerSchema } from "../player.js";
@@ -15,7 +15,7 @@ export const LobbyOptionsSchema = strictObject({
 	// ID of the question set to use for the game.
 	questionSet: number(),
 	// Maximum number of players. Default 7.
-	numberOfPlayers: optional(number()),
+	maxPlayers: optional(pipe(number(), integer(), minValue(1), maxValue(7))),
 	// Maximum number of rounds. Default 7.
 	numberOfRounds: optional(number()),
 	// Automatically end the question phase when all players have submitted their guesses. Default true.

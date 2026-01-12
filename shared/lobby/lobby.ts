@@ -1,4 +1,4 @@
-import { array, brand, nonEmpty, optional, pipe, strictObject, string, type InferOutput } from "valibot";
+import { array, brand, integer, maxValue, minValue, nonEmpty, number, optional, pipe, strictObject, string, type InferOutput } from "valibot";
 
 import { ColorSchema } from "../color.js";
 import { PublicIdSchema } from "../player.js";
@@ -43,6 +43,8 @@ export const LobbyStateSchema = strictObject({
 		lobbyId: LobbyIdSchema,
 		spectatorId: LobbyIdSchema,
 	})),
+	// Maximum number of players allowed in the lobby.
+	maxPlayers: pipe(number(), integer(), minValue(1), maxValue(7)),
 	// The public information of each player in the lobby.
 	players: array(LobbyPlayerSchema),
 	// The public information of each spectator in the lobby.
