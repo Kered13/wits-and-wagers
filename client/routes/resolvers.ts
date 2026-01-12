@@ -49,10 +49,8 @@ export async function resolveLobby(route: TypedActivatedRouteSnapshot<HasPlayer,
 		localStorage.setItem(PRIVATE_ID, response.player.privateId);
 		return response.player;
 	} else {
-		// TODO: Only join as spectator if we're not already part of the game.
-		// TODO: Need to detect if we are trying to join as spectator or player.
-		//   Only the server knows this, based on the game ID we have passed it.
-		const gameResponse = await firstValueFrom(gameService.joinSpectator(response.gameId, username, privateId));
+		// Game has already begun, try to join.
+		const gameResponse = await firstValueFrom(gameService.joinGame(response.gameId, username, privateId));
 		localStorage.setItem(PUBLIC_ID, gameResponse.player.publicId);
 		localStorage.setItem(PRIVATE_ID, gameResponse.player.privateId);
 		return new RedirectCommand(router.createUrlTree(gameRoute.url({ gameId: response.gameId })));
@@ -60,7 +58,9 @@ export async function resolveLobby(route: TypedActivatedRouteSnapshot<HasPlayer,
 }
 
 
-export function resolveGame(route: TypedActivatedRouteSnapshot<HasPlayer, HasGameId>): PrivatePlayer | RedirectCommand {
+export async function resolveGame(route: TypedActivatedRouteSnapshot<HasPlayer, HasGameId>): Promise<PrivatePlayer | RedirectCommand> {
+	const gameService = inject(GameService);
+	
 	// Always set the GAME_ID. This way if we get redirected by to the
 	// homepage, it will be remembered.
 	localStorage.setItem(GAME_ID, route.params.gameId);
@@ -69,14 +69,21 @@ export function resolveGame(route: TypedActivatedRouteSnapshot<HasPlayer, HasGam
 	const homeRoute = inject(HomeRoute);
 
 	const username = localStorage.getItem(USERNAME);
-	const publicId = parse(PublicIdSchema, localStorage.getItem(PUBLIC_ID));
-	const privateId = parse(PrivateIdSchema, localStorage.getItem(PRIVATE_ID));
-	if (!username || !publicId || !privateId) {
+	if (!username) {
 		return new RedirectCommand(router.createUrlTree(homeRoute.url()));
+	}
+	let publicId = localStorage.getItem(PUBLIC_ID);
+	let privateId = localStorage.getItem(PRIVATE_ID);
+	if (!publicId || !privateId) {
+		const gameResponse = await firstValueFrom(gameService.joinGame(route.params.gameId, username));
+		publicId = gameResponse.player.publicId;
+		privateId = gameResponse.player.privateId;
+		localStorage.setItem(PUBLIC_ID, publicId);
+		localStorage.setItem(PRIVATE_ID, privateId);
 	}
 	return {
 		name: username,
-		publicId: publicId,
-		privateId: privateId,
+		publicId: parse(PublicIdSchema, publicId),
+		privateId: parse(PrivateIdSchema, privateId),
 	};
 }

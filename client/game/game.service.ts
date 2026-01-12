@@ -9,7 +9,7 @@ import { WebsocketError } from "../utils/websocket-error.js";
 import { BetTarget } from "../../shared/game/betting-phase.js";
 import { END_PHASE_PATH, EndPhaseRequest } from "../../shared/game/end-phase.js";
 import { GAME_API_ROOT, type GameId, type GameState } from "../../shared/game/game.js";
-import { JOIN_SPECTATOR_PATH, type JoinSpectatorRequest, type JoinSpectatorResponse } from "../../shared/game/join-spectator.js";
+import { JOIN_SPECTATOR_PATH, type JoinGameRequest, type JoinGameResponse } from "../../shared/game/join-game.js";
 import { GameNotificationSchema, type GameNotification } from "../../shared/game/notifications.js";
 import { SUBMIT_BET_PATH, SubmitBetRequest } from "../../shared/game/submit-bet.js";
 import { GuessOrWithdraw, SUBMIT_GUESS_PATH, SubmitGuessRequest } from "../../shared/game/submit-guess.js";
@@ -37,8 +37,8 @@ export class GameService {
 		return gameInstanceService;
 	}
 	
-	public joinSpectator(gameId: GameId, name: string, privateId?: PrivateId): Observable<JoinSpectatorResponse> {
-		return this.backend.postJson<JoinSpectatorRequest, JoinSpectatorResponse>(
+	public joinGame(gameId: GameId, name: string, privateId?: PrivateId): Observable<JoinGameResponse> {
+		return this.backend.postJson<JoinGameRequest, JoinGameResponse>(
 			GAME_API_ROOT + JOIN_SPECTATOR_PATH, { gameId, name, privateId });
 	}
 	

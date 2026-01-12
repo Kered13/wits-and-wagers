@@ -169,6 +169,7 @@ export class Lobby {
 	public beginGame(): [Game, LobbyBeginGame] {
 		const game = this.gameFactory.newGame(
 			Lobby.gameIdFromLobbyId(this.id),
+			Lobby.gameIdFromLobbyId(this.spectatorId),
 			this.players,
 			this.spectators,
 			this.host,

@@ -1,3 +1,4 @@
+import { parse } from "valibot";
 import { describe, expect, test, vi } from "vitest";
 
 import { Game } from "./game.js";
@@ -8,14 +9,17 @@ import { HttpError } from "../utils/httperror.js";
 import { DEFAULT_BETTING_PHASE_OPTIONS } from "./betting-phase.js";
 import { DEFAULT_QUESTION_PHASE_OPTIONS } from "./question-phase.js";
 import { DEFAULT_INTERMISSION_PHASE_OPTIONS } from "./intermission-phase.js";
+import { ColorSchema } from "../../shared/color.js";
+import { PrivateIdSchema, PublicIdSchema } from "../../shared/player.js";
+import { GameIdSchema } from "../../shared/game/game.js";
 
 
 function makePlayer(name: string): Player {
 	return new Player({
 		name: name,
-		publicId: `public-${name}`,
-		privateId: `private-${name}`,
-		color: "#FF0000"
+		publicId: parse(PublicIdSchema, `public-${name}`),
+		privateId: parse(PrivateIdSchema, `private-${name}`),
+		color: parse(ColorSchema, "#FF0000"),
 	});
 }
 
@@ -23,8 +27,8 @@ function makePlayer(name: string): Player {
 function makeSpectator(name: string): Spectator {
 	return new Spectator({
 		name: name,
-		publicId: `public-${name}`,
-		privateId: `private-${name}`,
+		publicId: parse(PublicIdSchema, `public-${name}`),
+		privateId: parse(PrivateIdSchema, `private-${name}`),
 	});
 }
 
@@ -52,7 +56,8 @@ function makeGame(id: string, title: string, players: Player[], spectators?: Spe
 		},
 		options);
 	return new Game(
-		id,
+		parse(GameIdSchema, id),
+		parse(GameIdSchema, "spec-" + id),
 		players,
 		spectators ?? [],
 		gameOpts,

@@ -13,6 +13,7 @@ export class GameFactory {
 	
 	public newGame(
 			id: GameId,
+			spectatorId: GameId,
 			players: PlayerParams[],
 			spectators: SpectatorParams[],
 			host: ParticipantParams,
@@ -26,6 +27,6 @@ export class GameFactory {
 		}
 		const questionGenerator = new QuestionGenerator(questionSet.questions, gameOptions.numberOfRounds);
 		
-		return new Game(id, players, spectators, gameOptions, questionGenerator);
+		return new Game(id, spectatorId, players, spectators, gameOptions, questionGenerator);
 	}
 }

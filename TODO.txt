@@ -1,8 +1,9 @@
 * Implement game.
+  * When lobby is full, automatically move players to spectator.
   * Generate random lobby/game names.
-  * Make game ID distinct from lobby ID?
   * Support mixing question sets?
 * Implement UI
+  * Disable moving players to spectator when lobby is full?
   * Art pass (fonts, improved colors, etc.).
   * Improve lobby UI
   * Improve round over UI.

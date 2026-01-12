@@ -30,6 +30,7 @@ export class Game {
 	
 	constructor(
 			private readonly id: GameId,
+			private readonly spectatorId: GameId,
 			players: PlayerParams[],
 			spectators: SpectatorParams[],
 			private readonly options: GameOptions,
@@ -46,6 +47,10 @@ export class Game {
 		return this.id;
 	}
 	
+	public getSpectatorId(): GameId {
+		return this.spectatorId;
+	}
+
 	public addSpectator(name: string, id?: PrivateId): Spectator {
 		const existingSpectator = this.playerManager.tryGetPrivateSpectator(id ?? "" as PrivateId);
 		if (existingSpectator) {

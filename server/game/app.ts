@@ -9,12 +9,12 @@ import { WebSocketUtil } from "../utils/websocket.js";
 import { SUBSCRIBE_PATH, SubscribeRequestSchema } from "../../shared/game/subscribe.js";
 import { END_PHASE_PATH, EndPhaseRequestSchema } from "../../shared/game/end-phase.js";
 import { type GameId } from "../../shared/game/game.js";
-import { JOIN_SPECTATOR_PATH, JoinSpectatorRequestSchema, type JoinSpectatorResponse } from "../../shared/game/join-spectator.js";
+import { JOIN_SPECTATOR_PATH, JoinGameRequestSchema, type JoinGameResponse } from "../../shared/game/join-game.js";
 import { type GameNotification } from "../../shared/game/notifications.js";
 import { SUBMIT_BET_PATH, SubmitBetRequestSchema } from "../../shared/game/submit-bet.js";
 import { SUBMIT_GUESS_PATH, SubmitGuessRequestSchema } from "../../shared/game/submit-guess.js";
-import type { PrivateId } from "../../shared/player.js";
-import type { Subscription } from "rxjs";
+import { type PrivateId } from "../../shared/player.js";
+import { type Subscription } from "rxjs";
 
 
 const GAME_GARBAGE_COLLECTION_TIMEOUT_MS = 30*60*1000;
@@ -49,6 +49,7 @@ export class GameApp {
 	public addGame(game: Game): void {
 		const notifier = new GameNotifier();
 		this.games.set(game.getId(), { game, notifier });
+		this.games.set(game.getSpectatorId(), { game, notifier });
 		
 		let sub: Subscription;
 		let timeout = setTimeout(() => this.deleteGame(game, notifier, sub), GAME_GARBAGE_COLLECTION_TIMEOUT_MS);
@@ -70,11 +71,12 @@ export class GameApp {
 		sub.unsubscribe();
 		notifier.close();
 		this.games.delete(game.getId());
+		this.games.delete(game.getSpectatorId());
 	}
 	
 	private joinGame(req: Request, res: Response): void {
 		const { gameId, name, privateId } = verifyRequest(
-			req.body, JoinSpectatorRequestSchema, `Invalid JoinSpectatorRequest: ${JSON.stringify(req.body)}`);
+			req.body, JoinGameRequestSchema, `Invalid JoinGameRequest: ${JSON.stringify(req.body)}`);
 		
 		const game = this.tryGetGame(gameId)?.game;
 		if (!game) {
@@ -85,7 +87,7 @@ export class GameApp {
 			this.joinSpectator(game, name, privateId));
 	}
 	
-	private tryJoinPlayer(game: Game, privateId: PrivateId | undefined): JoinSpectatorResponse | undefined {
+	private tryJoinPlayer(game: Game, privateId: PrivateId | undefined): JoinGameResponse | undefined {
 		if (!privateId) {
 			return undefined;
 		}
@@ -99,7 +101,7 @@ export class GameApp {
 		};
 	}
 	
-	private joinSpectator(game: Game, name: string, privateId: PrivateId | undefined): JoinSpectatorResponse {
+	private joinSpectator(game: Game, name: string, privateId: PrivateId | undefined): JoinGameResponse {
 		return {
 			player: game.addSpectator(name, privateId).toPrivateJson()
 		};
