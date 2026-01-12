@@ -80,7 +80,7 @@ export class Lobby {
 		return [...this.players, ...this.spectators];
 	}
 	
-	public addPlayer(name: string, existingId?: PrivateId | PublicId): Player {
+	public addPlayer(name: string, existingId?: PrivateId | PublicId): Player | Spectator {
 		const existingPlayer = this.players.find(player => player.privateId === existingId || player.publicId === existingId);
 		const existingSpectator = this.spectators.find(player => player.privateId === existingId || player.publicId === existingId);
 		
@@ -88,7 +88,7 @@ export class Lobby {
 		if (existingPlayer) {
 			return existingPlayer;
 		} else if (this.players.length >= this.options.numberOfPlayers) {
-			throw new HttpError(403, "Lobby is full.");
+			return this.addSpectator(name, existingId);
 		} else if (existingSpectator) {
 			// Move spectator to player.
 			this.removeSpectator(existingSpectator.privateId);

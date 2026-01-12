@@ -1,5 +1,4 @@
 * Implement game.
-  * When lobby is full, automatically move players to spectator.
   * Generate random lobby/game names.
   * Support mixing question sets?
 * Implement UI
