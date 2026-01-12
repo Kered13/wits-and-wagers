@@ -6,7 +6,7 @@ import { Title } from "@angular/platform-browser";
 import { ActivatedRoute } from "@angular/router";
 import { combineLatest, concat, delay, map, type Observable, of, pairwise, startWith, Subscription, switchMap, take } from "rxjs";
 
-import { BetData } from "./bet-data.js";
+import { BetData } from "./betting-chip/betting-chip.component.js";
 import { GameEndDialog } from "./game-end-dialog/game-end-dialog.component.js";
 import { GameInstanceService, GameService } from "./game.service.js";
 import { GuessCardData } from "./guess-card/guess-card.component.js";
@@ -20,7 +20,7 @@ import { GameRoute, TypedRouteFor } from "../routes/routes.js";
 import { RoutingService } from "../routes/routing.service.js";
 import { RandomizedList } from "../utils/randomized-list.js";
 import { RefCounted } from "../utils/refcounted.js";
-import { Color } from "../../shared/color.js";
+import { Color, SPECTATOR } from "../../shared/color.js";
 import { PrivatePlayer, PublicId } from "../../shared/player.js";
 import { Bet, BetTarget, BettingPhaseState } from "../../shared/game/betting-phase.js";
 import { GameOverPhaseState, GamePlayer, GameState } from "../../shared/game/game.js";
@@ -117,33 +117,24 @@ function getBetsOnTarget(target: BetTarget, game: GameState): BetData[] {
 		return [];
 	}
 	
-	const bets = getPlayerBetsOnTarget(target, game, phase);
-	const spectatorBet = getSpectatorBetOnTarget(target, game, phase);
-	if (spectatorBet) {
-		bets.push(spectatorBet);
-	}
-	return bets;
+	return [
+		...getBetsOnTarget2(target, "player", phase, game),
+		...getBetsOnTarget2(target, "spectator", phase, game)];
 }
 
 
-function getPlayerBetsOnTarget(target: BetTarget, game: GameState, phase: BettingPhaseState): BetData[] {
-	return phase.bets
+function getBetsOnTarget2(
+		target: BetTarget,
+		type: "player" | "spectator",
+		phase: BettingPhaseState,
+		game: GameState): BetData[] {
+	return (type === "player" ? phase.bets : phase.spectatorBets)
 		.filter(bet => bet.target === target)
 		.map(bet => ({
+			type: type,
 			value: bet.wager,
-			name: nameForPlayer(game, bet.player),
 			color: colorForPlayer(game, bet.player),
 		}));
-}
-
-
-function getSpectatorBetOnTarget(target: BetTarget, game: GameState, phase: BettingPhaseState): BetData | undefined {
-	return phase.spectatorBets
-		.filter(bet => bet.target === target)
-		.map(bet => ({
-			value: bet.wager,
-			name: nameForPlayer(game, bet.player),
-		}))[0];
 }
 
 
@@ -173,7 +164,7 @@ function getSpectatorGuess(game: GameState): GuessCardData | undefined {
 	if (phase.spectatorGuess === undefined) {
 		return undefined;
 	}
-	return { value: phase.spectatorGuess };
+	return spectatorGuessCardData(phase.spectatorGuess);
 }
 
 
@@ -186,14 +177,8 @@ function playerHasGuess(publicId: PublicId, game: GameState): boolean {
 }
 
 
-function nameForPlayer(game: GameState, publicId: PublicId): string {
-	return game.players.find(player => player.publicId === publicId)?.name ??
-		game.spectators.find(spec => spec.publicId === publicId)?.name!;
-}
-
-
 function colorForPlayer(game: GameState, publicId: PublicId): Color {
-	return game.players.find(player => player.publicId === publicId)!.color;
+	return game.players.find(player => player.publicId === publicId)?.color ?? SPECTATOR;
 }
 
 
@@ -206,7 +191,7 @@ function getGuessCards(game: GameState, thisPlayer: PrivatePlayer): GuessCardDat
 		.filter(player => phase.guesses[player.publicId] !== false)
 		.map(player => guessCardData(game, phase.guesses[player.publicId], player.publicId));
 	if (phase.spectatorGuess !== undefined) {
-		guesses.push({ value: phase.spectatorGuess });
+		guesses.push(spectatorGuessCardData(phase.spectatorGuess));
 	}
 	return guesses;
 }
@@ -214,10 +199,20 @@ function getGuessCards(game: GameState, thisPlayer: PrivatePlayer): GuessCardDat
 
 function guessCardData(game: GameState, guess: number | boolean, player: PublicId): GuessCardData {
 	return {
+		type: "player",
 		value: guess,
 		color: colorForPlayer(game, player),
 	};
 };
+
+
+function spectatorGuessCardData(guess: number): GuessCardData {
+	return {
+		type: "spectator",
+		value: guess,
+		color: SPECTATOR,
+	};
+}
 
 
 export interface GameView {

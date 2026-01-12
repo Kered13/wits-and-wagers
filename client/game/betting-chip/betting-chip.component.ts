@@ -2,8 +2,14 @@ import { ChangeDetectionStrategy, Component, HostBinding, input } from "@angular
 import { MatIcon } from "@angular/material/icon";
 import { Ng2FittextModule } from "ng2-fittext";
 
-import { BetData } from "../bet-data";
 import { SPECTATOR } from "../../../shared/color";
+
+
+export type BetData = {
+	type: "player" | "spectator";
+	value: number;
+	color: string;
+};
 
 
 @Component({
@@ -22,6 +28,6 @@ export class BettingChip {
 	}
 	
 	isSpectator(): boolean {
-		return this.data().color === undefined;
+		return this.data().type === "spectator";
 	}
 }

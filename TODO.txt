@@ -3,13 +3,9 @@
   * Make game ID distinct from lobby ID?
   * Support mixing question sets?
 * Implement UI
-  * Refactor color logic in guess card.
-  * Provide better indication when a space is not playable?
-  * Show spectator their guess during betting phase.
   * Art pass (fonts, improved colors, etc.).
   * Improve lobby UI
   * Improve round over UI.
-  * Strange issues with guess card numbers on iPad. Particularly player portrait mode.
 * Improve error when connection lost.
 * Some errors should not be elevated to UI.
 * Implement questions upload.

@@ -6,10 +6,10 @@ import { SPECTATOR } from "../../../shared/color";
 
 
 export type GuessCardData = {
+	type: "player" | "spectator";
 	// If value is not provided, the card is face-down.
 	value: number | boolean;
-	// If color is not provided, this is a spectator guess.
-	color?: string;
+	color: string;
 };
 
 
@@ -44,7 +44,7 @@ export class GuessCard {
 	}
 	
 	isSpectator(): boolean {
-		return this.data().color === undefined;
+		return this.data().type === "spectator";
 	}
 	
 	formattedValue(value: number): string {

@@ -7,7 +7,7 @@ import { MatTooltip } from "@angular/material/tooltip";
 import { RouterLink, RouterLinkActive } from "@angular/router";
 import { NgxMutationObserverDirective } from "ngx-mutation-observer";
 
-import { BetData } from "./bet-data.js";
+import { BetData } from "./betting-chip/betting-chip.component.js";
 import { GuessCard, GuessCardData } from "./guess-card/guess-card.component.js";
 import { PlayerScoreData } from "./player-score-data.js";
 import { ScoreBoard } from "./score-board/score-board.component.js";
