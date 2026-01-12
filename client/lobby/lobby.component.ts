@@ -184,4 +184,8 @@ export class LobbyComponent implements OnDestroy {
 	closeColorPicker(player: LobbyPlayer): void {
 		this.colorPickerState()[player.publicId] = false;
 	}
+	
+	isLobbyFull(): boolean {
+		return this.lobbyState().players.length >= this.lobbyState().maxPlayers;
+	}
 }

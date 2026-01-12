@@ -93,6 +93,7 @@
 											class="host-action-button"
 											matTooltip="Move to players"
 											mat-mini-fab
+											[disabled]="isLobbyFull()"
 											(click)="moveToPlayers(spectator.publicId)">
 										<mat-icon>person</mat-icon>
 									</button>
