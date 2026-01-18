@@ -53,14 +53,14 @@ export abstract class WebsocketService extends Closeable {
 		}
 		if (error instanceof Event) {
 			if (error instanceof CloseEvent) {
-				console.log(`Connection to server lost. Reconnecting...`);
+				console.warn(`Connection to server lost. Reconnecting...`);
 			} else {
-				console.log(`WebSocket error not CloseEvent (failed to open?). Reconnecting...`);
+				console.warn(`WebSocket error not CloseEvent (failed to open?). Reconnecting...`);
 			}
 			// Signal that we should retry the connection.
 			return of(0);
 		}
-		alert(`Error that is not Error type. Not retrying. ${error} | ${error.toString()} | ${JSON.stringify(error)}`);
+		console.error(`Error that is not Error type. Not retrying. ${error} | ${error.toString()} | ${JSON.stringify(error)}`);
 		return throwError(() => error);
 	}
 };
