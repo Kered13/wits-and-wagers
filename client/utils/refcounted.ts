@@ -5,8 +5,8 @@ export abstract class Closeable {
 	
 	close(): void {
 		if (!this.closed) {
-			this.doClose();
 			this.closed = true;
+			this.doClose();
 		}
 	}
 	

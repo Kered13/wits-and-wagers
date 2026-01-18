@@ -19,7 +19,11 @@ export class GlobalErrorHandler implements ErrorHandler {
 	public handleError(error: unknown): Observable<any> {
 		// For some reason HttpErrorResponse is not a subclass of Error.
 		if (!(error instanceof Error) && !(error instanceof HttpErrorResponse)) {
-			return this.handle(new Error("Unknown error.", { cause: error }));
+			if (error instanceof Object) {
+				return this.handle(new Error(`Unknown error: ${error} | ${JSON.stringify(error)}`, { cause: error }));
+			} else {
+				return this.handle(new Error(`Unknown error: ${error}`, { cause: error }));
+			}
 		}
 		return this.handle(error);
 	}

@@ -134,8 +134,8 @@ export class GameApp {
 		res.end();
 	}
 	
-	private subscribe(webSocket: WebSocket) {
-		const ws = new WebSocketUtil(webSocket);
+	private subscribe(webSocket: WebSocket, req: Request) {
+		const ws = new WebSocketUtil(webSocket, req.ip ?? "unknown");
 		ws.onMethod("subscribe", (msg: unknown) => {
 			console.log("WS /api/game/subscribe " + JSON.stringify(msg));
 			
@@ -149,6 +149,7 @@ export class GameApp {
 				notifier.notifyClient(ws, game.makeUpdate(privateId));
 				
 				ws.onClose(() => {
+					console.log(`WebSocket closed for game ${gameId}, player ${privateId}`);
 					notifier.removeClient(ws);
 				});
 			} catch (err) {
@@ -156,6 +157,10 @@ export class GameApp {
 					console.error(err.message);
 					ws.error(err.status, err.message);
 					ws.close();
+				} else if (err instanceof Error) {
+					console.error(`Error: ${err.toString()}`);
+				} else {
+					console.error(`Unknown error: ${JSON.stringify(err)}`);
 				}
 			}
 		});
@@ -167,7 +172,12 @@ export class GameApp {
 			.post(SUBMIT_GUESS_PATH, (req, res) => this.submitGuess(req, res))
 			.post(SUBMIT_BET_PATH, (req, res) => this.submitBet(req, res))
 			.post(END_PHASE_PATH, (req, res) => this.endPhase(req, res))
-			.ws(SUBSCRIBE_PATH, ws => this.subscribe(ws));
+			.ws(SUBSCRIBE_PATH, (ws, req) => this.subscribe(ws, req));
+	}
+	
+	// TODO: Remove when disconnect testing is no longer needed.
+	public terminateWebsockets(): void {
+		console.log("Terminating all game websockets...");
+		this.games.forEach(({ notifier }) => notifier.terminate());
 	}
 }
- 

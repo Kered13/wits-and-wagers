@@ -1,11 +1,11 @@
 import { Injectable } from "@angular/core";
-import { Observable, map, filter, catchError, of, NEVER } from "rxjs";
-import { WebSocketSubject } from "rxjs/webSocket";
-import { is, safeParse } from "valibot";
+import { Observable, map, filter, catchError, of, NEVER, Subject } from "rxjs";
+import { safeParse } from "valibot";
 
 import { BackendService } from "../utils/backend.service.js";
-import { Closeable, RefCounted } from "../utils/refcounted.js";
+import { RefCounted } from "../utils/refcounted.js";
 import { WebsocketError } from "../utils/websocket-error.js";
+import { WebsocketService } from "../utils/websocket.service.js";
 import { BetTarget } from "../../shared/game/betting-phase.js";
 import { END_PHASE_PATH, EndPhaseRequest } from "../../shared/game/end-phase.js";
 import { GAME_API_ROOT, type GameId, type GameState } from "../../shared/game/game.js";
@@ -48,24 +48,23 @@ export class GameService {
 }
 
 
-export class GameInstanceService extends Closeable {
-	private readonly wsSubject: WebSocketSubject<Object>;
+export class GameInstanceService extends WebsocketService {
 	private readonly gameUpdate: Observable<GameState>;
 	private readonly error: Observable<WebsocketError>;
 	
 	constructor(
 			private readonly gameService: GameService,
-			private readonly backend: BackendService,
+			backend: BackendService,
 			private readonly gameId: GameId,
 			private readonly privateId: PrivateId) {
-		super()
+		super(GAME_API_ROOT + SUBSCRIBE_PATH, backend);
 		
-		this.wsSubject = this.backend.webSocket(GAME_API_ROOT + SUBSCRIBE_PATH);
-		const notifications: Observable<GameNotification> =
-			this.wsSubject.pipe(
+		const notifications = new Subject<GameNotification>();
+		this.retryWsSubject.pipe(
 				map(object => safeParse(GameNotificationSchema, object)),
 				filter(parsed => parsed.success),
-				map(parsed => parsed.output));
+				map(parsed => parsed.output))
+			.subscribe(notifications);
 		
 		this.gameUpdate = notifications.pipe(
 			// Filter out errors. They can be caught by subscribing to the error
@@ -80,26 +79,31 @@ export class GameInstanceService extends Closeable {
 			catchError(err => {
 				if (err instanceof CloseEvent) {
 					// TODO: Attempt reconnection?
-					return of(new WebsocketError(500, `Server unexpectedly closed the connection: ${err}`))
+					return of(new WebsocketError(500, `Server unexpectedly closed the connection: ${err.reason}`))
 				} else {
-					return of(new WebsocketError(0, `Unknown error occured: ${err}`));
+					return of(new WebsocketError(0, `Unknown error occured: ${err} | ${err.toString()} | ${JSON.stringify(err)}`));
 				};
 			}));
 		
 		// If the server closes the connection, close the websocket. This does
 		// not handle unexpected closures like the server crashing.
-		this.wsSubject.subscribe({
-			complete: () => this.close(),
-			error: err => undefined
-		 });
-		
+		notifications.subscribe({
+			complete: () => this.close()
+		});
+	}
+	
+	protected override onOpen(event: Event): void {
 		this.wsSubject.next({
 			method: "subscribe",
 			payload: {
 				gameId: this.gameId,
 				privateId: this.privateId,
-			}
+			},
 		} satisfies WebSocketRequest<SubscribeRequest>);
+	}
+	
+	protected override onClose(): void {
+		this.gameService.removeGame(this.gameId);
 	}
 	
 	public submitGuess(guess: GuessOrWithdraw): Observable<void> {
@@ -134,10 +138,5 @@ export class GameInstanceService extends Closeable {
 	// Notifies on any errors in the notification stream.
 	public onError(): Observable<WebsocketError> {
 		return this.error;
-	}
-	
-	public override doClose(): void {
-		this.wsSubject.complete();
-		this.gameService.removeGame(this.gameId);
 	}
 };

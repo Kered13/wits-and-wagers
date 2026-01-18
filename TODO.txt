@@ -1,12 +1,18 @@
 * Implement game.
+  * Fine-tune reconnection logic.
+    * Exponential backoff?
+    * Test how many retries go through in some failure modes, set max reconnect attempts?
   * Generate random lobby/game names.
+  * Verify that player is in game/lobby before allowing subscription.
   * Support mixing question sets?
 * Implement UI
-  * Allow spectators to move back to play if they began as player?
+  * Fix centering of Game Over on desktop UI.
+  * Allow spectators to move back to player if they began as player?
   * Improve lobby UI
   * Fix menus not scrolling correctly on small windows.
   * Improve round over UI.
   * Art pass (fonts, improved colors, etc.).
-* Improve error when connection lost.
 * Some errors should not be elevated to UI.
 * Implement questions upload.
+* Upgrade to Typescript 6.
+* Upgrade to Express 5.

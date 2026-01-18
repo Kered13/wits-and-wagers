@@ -6,8 +6,23 @@ import type { WsError } from "../../shared/ws-error.js";
 
 
 export class WebSocketUtil {
-	constructor(private readonly ws: WebSocket) {
-		this.ws.on("error", error => console.error);
+	// TODO: Set these timers for production.
+	private static readonly HEARTBEAT_INTERVAL_MS = 5000;
+	private static readonly HEARTBEAT_TIMEOUT_MS = 1000;
+	
+	private keepalive: NodeJS.Timeout;
+	private pingTimeout: NodeJS.Timeout | undefined;;
+	
+	constructor(private readonly ws: WebSocket, private readonly id: string) {
+		console.log(`Connected websocket ${this.id}.`);
+		this.keepalive = setInterval(() => this.ping(), WebSocketUtil.HEARTBEAT_INTERVAL_MS);
+		this.ws.on("error", error => () => console.error(`Error: ${error}`));
+		this.ws.on("pong", () => clearInterval(this.pingTimeout));
+		this.ws.on("close", () => {
+			console.log(`Closed websocket ${this.id}.`);
+			clearInterval(this.keepalive);
+			clearInterval(this.pingTimeout);
+		});
 	}
 	
 	public send<T>(payload: T): this {
@@ -19,13 +34,19 @@ export class WebSocketUtil {
 		this.send<WsError>({
 			type: "error",
 			status,
-			message
+			message,
 		});
 		return this;
 	}
 	
 	public close(): this {
 		this.ws.close();
+		return this;
+	}
+	
+	// TODO: Remove when disconnect testing is no longer needed.
+	public terminate(): this {
+		this.ws.terminate();
 		return this;
 	}
 	
@@ -60,5 +81,13 @@ export class WebSocketUtil {
 	public onClose(handler: () => void): this {
 		this.ws.on("close", handler);
 		return this;
+	}
+	
+	private ping(): void {
+		this.ws.ping();
+		this.pingTimeout = setTimeout(() => {
+			console.log(`Heartbeat failed, terminating websocket ${this.id}.`);
+			this.ws.terminate();
+		}, WebSocketUtil.HEARTBEAT_TIMEOUT_MS);
 	}
 }

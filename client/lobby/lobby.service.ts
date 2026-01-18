@@ -1,11 +1,11 @@
 import { Injectable } from "@angular/core";
-import { Observable, map, filter, take, catchError, NEVER, of } from "rxjs";
-import { WebSocketSubject } from "rxjs/webSocket";
-import { assert, is, safeParse } from "valibot";
+import { Observable, map, filter, take, catchError, NEVER, of, Subject } from "rxjs";
+import { assert, safeParse } from "valibot";
 
 import { BackendService } from "../utils/backend.service.js";
-import { Closeable, RefCounted } from "../utils/refcounted.js";
+import { RefCounted } from "../utils/refcounted.js";
 import { WebsocketError } from "../utils/websocket-error.js";
+import { WebsocketService } from "../utils/websocket.service.js";
 import { Color } from "../../shared/color.js";
 import { GameId } from "../../shared/game/game.js";
 import { BEGIN_PATH, type BeginGameRequest } from "../../shared/lobby/begin.js";
@@ -63,8 +63,7 @@ export class LobbyService {
 }
 
 
-export class LobbyInstanceService extends Closeable {
-	private readonly wsSubject: WebSocketSubject<Object>;
+export class LobbyInstanceService extends WebsocketService {
 	private readonly lobbyUpdate: Observable<LobbyState>;
 	private readonly begin: Observable<GameId>;
 	private readonly canceled: Observable<void>;
@@ -73,18 +72,17 @@ export class LobbyInstanceService extends Closeable {
 	
 	constructor(
 			private readonly lobbyService: LobbyService,
-			private readonly backend: BackendService,
+			backend: BackendService,
 			private readonly lobbyId: LobbyId,
 			private readonly privateId: PrivateId) {
-		super();
+		super(LOBBY_API_ROOT + SUBSCRIBE_PATH, backend);
 		
-		this.wsSubject = this.backend.webSocket(LOBBY_API_ROOT + SUBSCRIBE_PATH);
-		
-		const notifications: Observable<LobbyNotification> =
-			this.wsSubject.pipe(
-				map(object => safeParse(LobbyNotificationSchema, object)),
-				filter(parsed => parsed.success),
-				map(parsed => parsed.output));
+		const notifications = new Subject<LobbyNotification>();
+			this.retryWsSubject.pipe(
+					map(object => safeParse(LobbyNotificationSchema, object)),
+					filter(parsed => parsed.success),
+					map(parsed => parsed.output))
+				.subscribe(notifications);
 		
 		this.lobbyUpdate = notifications.pipe(
 			// Filter out errors. They can be caught by subscribing to the error
@@ -134,11 +132,9 @@ export class LobbyInstanceService extends Closeable {
 					return of(new WebsocketError(0, `Unknown error occured: ${err}`));
 				};
 			}));
-		
-		// If the server closes the connection, close this lobby. This does not
-		// handle unexpected closures like the server crashing.
-		this.wsSubject.subscribe({ complete: () => this.close() });
-		
+	}
+	
+	protected override onOpen(event: Event): void {
 		this.wsSubject.next({
 			method: "subscribe",
 			payload: {
@@ -146,6 +142,10 @@ export class LobbyInstanceService extends Closeable {
 				privateId: this.privateId,
 			}
 		} satisfies WebSocketRequest<SubscribeRequest>);
+	}
+	
+	protected override onClose(): void {
+		this.lobbyService.removeLobby(this.lobbyId);
 	}
 	
 	public kickPlayer(player: PublicId): Observable<void> {
@@ -206,10 +206,5 @@ export class LobbyInstanceService extends Closeable {
 	
 	public onError(): Observable<WebsocketError> {
 		return this.error;
-	}
-	
-	public override doClose(): void {
-		this.wsSubject.complete();
-		this.lobbyService.removeLobby(this.lobbyId);
 	}
 };

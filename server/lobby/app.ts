@@ -279,8 +279,8 @@ export class LobbyApp {
 		res.end();
 	}
 	
-	private subscribe(webSocket: WebSocket): void {
-		const ws = new WebSocketUtil(webSocket);
+	private subscribe(webSocket: WebSocket, req: Request): void {
+		const ws = new WebSocketUtil(webSocket, req.ip ?? "unknown");
 		ws.onMethod("subscribe", (msg: unknown) => {
 			console.log("WS /api/lobby/subscribe " + JSON.stringify(msg));
 			
@@ -294,6 +294,8 @@ export class LobbyApp {
 				notifier.notifyClient(ws, lobby.makeUpdate(privateId));
 				
 				ws.onClose(() => {
+					console.log(`WebSocket closed for lobby ${lobbyId}, player ${privateId}`);
+					// TODO: Pretty sure this check is not necessary.
 					if (!notifier.hasClient(ws)) {
 						// Already removed.
 						return;
@@ -328,6 +330,13 @@ export class LobbyApp {
 			.post(SET_COLOR_PATH, (req, res) => this.setColor(req, res))
 			.post(BEGIN_PATH, (req, res) => this.beginGame(req, res))
 			.post(CANCEL_PATH, (req, res) => this.cancel(req, res))
-			.ws(SUBSCRIBE_PATH, ws => this.subscribe(ws));
+			.ws(SUBSCRIBE_PATH, (ws, req) => this.subscribe(ws, req));
+	}
+
+	// TODO: Remove when disconnect testing is no longer needed.
+	public terminateWebsockets(): void {
+		console.log("Terminating all game websockets...");
+		this.lobbies.forEach(({ notifier }) => notifier.terminate());
+		this.spectatorLobbies.forEach(({ notifier }) => notifier.terminate());
 	}
 }

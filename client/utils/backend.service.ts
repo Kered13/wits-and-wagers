@@ -1,7 +1,7 @@
 import { HttpClient, HttpHeaders } from "@angular/common/http";
 import { Inject, Injectable } from "@angular/core";
 import { Observable } from "rxjs";
-import { webSocket, WebSocketSubject } from "rxjs/webSocket";
+import { webSocket, WebSocketSubject, WebSocketSubjectConfig } from "rxjs/webSocket";
 
 import { SERVER_URL } from "../app/flags.js";
 
@@ -26,8 +26,8 @@ export class BackendService {
 		return this.httpClient.post<Res>(this.httpUrl(path), JSON.stringify(body), { headers: headers });
 	}
 	
-	public webSocket<T>(path: string) : WebSocketSubject<T> {
-		return webSocket(this.wsUrl(path));
+	public webSocket<T>(config: WebSocketSubjectConfig<T>) : WebSocketSubject<T> {
+		return webSocket({ ...config, url: this.wsUrl(config.url) });
 	}
 	
 	private httpUrl(path: string): string {
