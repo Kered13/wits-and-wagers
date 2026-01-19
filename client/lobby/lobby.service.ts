@@ -123,13 +123,12 @@ export class LobbyInstanceService extends WebsocketService {
 		
 		this.error = notifications.pipe(
 			filter(notification => notification.type === "error"),
-			map(err => new WebsocketError(err.status, err.message)),
+			map(err => new WebsocketError(err.message, err.status)),
 			catchError(err => {
 				if (err instanceof CloseEvent) {
-					// TODO: Attempt reconnection?
-					return of(new WebsocketError(500, `Server unexpectedly closed the connection: ${err}`))
+					return of(new WebsocketError(`Server unexpectedly closed the connection: ${err}`))
 				} else {
-					return of(new WebsocketError(0, `Unknown error occured: ${err}`));
+					return of(new WebsocketError(`Unknown error occured: ${err}`));
 				};
 			}));
 	}

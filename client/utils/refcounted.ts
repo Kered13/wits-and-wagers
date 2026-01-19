@@ -19,8 +19,7 @@ export abstract class Closeable {
 export class RefCounted<T extends Closeable> {
 	private count: number = 0;
 	
-	public constructor(private readonly t: T) {
-	}
+	public constructor(private readonly t: T) {}
 	
 	public get(): T {
 		return this.t;

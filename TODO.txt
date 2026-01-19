@@ -1,7 +1,4 @@
 * Implement game.
-  * Fine-tune reconnection logic.
-    * Exponential backoff?
-    * Test how many retries go through in some failure modes, set max reconnect attempts?
   * Generate random lobby/game names.
   * Verify that player is in game/lobby before allowing subscription.
   * Support mixing question sets?

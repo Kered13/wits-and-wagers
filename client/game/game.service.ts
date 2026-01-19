@@ -75,21 +75,16 @@ export class GameInstanceService extends WebsocketService {
 		
 		this.error = notifications.pipe(
 			filter(notification => notification.type === "error"),
-			map(err => new WebsocketError(err.status, err.message)),
+			map(err => new WebsocketError(err.message, err.status)),
 			catchError(err => {
 				if (err instanceof CloseEvent) {
-					// TODO: Attempt reconnection?
-					return of(new WebsocketError(500, `Server unexpectedly closed the connection: ${err.reason}`))
+					return of(new WebsocketError(`Server unexpectedly closed the connection: ${err.reason}`))
+				} else if (err instanceof WebsocketError) {
+					return of(err);
 				} else {
-					return of(new WebsocketError(0, `Unknown error occured: ${err} | ${err.toString()} | ${JSON.stringify(err)}`));
+					return of(new WebsocketError(`Unknown error occured: ${err} | ${err.toString()} | ${JSON.stringify(err)}`));
 				};
 			}));
-		
-		// If the server closes the connection, close the websocket. This does
-		// not handle unexpected closures like the server crashing.
-		notifications.subscribe({
-			complete: () => this.close()
-		});
 	}
 	
 	protected override onOpen(event: Event): void {
