@@ -3,7 +3,6 @@
   * Verify that player is in game/lobby before allowing subscription.
   * Support mixing question sets?
 * Implement UI
-  * Fix centering of Game Over on desktop UI.
   * Allow spectators to move back to player if they began as player?
   * Improve lobby UI
   * Improve round over UI.
