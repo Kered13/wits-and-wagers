@@ -36,7 +36,7 @@ import { GetQuestionSetsResponse } from "../../shared/questions/get-question-set
 export class HostComponent {
 	readonly options = new FormGroup({
 		title: new FormControl("", Validators.required),
-		questionSet: new FormControl<number | undefined>(undefined, Validators.required),
+		questionSets: new FormControl<number[] | undefined>(undefined, Validators.required),
 		numberOfPlayers: new FormControl<number>(7, Validators.required),
 		numberOfRounds: new FormControl("7", Validators.required),
 		endQuestionPhaseWhenAllGuessesSubmitted: new FormControl(true),
@@ -94,7 +94,7 @@ export class HostComponent {
 					options: {
 						title: this.options.value.title!,
 						host: this.username(),
-						questionSet: this.options.value.questionSet!,
+						questionSets: this.options.value.questionSets!,
 						maxPlayers: this.options.value.numberOfPlayers ?? 7,
 						numberOfRounds: parseIntSafe(this.options.value.numberOfRounds ?? ""),
 						endQuestionPhaseWhenAllGuessesSubmitted: this.options.value.endQuestionPhaseWhenAllGuessesSubmitted!,

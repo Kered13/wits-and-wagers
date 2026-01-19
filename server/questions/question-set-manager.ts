@@ -1,5 +1,6 @@
 import { type QuestionSet } from "./question-set.js";
 import { type QuestionAnswerInfo } from "../../shared/game/question.js";
+import { HttpError } from "../utils/httperror.js";
 
 
 export class QuestionSetManager {
@@ -21,7 +22,11 @@ export class QuestionSetManager {
 		return new Map(this.questionSets);
 	}
 	
-	public getQuestionSet(id: number): QuestionSet | undefined {
-		return this.questionSets.get(id);
+	public getQuestionSet(id: number): QuestionSet {
+		const questionSet = this.questionSets.get(id);
+		if (!questionSet) {
+			throw new HttpError(400, `Question set ${id} does not exist.`);
+		}
+		return questionSet;
 	}
 }

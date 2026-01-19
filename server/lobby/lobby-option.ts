@@ -7,7 +7,7 @@ import { DEFAULT_QUESTION_PHASE_OPTIONS, type QuestionPhaseOptions } from "../ga
 export type LobbyOptions = QuestionPhaseOptions & BettingPhaseOptions & IntermissionPhaseOptions & {
 	title: string,
 	host: string,
-	questionSet: number,
+	questionSets: number[],
 	maxPlayers: number,
 	numberOfRounds: number,
 };

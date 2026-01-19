@@ -12,7 +12,7 @@
 			</mat-form-field>
 			<mat-form-field>
 				<mat-label>Question Set</mat-label>
-				<mat-select formControlName="questionSet">
+				<mat-select formControlName="questionSets" multiple>
 					@for (questionSet of questionSets(); track $index) {
 						<mat-option [value]="questionSet.id">{{ questionSet.name }} ({{ questionSet.size }} questions)</mat-option>
 					}

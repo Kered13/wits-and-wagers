@@ -173,7 +173,7 @@ export class Lobby {
 			this.players,
 			this.spectators,
 			this.host,
-			this.options.questionSet,
+			this.options.questionSets,
 			this.options);
 		return [game, this.makeBeginGame(game.getId())];
 	}

@@ -1,8 +1,8 @@
 * Implement game.
   * Generate random lobby/game names.
   * Verify that player is in game/lobby before allowing subscription.
-  * Support mixing question sets?
 * Implement UI
+  * Improve error handling on Host page.
   * Allow spectators to move back to player if they began as player?
   * Improve lobby UI
   * Improve round over UI.

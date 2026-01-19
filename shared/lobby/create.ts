@@ -1,4 +1,4 @@
-import { boolean, integer, maxValue, minValue, nonEmpty, number, optional, pipe, strictObject, string, type InferOutput } from "valibot";
+import { array, boolean, integer, maxValue, minValue, nonEmpty, number, optional, pipe, strictObject, string, type InferOutput } from "valibot";
 
 import { LobbyIdSchema } from "./lobby.js";
 import { PrivatePlayerSchema } from "../player.js";
@@ -12,8 +12,8 @@ export const LobbyOptionsSchema = strictObject({
 	title: pipe(string(), nonEmpty()),
 	// Name of the host player.
 	host: pipe(string(), nonEmpty()),
-	// ID of the question set to use for the game.
-	questionSet: number(),
+	// IDs of the question sets to use for the game.
+	questionSets: pipe(array(number()), nonEmpty()),
 	// Maximum number of players. Default 7.
 	maxPlayers: optional(pipe(number(), integer(), minValue(1), maxValue(7))),
 	// Maximum number of rounds. Default 7.
