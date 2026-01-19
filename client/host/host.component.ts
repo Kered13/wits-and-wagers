@@ -68,17 +68,30 @@ export class HostComponent {
 	}
 	
 	private numberOfRoundsValidator(): ValidatorFn {
-		return (control: AbstractControl): ValidationErrors | null => {
-			const numberOfRounds = parseIntSafe(control.value.numberOfRounds);
+		return (abstractControl: AbstractControl): ValidationErrors | null => {
+			// Enable type checking.
+			const control = abstractControl as typeof this.options;
+			
+			if (!control.dirty) {
+				return null;
+			}
+			
+			const numberOfRounds = parseIntSafe(control.value.numberOfRounds ?? "");
+			const questionSets = control.value.questionSets ?? [];
+			
+			// Don't fail if fields have not been filled yet. Other validators
+			// will catch required fields.
 			if (numberOfRounds === undefined) {
+				return null;
+			} else if (questionSets.length === 0) {
 				return null;
 			} else if (numberOfRounds <= 0) {
 				return { "RoundsMustBePositive": true };
-			} else if (control.value.questionSet == undefined) {
-				return null;
 			}
-			const questionSet = this.questionSets()[control.value.questionSet];
-			if (numberOfRounds > questionSet.size) {
+			const numQuestions = this.questionSets()
+				.filter(qs => questionSets.includes(qs.id))
+				.reduce((size, qs) => size + qs.size, 0);
+			if (numberOfRounds > numQuestions) {
 				return { "NotEnoughQuestionsInSet": true };
 			}
 			return null;
