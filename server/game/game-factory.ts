@@ -3,10 +3,9 @@ import { type GameOptions } from "./game-options.js";
 import { type ParticipantParams, type PlayerParams, type SpectatorParams } from "../player/player.js";
 import { QuestionGenerator } from "../questions/question-generator.js";
 import { type QuestionSetManager } from "../questions/question-set-manager.js";
-import { HttpError } from "../utils/httperror.js";
 import { type LobbyOptions } from "../lobby/lobby-option.js";
 import { type GameId } from "../../shared/game/game.js";
-import { type QuestionAnswerInfo } from "../../shared/game/question.js";
+import { type QuestionSetId } from "../../shared/questions/questions.js";
 
 
 export class GameFactory {
@@ -18,7 +17,7 @@ export class GameFactory {
 			players: PlayerParams[],
 			spectators: SpectatorParams[],
 			host: ParticipantParams,
-			questionSetIds: number[],
+			questionSetIds: QuestionSetId[],
 			options: LobbyOptions): Game {
 		const gameOptions: GameOptions = Object.assign({}, options, { host: host});
 		

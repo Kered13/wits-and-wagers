@@ -15,6 +15,7 @@ import { LobbyService } from "../lobby/lobby.service.js";
 import { HostRoute, TypedRouteFor } from "../routes/routes.js";
 import { RoutingService } from "../routes/routing.service.js";
 import { GetQuestionSetsResponse } from "../../shared/questions/get-question-sets.js";
+import { QuestionSetId } from "../../shared/questions/questions.js";
 
 
 @Component({
@@ -36,7 +37,7 @@ import { GetQuestionSetsResponse } from "../../shared/questions/get-question-set
 export class HostComponent {
 	readonly options = new FormGroup({
 		title: new FormControl("", Validators.required),
-		questionSets: new FormControl<number[] | undefined>(undefined, Validators.required),
+		questionSets: new FormControl<QuestionSetId[] | undefined>(undefined, Validators.required),
 		numberOfPlayers: new FormControl<number>(7, Validators.required),
 		numberOfRounds: new FormControl("7", Validators.required),
 		endQuestionPhaseWhenAllGuessesSubmitted: new FormControl(true),

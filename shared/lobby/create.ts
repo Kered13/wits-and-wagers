@@ -2,6 +2,7 @@ import { array, boolean, integer, maxValue, minValue, nonEmpty, number, optional
 
 import { LobbyIdSchema } from "./lobby.js";
 import { PrivatePlayerSchema } from "../player.js";
+import { QuestionSetIdSchema } from "../questions/questions.js";
 
 
 export const CREATE_PATH = "/create";
@@ -13,7 +14,7 @@ export const LobbyOptionsSchema = strictObject({
 	// Name of the host player.
 	host: pipe(string(), nonEmpty()),
 	// IDs of the question sets to use for the game.
-	questionSets: pipe(array(number()), nonEmpty()),
+	questionSets: pipe(array(QuestionSetIdSchema), nonEmpty()),
 	// Maximum number of players. Default 7.
 	maxPlayers: optional(pipe(number(), integer(), minValue(1), maxValue(7))),
 	// Maximum number of rounds. Default 7.

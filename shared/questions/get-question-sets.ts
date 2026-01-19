@@ -1,5 +1,7 @@
 import { array, nonEmpty, number, pipe, strictObject, string, type InferOutput } from "valibot";
 
+import { QuestionSetIdSchema } from "./questions.js";
+
 
 export const GET_QUESTION_SETS_PATH = "/getquestionsets";
 
@@ -11,7 +13,7 @@ export type GetQuestionSetsRequest = InferOutput<typeof GetQuestionSetsRequestSc
 export const GetQuestionSetsResponseSchema = array(
 	strictObject({
 		// Unique ID of the question set.
-		id: number(),
+		id: QuestionSetIdSchema,
 		// File name of the question set.
 		name: pipe(string(), nonEmpty()),
 		// Number of questions in the set.
