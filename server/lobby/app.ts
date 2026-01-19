@@ -1,4 +1,5 @@
 import express, { Router, type Request, type Response } from "express";
+import { type Subscription } from "rxjs";
 import { assert, parse } from "valibot";
 import { type WebSocket } from "ws";
 
@@ -20,7 +21,6 @@ import { type LobbyNotification } from "../../shared/lobby/notifications.js";
 import { SUBSCRIBE_PATH, SubscribeRequestSchema } from "../../shared/lobby/subscribe.js";
 import { SET_COLOR_PATH, SetColorRequestSchema } from "../../shared/lobby/set-color.js";
 import { type PrivateId } from "../../shared/player.js";
-import { type Subscription } from "rxjs";
 
 
 const LOBBY_GARBAGE_COLLECTION_TIMEOUT_MS = 30*60*1000;
@@ -288,20 +288,19 @@ export class LobbyApp {
 				const { privateId, lobbyId } = verifyRequest(
 					msg, SubscribeRequestSchema, `Invalid SubscribeRequest: ${JSON.stringify(msg)}`);
 				
-				// TODO: Verify that player is in lobby.
 				const { lobby, notifier } = this.getAnyLobby(lobbyId);
+				
+				if (!lobby.hasParticipant(privateId)) {
+					throw new HttpError(403, `Player ${privateId} is not a participant in lobby ${lobbyId}.`);
+				}
+				
 				notifier.addClient(privateId, ws);
 				notifier.notifyClient(ws, lobby.makeUpdate(privateId));
 				
 				ws.onClose(() => {
 					console.log(`WebSocket closed for lobby ${lobbyId}, player ${privateId}`);
-					// TODO: Pretty sure this check is not necessary.
-					if (!notifier.hasClient(ws)) {
-						// Already removed.
-						return;
-					}
 					notifier.removeClient(ws);
-					if (!notifier.hasClients(privateId)) {
+					if (lobby.hasParticipant(privateId) && !notifier.hasClients(privateId)) {
 						if (lobby.isHost(privateId)) {
 							// TODO: Uncomment when development is done.
 							// notifier.notifyClients(lobby.makeCancel());

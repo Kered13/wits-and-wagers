@@ -41,13 +41,7 @@ export class Notifier<N> {
 		return this;
 	}
 	
-	public closeAndRemoveClient(ws: WebSocketUtil): this {
-		ws.close();
-		this.removeClient(ws);
-		return this;
-	}
-	
-	public removePlayer(id: PrivateId): this {
+	private removePlayer(id: PrivateId): this {
 		for (const ws of this.idToClients.get(id) ?? []) {
 			this.clientToId.delete(ws);
 		}
@@ -56,10 +50,13 @@ export class Notifier<N> {
 	}
 	
 	public closeAndRemovePlayer(id: PrivateId): this {
-		for (const ws of this.idToClients.get(id) ?? []) {
+		const wss = this.idToClients.get(id) ?? [];
+		// Remove player before closing sockets so that `removeClient` becomes a
+		// no-op if it is called.
+		this.removePlayer(id);
+		for (const ws of wss) {
 			ws.close();
 		}
-		this.removePlayer(id);
 		return this;
 	}
 	

@@ -143,8 +143,12 @@ export class GameApp {
 				const { privateId, gameId } = verifyRequest(
 					msg, SubscribeRequestSchema, `Invalid SubscribeRequest: ${JSON.stringify(msg)}`);
 				
-				// TODO: Verify that player is in game.
 				const { game, notifier } = this.getGame(gameId);
+				
+				if (!game.hasParticipant(privateId)) {
+					throw new HttpError(403, `Player ${privateId} is not a participant in game ${gameId}.`);
+				}
+				
 				notifier.addClient(privateId, ws);
 				notifier.notifyClient(ws, game.makeUpdate(privateId));
 				
@@ -158,9 +162,9 @@ export class GameApp {
 					ws.error(err.status, err.message);
 					ws.close();
 				} else if (err instanceof Error) {
-					console.error(`Error: ${err.toString()}`);
+					console.error(`Error: ${err}`);
 				} else {
-					console.error(`Unknown error: ${JSON.stringify(err)}`);
+					console.error(`Unknown error: ${err} | ${JSON.stringify(err)}`);
 				}
 			}
 		});

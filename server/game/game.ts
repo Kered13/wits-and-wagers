@@ -183,6 +183,10 @@ export class Game {
 		};
 	}
 	
+	public hasParticipant(id: PrivateId): boolean {
+		return !!this.playerManager.tryGetPrivatePlayer(id) || !!this.playerManager.tryGetPrivateSpectator(id);
+	}
+	
 	public getParticipants(): (Player | Spectator)[] {
 		return [...this.playerManager.getAllPlayers(), ...this.playerManager.getAllSpectators()];
 	}
