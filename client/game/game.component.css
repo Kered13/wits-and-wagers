@@ -7,8 +7,8 @@
 	
 	/* Scale the board to take up 95% of the screen. */
 	zoom: calc(min(
-		95cqw/var(--board-width),
-		95cqh/var(--board-height),
+		95svw/var(--board-width),
+		95svh/var(--board-height),
 		1.5));
 }
 

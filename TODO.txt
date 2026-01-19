@@ -6,7 +6,6 @@
   * Fix centering of Game Over on desktop UI.
   * Allow spectators to move back to player if they began as player?
   * Improve lobby UI
-  * Fix menus not scrolling correctly on small windows.
   * Improve round over UI.
   * Art pass (fonts, improved colors, etc.).
 * Some errors should not be elevated to UI.

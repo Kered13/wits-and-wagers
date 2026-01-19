@@ -1,10 +1,8 @@
 .main {
-	height: 100svh;
+	min-height: 100svh;
 	width: 100svw;
 	/* Prevent the vertical scroll bar from causing horizontal overflow. */
 	max-width: 100%;
-	
-	container-type: size;
 	
 	display: flex;
 	flex-direction: column;
