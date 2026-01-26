@@ -1,9 +1,28 @@
+:host {
+	--icon-size: 22px;
+}
+
+.title {
+	font-weight: 500;
+	align-self: center;
+}
+
 .round-end {
-	background: #eee;
-	padding: 1rem;
-	font-family: monospace;
-	word-break: auto-phrase;
-	white-space: preserve nowrap;
-	text-align: start;
-	overflow-x: scroll;
+	font-size: 16px;
+	
+	text-align: center;
+}
+
+.result-tables {
+	justify-self: center;
+	
+	width: 100%;
+	
+	display: flex;
+	flex-direction: row;
+	justify-content: space-evenly;
+}
+
+.divider {
+	margin: 0;
 }

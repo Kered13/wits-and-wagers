@@ -1,4 +1,4 @@
-import { Component, Inject } from "@angular/core";
+import { ChangeDetectionStrategy, Component, Inject } from "@angular/core";
 import { MatButtonModule } from "@angular/material/button";
 import { MAT_DIALOG_DATA, MatDialogModule } from "@angular/material/dialog";
 
@@ -7,7 +7,8 @@ import { MAT_DIALOG_DATA, MatDialogModule } from "@angular/material/dialog";
 	selector: "global-error-dialog",
 	imports: [MatButtonModule, MatDialogModule],
 	templateUrl: "./error-dialog.component.html",
-	styleUrl: "./error-dialog.component.css"
+	styleUrl: "./error-dialog.component.css",
+	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ErrorDialogComponent {
 	constructor(@Inject(MAT_DIALOG_DATA) readonly error: Error) {}

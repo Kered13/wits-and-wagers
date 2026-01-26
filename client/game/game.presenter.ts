@@ -23,7 +23,7 @@ import { RefCounted } from "../utils/refcounted.js";
 import { Color, SPECTATOR } from "../../shared/color.js";
 import { PrivatePlayer, PublicId } from "../../shared/player.js";
 import { Bet, BetTarget, BettingPhaseState } from "../../shared/game/betting-phase.js";
-import { GameOverPhaseState, GamePlayer, GameState } from "../../shared/game/game.js";
+import { GameOverPhaseState, GamePlayer, GameSpectator, GameState } from "../../shared/game/game.js";
 import { QuestionPhaseState } from "../../shared/game/question-phase.js";
 import { IntermissionPhaseState } from "../../shared/game/intermission-phase.js";
 import { GuessOrWithdraw } from "../../shared/game/submit-guess.js";
@@ -361,7 +361,7 @@ export class GamePresenter {
 		// There is only one update during intermission, so we don't have to
 		// check for re-opening the dialog here.
 		if (isIntermissionPhase(state.phase)) {
-			this.openIntermissionDialog(state.phase, state.players);
+			this.openIntermissionDialog(state.phase, state.players, state.spectators);
 		} else {
 			this.closeIntermissionDialog();
 		}
@@ -446,12 +446,13 @@ export class GamePresenter {
 		}
 	}
 	
-	private openIntermissionDialog(phase: IntermissionPhaseState, players: GamePlayer[]): void {
+	private openIntermissionDialog(phase: IntermissionPhaseState, players: GamePlayer[], spectators: GameSpectator[]): void {
 		this.intermissionDialog = this.dialog
 			.open<RoundEndDialog, RoundEndDialogData>(RoundEndDialog, {
 				data: {
 					intermission: phase,
 					players: players,
+					spectators: spectators,
 				},
 				disableClose: true,
 				scrollStrategy: this.overlay.scrollStrategies.noop(),

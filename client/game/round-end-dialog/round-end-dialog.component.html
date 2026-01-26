@@ -1,15 +1,18 @@
-<h1 mat-dialog-title>Round Over!</h1>
-<div mat-dialog-content>
-	<p>Question: {{ intermission.questionInfo.question }}</p>
-	<p>Answer: {{ intermission.questionInfo.answer }}</p>
+<h1 mat-dialog-title class="title">Round Over!</h1>
+<div mat-dialog-content class="round-end">
+	<p>{{ intermission.questionInfo.question }}</p>
+	<p><b>Answer:</b> {{ intermission.questionInfo.answer }}</p>
 	@if (intermission.outcome.type === "skipped") {
 		<p>No one had any guesses? This round was skipped!</p>
 	} @else {
-		<p>{{ formatWinners(intermission.outcome.players.winners) }}</p>
-		<br/>
-		@for (tuple of earnings(intermission.outcome); track tuple.id) {
-			<p>{{ tuple.name }}: +{{ tuple.earnings }}</p>
-		}
+		<p [innerHtml]="formatWinners(intermission.outcome.players.winners)"></p>
+		<div class="result-tables">
+			<results-table [type]="'players'" [players]="sortedResults(intermission.outcome.players)"></results-table>
+			@if (spectators.length > 0) {
+				<hr class="divider" />
+				<results-table [type]="'spectators'" [players]="sortedResults(intermission.outcome.spectators)"></results-table>
+			}
+		</div>
 	}
 </div>
 <div mat-dialog-actions>

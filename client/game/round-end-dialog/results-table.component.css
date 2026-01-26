@@ -1,0 +1,33 @@
+.header {
+	text-align: center;
+}
+
+.icon {
+	height: var(--icon-size);
+	width: var(--icon-size);
+	font-size: var(--icon-size);
+	
+	vertical-align: middle;
+}
+
+.name {
+	height: var(--icon-size);
+	width: 90px;
+	display: block;
+}
+
+.name-inner {
+	display: block;
+	text-align: left;
+	line-height: normal;
+}
+
+.earnings {
+	width: 50px;
+	text-align: right;
+}
+
+.chips {
+	width: 40px;
+	text-align: right;
+}
