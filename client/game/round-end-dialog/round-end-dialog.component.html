@@ -6,10 +6,10 @@
 		<p>No one had any guesses? This round was skipped!</p>
 	} @else {
 		<p [innerHtml]="formatWinners(intermission.outcome.players.winners)"></p>
-		<div class="result-tables">
+		<div class="results-tables">
 			<results-table [type]="'players'" [players]="sortedResults(intermission.outcome.players)"></results-table>
 			@if (spectators.length > 0) {
-				<hr class="divider" />
+				<div class="divider"></div>
 				<results-table [type]="'spectators'" [players]="sortedResults(intermission.outcome.spectators)"></results-table>
 			}
 		</div>

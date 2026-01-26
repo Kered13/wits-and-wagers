@@ -13,16 +13,22 @@
 	text-align: center;
 }
 
-.result-tables {
+.results-tables {
 	justify-self: center;
 	
 	width: 100%;
 	
 	display: flex;
-	flex-direction: row;
+	flex-flow: row wrap;
 	justify-content: space-evenly;
+	row-gap: 15px;
 }
 
 .divider {
-	margin: 0;
+	border: 1px inset;
+	
+	/* This trick borrowed from:
+	 * https://stackoverflow.com/questions/72161749/how-to-handle-separators-with-dynamic-flex-wrapping
+	 */
+	width: clamp(0px, calc(437px - 100%) * 436, 100%);
 }
