@@ -4,12 +4,12 @@
 			{{ player.color ? "person" : "visibility" }}
 		</mat-icon>
 		<div class="name">
-			<span [fittext]="true" [modelToWatch]="player">
+			<span [fittext]="true" [modelToWatch]="player" [maxFontSize]="30">
 				{{ player.name }}
 			</span>
 		</div>
 		<div class="chips">
-			<span [fittext]="true" [modelToWatch]="player">
+			<span [fittext]="true" [modelToWatch]="player" [maxFontSize]="34">
 				${{ player.chips }}
 			</span>
 		</div>

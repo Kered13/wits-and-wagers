@@ -5,13 +5,11 @@
 	align-items: center;
 }
 
-@container style(--mode: desktop) {
-	:host {
-		--name-height: 17px;
-		--chips-height: 19px;
-		--icon-size: 44px;
-		--icon-margin: -5px;
-	}
+:host {
+	--name-height: 17px;
+	--chips-height: 19px;
+	--icon-size: 44px;
+	--icon-margin: -5px;
 }
 
 @container style(--mode: mobile) {
