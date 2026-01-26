@@ -3,6 +3,7 @@ import { MatButtonModule } from "@angular/material/button";
 import { MAT_DIALOG_DATA, MatDialogModule } from "@angular/material/dialog";
 
 import { PlayerResult, ResultsTable } from "./results-table.component";
+import { formatNumber } from "../../utils/format-number";
 import { SPECTATOR } from "../../../shared/color";
 import { GameSpectator, type GamePlayer } from "../../../shared/game/game.js";
 import { type BettingResults, type IntermissionPhaseState } from "../../../shared/game/intermission-phase.js";
@@ -62,6 +63,10 @@ export class RoundEndDialog {
 	
 	getSpectatorById(id: PublicId): GameSpectator | undefined {
 		return this.spectators.find(spec => spec.publicId === id);
+	}
+	
+	formatAnswer(): string {
+		return formatNumber(this.intermission.questionInfo.answer);
 	}
 	
 	formatWinners(winnerIds: PublicId[]): string {

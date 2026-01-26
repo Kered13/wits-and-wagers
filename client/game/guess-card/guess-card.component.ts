@@ -3,6 +3,7 @@ import { MatIcon } from "@angular/material/icon";
 import { Ng2FittextModule } from "ng2-fittext";
 
 import { SPECTATOR } from "../../../shared/color";
+import { formatNumber } from "../../utils/format-number";
 
 
 export type GuessCardData = {
@@ -26,8 +27,6 @@ export class GuessCard {
 	
 	readonly onClick = output<void>();
 	
-	readonly numberFormatter = new Intl.NumberFormat();
-	
 	@HostBinding("style.visibility")
 	private get visible(): string {
 		return this.data().value === false ? "hidden" : "visible";
@@ -48,7 +47,7 @@ export class GuessCard {
 	}
 	
 	formattedValue(value: number): string {
-		return this.numberFormatter.format(value);
+		return formatNumber(value);
 	}
 	
 	@HostListener("click")
