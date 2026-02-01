@@ -1,0 +1,35 @@
+<div class="player-column">
+	<h3 class="header">{{ getHeader() }}</h3>
+	@for (participant of participants(); track participant.publicId) {
+		<div class="player">
+			@if (isThisPlayerHost()) {
+				<button class="host-action-button"
+						#tooltip="matTooltip"
+						matTooltip="Kick from lobby"
+						mat-mini-fab
+						[style.visibility]="isHost(participant.publicId) ? 'hidden' : 'visible'"
+						[disabled]="isHost(participant.publicId)"
+						(click)="kickPlayer(participant.publicId)">
+					<mat-icon>close</mat-icon>
+				</button>
+				<button class="host-action-button"
+						#tooltip="matTooltip"
+						[matTooltip]="moveTooltip()"
+						mat-mini-fab
+						[disabled]="disableMove()"
+						(click)="moveParticipant(participant.publicId)">
+					<mat-icon>{{ type() === "players" ? "visibility" : "person"}}</mat-icon>
+				</button>
+			}
+			@if (isPlayer(participant)) {
+				<color-picker class="host-action-button"
+					[player]="participant"
+					[lobbyService]="lobbyService()"
+					[availableColors]="availableColors()"
+					[disabled]="!isThisPlayerHost() && participant.publicId !== thisParticipant()">
+				</color-picker>
+			}
+			<span>{{ participant.name + (isHost(participant.publicId) ? " (Host)" : "") }}</span>
+		</div>
+	}
+</div>

@@ -1,0 +1,38 @@
+.lobby {
+	width: 400px;
+}
+
+.contents {
+	display: flex;
+	flex-direction: column;
+	
+	align-items: center;
+}
+
+.lobby-ids {
+	display: flex;
+	flex-direction: row;
+	
+	width: 100%;
+}
+
+.lobby-id {
+	width: 50%;
+	text-align: center;
+	
+	font-size: 18px;
+	font-weight: bold;
+}
+
+.participants {
+	display: flex;
+	flex-direction: row;
+	gap: 20px;
+	
+	width: 100%;
+	justify-content: space-evenly;
+}
+
+.lobby-actions {
+	gap: 10px;
+}

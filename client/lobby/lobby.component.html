@@ -13,95 +13,22 @@
 				</div>
 			}
 			<div class="participants">
-				<div class="player-column">
-					<h3>Players</h3>
-					@for (player of lobby.players; track player.publicId) {
-						<div class="player">
-							@if (isThisPlayerHost()) {
-								<button
-										class="host-action-button"
-										#tooltip="matTooltip"
-										matTooltip="Kick from lobby"
-										mat-mini-fab
-										[style.visibility]="isHost(player.publicId) ? 'hidden' : 'visible'"
-										[disabled]="isHost(player.publicId)"
-										(click)="kickPlayer(player.publicId)">
-									<mat-icon>close</mat-icon>
-								</button>
-								<button
-										class="host-action-button"
-										#tooltip="matTooltip"
-										matTooltip="Move to spectators"
-										mat-mini-fab
-										(click)="moveToSpectators(player.publicId)">
-									<mat-icon>visibility</mat-icon>
-								</button>
-							}
-							@if (isThisPlayerHost() || player.publicId === thisParticipant().publicId) {
-								<button
-										class="host-action-button"
-										#tooltip="matTooltip"
-										matTooltip="Change color"
-										(click)="toggleColorPicker(player)"
-										cdkOverlayOrigin
-										#trigger="cdkOverlayOrigin"
-										mat-mini-fab>
-									<div class="color-box" [style.background-color]="player.color"></div>
-								</button>
-								<ng-template
-										cdkConnectedOverlay
-										[cdkConnectedOverlayOrigin]="trigger"
-										[cdkConnectedOverlayOpen]="isColorPickerOpen(player)"
-										(overlayOutsideClick)="closeColorPicker(player)"
-										(detach)="closeColorPicker(player)">
-									<div class="color-picker">
-										@for (color of COLORS; track $index) {
-											<color-button
-												[color]="color"
-												[disabled]="color !== player.color && !isColorAvailable(lobby.players, color)"
-												(click)="setColor(player.publicId, color); closeColorPicker(player)">
-											</color-button>
-										}
-									</div>
-								</ng-template>
-							} @else {
-								<div class="color-box-container">
-									<div class="color-box" [style.background-color]="player.color"></div>
-								</div>
-							}
-							<span>{{ player.name + (player.publicId === lobby.host ? " (Host)" : "") }}</span>
-						</div>
-					}
-				</div>
+				<player-list
+					[lobbyService]="lobbyService().get()"
+					[participants]="lobby.players"
+					[thisParticipant]="thisParticipant().publicId"
+					[type]="'players'"
+					[host]="lobby.host">
+				</player-list>
 				@if (lobby.spectators.length > 0) {
-					<div class="player-column">
-						<h3>Spectators</h3>
-						@for (spectator of lobby.spectators; track spectator.publicId) {
-							<div class="player">
-								@if (isThisPlayerHost()) {
-									<button
-											class="host-action-button"
-											#tooltip="matTooltip"
-											matTooltip="Kick from lobby"
-											mat-mini-fab
-											[style.visibility]="isHost(spectator.publicId) ? 'hidden' : 'visible'"
-											[disabled]="isHost(spectator.publicId)"
-											(click)="kickPlayer(spectator.publicId)">
-										<mat-icon>close</mat-icon>
-									</button>
-									<button
-											class="host-action-button"
-											matTooltip="Move to players"
-											mat-mini-fab
-											[disabled]="isLobbyFull()"
-											(click)="moveToPlayers(spectator.publicId)">
-										<mat-icon>person</mat-icon>
-									</button>
-								}
-							<span>{{ spectator.name + (spectator.publicId === lobby.host ? " (Host)" : "") }}</span>
-							</div>
-						}
-					</div>
+					<player-list
+						[lobbyService]="lobbyService().get()"
+						[participants]="lobby.spectators"
+						[thisParticipant]="thisParticipant().publicId"
+						[type]="'spectators'"
+						[host]="lobby.host"
+						[disableMove]="isLobbyFull()">
+					</player-list>
 				}
 			</div>
 		</div>

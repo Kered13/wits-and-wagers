@@ -1,57 +1,51 @@
 import { OverlayModule } from "@angular/cdk/overlay";
-import { ChangeDetectionStrategy, Component, computed, effect, Inject, linkedSignal, OnDestroy, Signal } from "@angular/core";
+import { ChangeDetectionStrategy, Component, effect, Inject, OnDestroy, Signal } from "@angular/core";
 import { ReactiveFormsModule } from "@angular/forms";
-import { MatButton, MatMiniFabButton } from "@angular/material/button";
+import { MatButton } from "@angular/material/button";
 import { MatCardModule } from "@angular/material/card";
 import { MatIconModule } from "@angular/material/icon";
 import { MatInputModule } from "@angular/material/input";
 import { MatMenuModule } from "@angular/material/menu";
-import { MatTooltip } from "@angular/material/tooltip";
 import { Title } from "@angular/platform-browser";
 import { ActivatedRoute } from "@angular/router";
 import { toSignal } from "@angular/core/rxjs-interop";
 import { map, pairwise, Subscription, startWith, switchMap, combineLatest } from "rxjs";
 
 
-import { ColorButton } from "./color-button.component.js";
 import { LobbyInstanceService, LobbyService } from "./lobby.service.js";
+import { PlayerList } from "./player-list/player-list.component.js";
 import { GAME_ID, PRIVATE_ID, PUBLIC_ID } from "../app/localstorage.keys.js";
 import { GlobalErrorHandler } from "../error-dialog/error-handler.js";
 import { RoutingService } from "../routes/routing.service.js";
 import { RefCounted } from "../utils/refcounted.js";
 import { LobbyRoute, TypedRouteFor } from "../routes/routes.js";
-import { Color, COLORS } from "../../shared/color.js";
-import { LobbyPlayer, LobbyState } from "../../shared/lobby/lobby.js";
+import { LobbyState } from "../../shared/lobby/lobby.js";
 import { PrivatePlayer, PublicId } from "../../shared/player.js";
 
 
 @Component({
 	selector: "app-lobby",
 	imports: [
-		ColorButton,
 		ReactiveFormsModule,
 		MatButton,
 		MatCardModule,
 		MatIconModule,
 		MatInputModule,
 		MatMenuModule,
-		MatMiniFabButton,
-		MatTooltip,
-		OverlayModule],
+		OverlayModule,
+		PlayerList,
+	],
 	templateUrl: "./lobby.component.html",
-	styleUrl: "./lobby.component.scss",
+	styleUrl: "./lobby.component.css",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class LobbyComponent implements OnDestroy {
-	private readonly lobbyService: Signal<RefCounted<LobbyInstanceService>>;
+	readonly lobbyService: Signal<RefCounted<LobbyInstanceService>>;
 	private readonly subs: Subscription[] = [];
 	private readonly instanceSub: Subscription;
 	
-	readonly COLORS = COLORS;
-	
 	readonly lobbyState: Signal<LobbyState>;
 	readonly thisParticipant: Signal<PrivatePlayer>;
-	readonly colorPickerState: Signal<Record<PublicId, boolean>>;
 	
 	isOpen: boolean = false;
 	
@@ -73,14 +67,6 @@ export class LobbyComponent implements OnDestroy {
 		this.lobbyState = toSignal(
 			instanceService.pipe(switchMap(service => service.get().onLobbyUpdate())),
 			{ initialValue: { title: "", host: "" as PublicId, maxPlayers: 7, players: [], spectators: [] } });
-		
-		this.colorPickerState = linkedSignal({
-			source: this.lobbyState,
-			computation: (newState, previous) =>
-				Object.fromEntries(
-					newState.players.map(
-						p => [p.publicId, previous?.value[p.publicId] ?? false]))
-		});
 		
 		effect(() => titleService.setTitle(route.routeConfig!.title! + " - " + this.lobbyState().title));
 	}
@@ -138,53 +124,12 @@ export class LobbyComponent implements OnDestroy {
 		return this.isHost(this.thisParticipant().publicId);
 	}
 	
-	moveToPlayers(player: PublicId): void {
-		if (this.isThisPlayerHost()) {
-			this.lobbyService().get().movePlayer(player, "player").subscribe();
-		}
-	}
-	
-	moveToSpectators(player: PublicId): void {
-		if (this.isThisPlayerHost()) {
-			this.lobbyService().get().movePlayer(player, "spectator").subscribe();
-		}
-	}
-	
-	kickPlayer(player: PublicId): void {
-		if (this.isThisPlayerHost()) {
-			this.lobbyService().get().kickPlayer(player).subscribe();
-		}
-	}
-	
-	setColor(player: PublicId, color: Color): void {
-		if (this.isThisPlayerHost() || player === this.thisParticipant().publicId) {
-			this.lobbyService().get().setColor(player, color).subscribe();
-		}
-	}
-	
 	onBeginGame(): void {
 		this.lobbyService().get().beginGame().subscribe();
 	}
 	
 	onCancelLobby(): void {
 		this.lobbyService().get().cancelLobby().subscribe();
-	}
-	
-	isColorAvailable(players: LobbyPlayer[], color: Color): boolean {
-		return !players.some(p => p.color === color);
-	}
-	
-	isColorPickerOpen(player: LobbyPlayer): boolean {
-		return this.colorPickerState()[player.publicId];
-	}
-	
-	toggleColorPicker(player: LobbyPlayer): void {
-		const colorPickers = this.colorPickerState();
-		colorPickers[player.publicId] = !colorPickers[player.publicId];
-	}
-	
-	closeColorPicker(player: LobbyPlayer): void {
-		this.colorPickerState()[player.publicId] = false;
 	}
 	
 	isLobbyFull(): boolean {

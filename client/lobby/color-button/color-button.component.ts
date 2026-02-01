@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from "@angular/core";
+import { ChangeDetectionStrategy, Component, input, output } from "@angular/core";
 
 
 @Component({
@@ -9,11 +9,10 @@ import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from 
 	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ColorButton {
-	@Input() color: string = "#000000";
+	readonly color = input.required<string>();
+	readonly disabled = input<boolean>(false);
 	
-	@Input() disabled: boolean = false;
-	
-	@Output("click") readonly click = new EventEmitter<void>();
+	readonly click = output<void>();
 	
 	showBubble: boolean = false;
 	

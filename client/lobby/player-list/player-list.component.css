@@ -1,0 +1,18 @@
+.header {
+	text-align: center;
+}
+
+.player-column {
+	flex: 1;
+}
+
+.player {
+	display: flex;
+	align-items: center;
+	
+	height: 50px;
+}
+
+.host-action-button {
+	margin: 5px 5px 5px 0;
+}
