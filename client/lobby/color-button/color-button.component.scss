@@ -1,5 +1,8 @@
 @use "../color-box.scss";
 
+:host {
+	position: relative;
+}
 
 .color-button {
 	background: transparent;

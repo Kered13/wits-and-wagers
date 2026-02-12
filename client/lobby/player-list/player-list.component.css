@@ -8,11 +8,24 @@
 
 .player {
 	display: flex;
+	flex-direction: row;
 	align-items: center;
 	
 	height: 50px;
 }
 
-.host-action-button {
+.action-button {
+	width: 40px;
+	height: 40px;
 	margin: 5px 5px 5px 0;
+}
+
+.spec-icon {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.spacer {
+	width: 25px;
 }

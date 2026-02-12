@@ -5,7 +5,7 @@ import { MatTooltip } from "@angular/material/tooltip";
 
 import { ColorPicker } from "../color-picker/color-picker.component.js";
 import { LobbyInstanceService } from "../lobby.service.js";
-import { Color, COLORS } from "../../../shared/color.js";
+import { Color, COLORS, SPECTATOR } from "../../../shared/color.js";
 import { LobbyPlayer, LobbySpectator } from "../../../shared/lobby/lobby.js";
 import { PublicId } from "../../../shared/player.js";
 
@@ -74,5 +74,9 @@ export class PlayerList {
 		if (this.isThisPlayerHost()) {
 			this.lobbyService().kickPlayer(player).subscribe();
 		}
+	}
+	
+	spectatorColor(): string {
+		return SPECTATOR;
 	}
 }

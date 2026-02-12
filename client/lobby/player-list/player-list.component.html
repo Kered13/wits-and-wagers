@@ -3,7 +3,7 @@
 	@for (participant of participants(); track participant.publicId) {
 		<div class="player">
 			@if (isThisPlayerHost()) {
-				<button class="host-action-button"
+				<button class="action-button"
 						#tooltip="matTooltip"
 						matTooltip="Kick from lobby"
 						mat-mini-fab
@@ -12,7 +12,7 @@
 						(click)="kickPlayer(participant.publicId)">
 					<mat-icon>close</mat-icon>
 				</button>
-				<button class="host-action-button"
+				<button class="action-button"
 						#tooltip="matTooltip"
 						[matTooltip]="moveTooltip()"
 						mat-mini-fab
@@ -20,14 +20,18 @@
 						(click)="moveParticipant(participant.publicId)">
 					<mat-icon>{{ type() === "players" ? "visibility" : "person"}}</mat-icon>
 				</button>
+			} @else {
+				<div class="spacer"></div>
 			}
 			@if (isPlayer(participant)) {
-				<color-picker class="host-action-button"
+				<color-picker class="action-button"
 					[player]="participant"
 					[lobbyService]="lobbyService()"
 					[availableColors]="availableColors()"
 					[disabled]="!isThisPlayerHost() && participant.publicId !== thisParticipant()">
 				</color-picker>
+			} @else {
+				<mat-icon class="spec-icon action-button" [style.color]="spectatorColor()">visibility</mat-icon>
 			}
 			<span>{{ participant.name + (isHost(participant.publicId) ? " (Host)" : "") }}</span>
 		</div>

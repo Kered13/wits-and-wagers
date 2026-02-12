@@ -1,18 +1,14 @@
-<div style="position: relative">
-	<button
-		class="color-button"
+<button class="color-button"
 		[disabled]="disabled()"
 		(click)="onClick()">
-		<div
-			class="color-box"
-			[style.background-color]="color()"
-			(mouseenter)="hover(true)"
-			(mouseleave)="hover(false)">
-		</div>
-	</button>
-	<div class="bubble" [hidden]="!showBubble">
+	<div class="color-box"
+		[style.background-color]="color()"
+		(mouseenter)="hover(true)"
+		(mouseleave)="hover(false)">
 	</div>
-	<div class="crossout" [hidden]="!disabled()">
-		<div class="diagonal"></div>
-	</div>
+</button>
+<div class="bubble" [hidden]="!showBubble">
+</div>
+<div class="crossout" [hidden]="!disabled()">
+	<div class="diagonal"></div>
 </div>

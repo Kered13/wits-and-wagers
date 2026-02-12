@@ -1,5 +1,6 @@
 .lobby {
-	width: 400px;
+	width: 100svw;
+	max-width: 600px;
 }
 
 .contents {
@@ -26,11 +27,29 @@
 
 .participants {
 	display: flex;
-	flex-direction: row;
-	gap: 20px;
+	flex-flow: row wrap;
+	row-gap: default;
 	
 	width: 100%;
-	justify-content: space-evenly;
+}
+
+.list-container {
+	width: calc(50% - 1px);
+	min-width: 283px;
+}
+
+player-list {
+	min-width: 263px;
+	margin: 10px;
+}
+
+.divider {
+	border: 1px inset;
+	
+	/* This trick borrowed from:
+	 * https://stackoverflow.com/questions/72161749/how-to-handle-separators-with-dynamic-flex-wrapping
+	 */
+	width: clamp(0px, calc(437px - 100%) * 436, 100%);
 }
 
 .lobby-actions {

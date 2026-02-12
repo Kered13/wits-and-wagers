@@ -21,6 +21,7 @@
 					[host]="lobby.host">
 				</player-list>
 				@if (lobby.spectators.length > 0) {
+					<div class="divider"></div>
 					<player-list
 						[lobbyService]="lobbyService().get()"
 						[participants]="lobby.spectators"
