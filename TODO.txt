@@ -1,7 +1,6 @@
 * Implement game.
   * Generate random lobby/game names.
 * Implement UI
-  * Don't allow round end dialog to be closed.
   * Allow spectators to move back to player if they began as player?
   * Cap number of spectators in round over UI.
   * Art pass (fonts, improved colors, etc.).
