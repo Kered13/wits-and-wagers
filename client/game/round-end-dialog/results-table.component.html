@@ -1,19 +1,32 @@
 <table>
 	<th class="header" colspan="3">{{ getHeader() }}</th>
-	@for (player of players(); track player.id) {
-		<tr>
-			<td><mat-icon class="icon" [style.color]="player.color">{{ getIcon() }}</mat-icon></td>
-			<td class="name">
-				<span class="name-inner"
-						[fittext]="true"
-						[maxFontSize]="16"
-						[minFontSize]="1"
-						[modelToWatch]="players()">
-					{{ player.name }}
-				</span>
-			</td>
-			<td class="earnings">+${{ player.earnings }}</td>
-			<td class="chips">${{ player.chips }} </td>
-		</tr>
+	@for (tuple of getAbridgedPlayers(); track $index) {
+		@if (tuple === undefined) {
+			<tr>
+				<td></td>
+				<td></td>
+				<td class="name">
+					<span class="name-inner">. . .</span>
+				</td>
+			</tr>
+		} @else {
+			@let n = tuple[0];
+			@let player = tuple[1];
+			<tr>
+				<td>{{ n }}.</td>
+				<td><mat-icon class="icon" [style.color]="player.color">{{ getIcon() }}</mat-icon></td>
+				<td class="name">
+					<span class="name-inner"
+							[fittext]="true"
+							[maxFontSize]="16"
+							[minFontSize]="1"
+							[modelToWatch]="players()">
+						{{ player.name }}
+					</span>
+				</td>
+				<td class="earnings">+${{ player.earnings }}</td>
+				<td class="chips">${{ player.chips }} </td>
+			</tr>
+		}
 	}
 </table>

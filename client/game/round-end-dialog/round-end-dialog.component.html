@@ -7,10 +7,18 @@
 	} @else {
 		<p [innerHtml]="formatWinners(intermission.outcome.players.winners)"></p>
 		<div class="results-tables">
-			<results-table [type]="'players'" [players]="sortedResults(intermission.outcome.players)"></results-table>
+			<results-table
+				[type]="'players'"
+				[players]="sortedResults(intermission.outcome.players)"
+				[thisParticipant]="thisParticipant">
+			</results-table>
 			@if (spectators.length > 0) {
 				<div class="divider"></div>
-				<results-table [type]="'spectators'" [players]="sortedResults(intermission.outcome.spectators)"></results-table>
+				<results-table
+					[type]="'spectators'"
+					[players]="sortedResults(intermission.outcome.spectators)"
+					[thisParticipant]="thisParticipant">
+				</results-table>
 			}
 		</div>
 	}

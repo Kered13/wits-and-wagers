@@ -453,6 +453,7 @@ export class GamePresenter {
 					intermission: phase,
 					players: players,
 					spectators: spectators,
+					thisParticipant: this.thisParticipant().publicId,
 				},
 				disableClose: true,
 				scrollStrategy: this.overlay.scrollStrategies.noop(),

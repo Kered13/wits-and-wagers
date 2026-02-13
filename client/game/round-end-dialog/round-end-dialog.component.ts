@@ -14,6 +14,7 @@ export type RoundEndDialogData = {
 	intermission: IntermissionPhaseState,
 	players: GamePlayer[],
 	spectators: GameSpectator[],
+	thisParticipant: PublicId,
 };
 
 
@@ -28,11 +29,13 @@ export class RoundEndDialog {
 	readonly intermission: IntermissionPhaseState;
 	readonly players: GamePlayer[];
 	readonly spectators: GameSpectator[];
+	readonly thisParticipant: PublicId;
 	
 	constructor(@Inject(MAT_DIALOG_DATA) data: RoundEndDialogData) {
 		this.intermission = data.intermission;
 		this.players = data.players;
 		this.spectators = data.spectators;
+		this.thisParticipant = data.thisParticipant;
 	}
 	
 	sortedResults(results: BettingResults): PlayerResult[] {
