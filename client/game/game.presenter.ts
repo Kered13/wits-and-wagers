@@ -234,6 +234,7 @@ export class GamePresenter {
 	readonly thisParticipant: Signal<PrivatePlayer>;
 	public readonly roundTimer: Signal<number | undefined>;
 	public readonly guessCardsList: Signal<RandomizedList<GuessCardData>>;
+	private readonly isPresentMode: Signal<boolean>;
 	
 	guess: string = ""
 	target: string = ""
@@ -308,6 +309,8 @@ export class GamePresenter {
 				return old.update(guesses);
 			},
 		});
+		
+		this.isPresentMode = toSignal(route.queryParams.pipe(map(params => params.presentMode)), { initialValue: false });
 	}
 	
 	public setView(view: GameView): void {
@@ -381,7 +384,7 @@ export class GamePresenter {
 	
 	// Ensure that we do not open multiple guess dialogs.
 	private shouldOpenGuessDialog(game: GameState, publicId: PublicId): boolean {
-		return !this.guessDialog && !playerHasGuess(publicId, game);
+		return !this.guessDialog && !playerHasGuess(publicId, game) && this.isActiveParticipant(publicId, game);
 	}
 	
 	private openGuessDialog(currentGuess?: number): void {
@@ -525,7 +528,11 @@ export class GamePresenter {
 	}
 	
 	public shouldEnableBetTarget(target: BetTarget): boolean {
-		return shouldEnableBetTarget(target, this.game(), this.thisParticipant().publicId);
+		return shouldEnableBetTarget(target, this.game(), this.thisParticipant().publicId) && !this.isPresentMode();
+	}
+	
+	public canDarkenTarget(target: BetTarget): boolean {
+		return this.isBettingPhase() && !this.isPresentMode();
 	}
 	
 	public getBetsOnTarget(target: BetTarget): BetData[] {
@@ -585,5 +592,9 @@ export class GamePresenter {
 		const game = this.game();
 		const spec = game.spectators.filter(s => s.publicId === this.thisParticipant().publicId);
 		return [...game.players, ...spec];
+	}
+	
+	private isActiveParticipant(publicId: PublicId, game: GameState): boolean {
+		return game.players.some(player => player.publicId === publicId) || !this.isPresentMode();
 	}
 }

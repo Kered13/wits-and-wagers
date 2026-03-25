@@ -82,10 +82,6 @@ export class GameComponent implements GameView, OnDestroy {
 		return this.hostElement;
 	}
 	
-	isBettingPhase(): boolean {
-		return this.presenter.isBettingPhase();
-	}
-	
 	isGameOverPhase(): boolean {
 		return this.presenter.isGameOverPhase();
 	}
@@ -120,6 +116,10 @@ export class GameComponent implements GameView, OnDestroy {
 	
 	shouldEnableBetTarget(target: BetTarget): boolean {
 		return this.presenter.shouldEnableBetTarget(target);
+	}
+	
+	canDarkenTarget(target: BetTarget): boolean {
+		return this.presenter.canDarkenTarget(target);
 	}
 	
 	getBetsOnTarget(target: BetTarget): BetData[] {

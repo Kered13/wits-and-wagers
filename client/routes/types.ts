@@ -18,3 +18,7 @@ export type HasLobbyId = {
 export type HasGameId = {
 	gameId: GameId;
 };
+
+export type HasPresentMode = {
+	presentMode: boolean;
+}
