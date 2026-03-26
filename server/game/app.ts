@@ -1,4 +1,5 @@
 import express, { Router, type Request, type Response } from "express";
+import { type Subscription } from "rxjs";
 import { type WebSocket } from "ws";
 
 import { Game } from "./game.js";
@@ -6,15 +7,15 @@ import { HttpError } from "../utils/httperror.js";
 import { Notifier } from "../utils/notifier.js";
 import { verifyRequest } from "../utils/verifyrequest.js";
 import { WebSocketUtil } from "../utils/websocket.js";
-import { SUBSCRIBE_PATH, SubscribeRequestSchema } from "../../shared/game/subscribe.js";
+import { SUBSCRIBE_PATH, SubscribeRequestSchema, type SubscribeRequest } from "../../shared/game/subscribe.js";
 import { END_PHASE_PATH, EndPhaseRequestSchema } from "../../shared/game/end-phase.js";
 import { type GameId } from "../../shared/game/game.js";
+import { PingRequestSchema, type PingRequest } from "../../shared/game/ping.js";
 import { JOIN_SPECTATOR_PATH, JoinGameRequestSchema, type JoinGameResponse } from "../../shared/game/join-game.js";
 import { type GameNotification } from "../../shared/game/notifications.js";
 import { SUBMIT_BET_PATH, SubmitBetRequestSchema } from "../../shared/game/submit-bet.js";
 import { SUBMIT_GUESS_PATH, SubmitGuessRequestSchema } from "../../shared/game/submit-guess.js";
 import { type PrivateId } from "../../shared/player.js";
-import { type Subscription } from "rxjs";
 
 
 const GAME_GARBAGE_COLLECTION_TIMEOUT_MS = 30*60*1000;
@@ -136,37 +137,33 @@ export class GameApp {
 	
 	private subscribe(webSocket: WebSocket, req: Request) {
 		const ws = new WebSocketUtil(webSocket, req.ip ?? "unknown");
-		ws.onMethod("subscribe", (msg: unknown) => {
-			console.log("WS /api/game/subscribe " + JSON.stringify(msg));
+		ws.onMethod("subscribe", SubscribeRequestSchema, (request: SubscribeRequest) => {
+			console.log("WS /api/game/subscribe " + JSON.stringify(request));
 			
-			try {
-				const { privateId, gameId } = verifyRequest(
-					msg, SubscribeRequestSchema, `Invalid SubscribeRequest: ${JSON.stringify(msg)}`);
-				
-				const { game, notifier } = this.getGame(gameId);
-				
-				if (!game.hasParticipant(privateId)) {
-					throw new HttpError(403, `Player ${privateId} is not a participant in game ${gameId}.`);
-				}
-				
-				notifier.addClient(privateId, ws);
-				notifier.notifyClient(ws, game.makeUpdate(privateId));
-				
-				ws.onClose(() => {
-					console.log(`WebSocket closed for game ${gameId}, player ${privateId}`);
-					notifier.removeClient(ws);
-				});
-			} catch (err) {
-				if (err instanceof HttpError) {
-					console.error(err.message);
-					ws.error(err.status, err.message);
-					ws.close();
-				} else if (err instanceof Error) {
-					console.error(`Error: ${err}`);
-				} else {
-					console.error(`Unknown error: ${err} | ${JSON.stringify(err)}`);
-				}
+			const { privateId, gameId } = request;
+			const { game, notifier } = this.getGame(gameId);
+			
+			if (!game.hasParticipant(privateId)) {
+				throw new HttpError(403, `Player ${privateId} is not a participant in game ${gameId}.`);
 			}
+			
+			notifier.addClient(privateId, ws);
+			
+			ws.onClose(() => {
+				console.log(`WebSocket closed for game ${gameId}, player ${privateId}`);
+				notifier.removeClient(ws);
+			});
+			
+			return game.makeUpdate(privateId);
+		});
+		
+		ws.onMethod("ping", PingRequestSchema, (msg: PingRequest) => {
+			console.log("WS /api/game/ping " + JSON.stringify(msg));
+			return {
+				type: "pong",
+				clientTimestamp: msg.clientTimestamp,
+				serverTimestamp: Date.now(),
+			};
 		});
 	}
 	
@@ -177,11 +174,5 @@ export class GameApp {
 			.post(SUBMIT_BET_PATH, (req, res) => this.submitBet(req, res))
 			.post(END_PHASE_PATH, (req, res) => this.endPhase(req, res))
 			.ws(SUBSCRIBE_PATH, (ws, req) => this.subscribe(ws, req));
-	}
-	
-	// TODO: Remove when disconnect testing is no longer needed.
-	public terminateWebsockets(): void {
-		console.log("Terminating all game websockets...");
-		this.games.forEach(({ notifier }) => notifier.terminate());
 	}
 }

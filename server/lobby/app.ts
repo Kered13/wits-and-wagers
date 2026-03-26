@@ -18,7 +18,7 @@ import { KICK_PLAYER_PATH, KickPlayerRequestSchema } from "../../shared/lobby/ki
 import { LobbyIdSchema, type LobbyId } from "../../shared/lobby/lobby.js";
 import { MOVE_PLAYER_PATH, MovePlayerRequestSchema } from "../../shared/lobby/move-player.js";
 import { type LobbyNotification } from "../../shared/lobby/notifications.js";
-import { SUBSCRIBE_PATH, SubscribeRequestSchema } from "../../shared/lobby/subscribe.js";
+import { SUBSCRIBE_PATH, SubscribeRequestSchema, type SubscribeRequest } from "../../shared/lobby/subscribe.js";
 import { SET_COLOR_PATH, SetColorRequestSchema } from "../../shared/lobby/set-color.js";
 import { type PrivateId } from "../../shared/player.js";
 
@@ -281,42 +281,32 @@ export class LobbyApp {
 	
 	private subscribe(webSocket: WebSocket, req: Request): void {
 		const ws = new WebSocketUtil(webSocket, req.ip ?? "unknown");
-		ws.onMethod("subscribe", (msg: unknown) => {
-			console.log("WS /api/lobby/subscribe " + JSON.stringify(msg));
+		ws.onMethod("subscribe", SubscribeRequestSchema, (request: SubscribeRequest) => {
+			console.log("WS /api/lobby/subscribe " + JSON.stringify(request));
 			
-			try {
-				const { privateId, lobbyId } = verifyRequest(
-					msg, SubscribeRequestSchema, `Invalid SubscribeRequest: ${JSON.stringify(msg)}`);
-				
-				const { lobby, notifier } = this.getAnyLobby(lobbyId);
-				
-				if (!lobby.hasParticipant(privateId)) {
-					throw new HttpError(403, `Player ${privateId} is not a participant in lobby ${lobbyId}.`);
-				}
-				
-				notifier.addClient(privateId, ws);
-				notifier.notifyClient(ws, lobby.makeUpdate(privateId));
-				
-				ws.onClose(() => {
-					console.log(`WebSocket closed for lobby ${lobbyId}, player ${privateId}`);
-					notifier.removeClient(ws);
-					if (lobby.hasParticipant(privateId) && !notifier.hasClients(privateId)) {
-						if (lobby.isHost(privateId)) {
-							// TODO: Uncomment when development is done.
-							// notifier.notifyClients(lobby.makeCancel());
-							// lobby.endLobby();
-						} else {
-							lobby.removeParticipant(privateId);
-						}
-					}
-				});
-			} catch (err) {
-				if (err instanceof HttpError) {
-					console.error(err.message);
-					ws.error(err.status, err.message);
-					ws.close();
-				}
+			const { privateId, lobbyId } = request;
+			const { lobby, notifier } = this.getAnyLobby(lobbyId);
+			
+			if (!lobby.hasParticipant(privateId)) {
+				throw new HttpError(403, `Player ${privateId} is not a participant in lobby ${lobbyId}.`);
 			}
+			
+			notifier.addClient(privateId, ws);
+			
+			ws.onClose(() => {
+				console.log(`WebSocket closed for lobby ${lobbyId}, player ${privateId}`);
+				notifier.removeClient(ws);
+				if (lobby.hasParticipant(privateId) && !notifier.hasClients(privateId)) {
+					if (lobby.isHost(privateId)) {
+						notifier.notifyClients(lobby.makeCancel());
+						lobby.endLobby();
+					} else {
+						lobby.removeParticipant(privateId);
+					}
+				}
+			});
+			
+			return lobby.makeUpdate(privateId);
 		});
 	}
 	
@@ -330,12 +320,5 @@ export class LobbyApp {
 			.post(BEGIN_PATH, (req, res) => this.beginGame(req, res))
 			.post(CANCEL_PATH, (req, res) => this.cancel(req, res))
 			.ws(SUBSCRIBE_PATH, (ws, req) => this.subscribe(ws, req));
-	}
-
-	// TODO: Remove when disconnect testing is no longer needed.
-	public terminateWebsockets(): void {
-		console.log("Terminating all game websockets...");
-		this.lobbies.forEach(({ notifier }) => notifier.terminate());
-		this.spectatorLobbies.forEach(({ notifier }) => notifier.terminate());
 	}
 }

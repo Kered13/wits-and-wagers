@@ -1,4 +1,4 @@
-import { nonEmpty, optional, pipe, strictObject, string, union, type InferOutput } from "valibot";
+import { nonEmpty, optional, pipe, strictObject, string, title, union, type InferOutput } from "valibot";
 
 import { LobbyIdSchema } from "./lobby.js";
 import { PrivateIdSchema, PrivatePlayerSchema } from "../player.js";
@@ -9,20 +9,22 @@ export const JOIN_LOBBY_PATH = "/joinlobby";
 
 
 // Adds a new player to the lobby. This should not be called for the host.
-export const JoinLobbyRequestSchema = strictObject({
-	// ID of lobby to add the player to. Either the ID for players or for
-	// spectators. The player will be added (or moved) as a player if this is
-	// the player ID, or added/moved as a spectator if this is the spectator ID.
-	lobbyId: LobbyIdSchema,
-	// Name of the player.
-	name: pipe(string(), nonEmpty()),
-	// Optional PrivateId of the player. This can be used to rejoin a lobby. If
-	// the player is already in the lobby, no new player will be added and the
-	// same Privateid will be returned. If privateId is not provided or the
-	// player is not already in the lobby, then the player will be added and a
-	// new PrivateId will be returned that is valid in this lobby.
-	privateId: optional(PrivateIdSchema)
-});
+export const JoinLobbyRequestSchema = pipe(
+	strictObject({
+		// ID of lobby to add the player to. Either the ID for players or for
+		// spectators. The player will be added (or moved) as a player if this is
+		// the player ID, or added/moved as a spectator if this is the spectator ID.
+		lobbyId: LobbyIdSchema,
+		// Name of the player.
+		name: pipe(string(), nonEmpty()),
+		// Optional PrivateId of the player. This can be used to rejoin a lobby. If
+		// the player is already in the lobby, no new player will be added and the
+		// same Privateid will be returned. If privateId is not provided or the
+		// player is not already in the lobby, then the player will be added and a
+		// new PrivateId will be returned that is valid in this lobby.
+		privateId: optional(PrivateIdSchema)
+	}),
+	title("JoinLobbyRequest"));
 export type JoinLobbyRequest = InferOutput<typeof JoinLobbyRequestSchema>;
 
 

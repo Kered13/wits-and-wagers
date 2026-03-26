@@ -1,6 +1,7 @@
 import { literal, strictObject, variant, type InferOutput } from "valibot";
 
-import { GameIdSchema, GameStateSchema } from "./game.js";
+import { GameStateSchema } from "./game.js";
+import { PingResponseSchema } from "./ping.js";
 import { WsErrorSchema } from "../ws-error.js";
 
 
@@ -16,6 +17,7 @@ export type GameUpdate = InferOutput<typeof GameUpdateSchema>;
 export const GameNotificationSchema =
 	variant("type", [
 		GameUpdateSchema,
-		WsErrorSchema
+		PingResponseSchema,
+		WsErrorSchema,
 	]);
 export type GameNotification = InferOutput<typeof GameNotificationSchema>;

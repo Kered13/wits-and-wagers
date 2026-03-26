@@ -57,12 +57,12 @@ function isGameOverPhase(phase: PhaseState): phase is GameOverPhaseState {
 
 // Returns an observable that emits the remaining time in seconds until the
 // round ends, or undefined if there is no time limit on the round.
-function startRoundTimer(phase: PhaseState): Observable <number | undefined> {
+function startRoundTimer(phase: PhaseState, clockSkew: number): Observable <number | undefined> {
 	if(isIntermissionPhase(phase) || isGameOverPhase(phase) || !phase.roundEnd || !phase.roundDuration) {
 		return of(undefined);
 	}
 	const duration = phase.roundDuration;
-	const end = phase.roundEnd;
+	const end = phase.roundEnd + clockSkew;
 	const now = Date.now();
 	const timers: Observable<number>[] = [];
 	for (let t = 0; t <= duration && end - t > now; t += 1000) {
@@ -296,7 +296,7 @@ export class GamePresenter {
 		this.gameService = toSignal(instanceService, { requireSync: true });
 		
 		this.roundTimer = toSignal(
-			gameObs.pipe(switchMap(game => startRoundTimer(game.phase))),
+			gameObs.pipe(switchMap(game => startRoundTimer(game.phase, this.gameService().get().getClockSkew()))),
 			{ initialValue: undefined });
 		
 		effect(() => titleService.setTitle(route.routeConfig!.title! + " - " + this.game().title));

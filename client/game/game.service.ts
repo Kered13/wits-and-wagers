@@ -1,5 +1,5 @@
 import { Injectable } from "@angular/core";
-import { Observable, map, filter, catchError, of, NEVER, Subject } from "rxjs";
+import { Observable, map, filter, catchError, of, NEVER, Subject, Subscription } from "rxjs";
 import { safeParse } from "valibot";
 
 import { BackendService } from "../utils/backend.service.js";
@@ -14,6 +14,7 @@ import { GameNotificationSchema, type GameNotification } from "../../shared/game
 import { SUBMIT_BET_PATH, SubmitBetRequest } from "../../shared/game/submit-bet.js";
 import { GuessOrWithdraw, SUBMIT_GUESS_PATH, SubmitGuessRequest } from "../../shared/game/submit-guess.js";
 import { SUBSCRIBE_PATH, SubscribeRequest } from "../../shared/game/subscribe.js";
+import { PingRequest, PingResponse } from "../../shared/game/ping.js";
 import { PrivateId } from "../../shared/player.js";
 import { type WebSocketRequest } from "../../shared/websocket.interface.js";
 
@@ -49,8 +50,15 @@ export class GameService {
 
 
 export class GameInstanceService extends WebsocketService {
+	private readonly PING_INTERVAL_MS = 5000;
+	
 	private readonly gameUpdate: Observable<GameState>;
 	private readonly error: Observable<WebsocketError>;
+	private readonly pongSub: Subscription;
+	
+	private pingTimeoutId: number;
+	private pingOffsets: number[] = [];
+	private clockSkew: number = 0;
 	
 	constructor(
 			private readonly gameService: GameService,
@@ -73,6 +81,11 @@ export class GameInstanceService extends WebsocketService {
 			filter(notification => notification.type === "update"),
 			map(update => update.state));
 		
+		this.pongSub = notifications.pipe(
+				catchError(err => NEVER),
+				filter(notification => notification.type === "pong"))
+			.subscribe(notification => this.pong(notification));
+		
 		this.error = notifications.pipe(
 			filter(notification => notification.type === "error"),
 			map(err => new WebsocketError(err.message, err.status)),
@@ -85,6 +98,8 @@ export class GameInstanceService extends WebsocketService {
 					return of(new WebsocketError(`Unknown error occured: ${err} | ${err.toString()} | ${JSON.stringify(err)}`));
 				};
 			}));
+		
+		this.pingTimeoutId = setTimeout(() => this.ping(), 0);
 	}
 	
 	protected override onOpen(event: Event): void {
@@ -98,6 +113,8 @@ export class GameInstanceService extends WebsocketService {
 	}
 	
 	protected override onClose(): void {
+		clearTimeout(this.pingTimeoutId);
+		this.pongSub.unsubscribe();
 		this.gameService.removeGame(this.gameId);
 	}
 	
@@ -134,4 +151,47 @@ export class GameInstanceService extends WebsocketService {
 	public onError(): Observable<WebsocketError> {
 		return this.error;
 	}
+	
+	public getClockSkew(): number {
+		return this.clockSkew;
+	}
+	
+	private ping(): void {
+		this.wsSubject.next({
+			method: "ping",
+			payload: {
+				clientTimestamp: Date.now(),
+			},
+		} satisfies WebSocketRequest<PingRequest>);
+	}
+	
+	private pong(pong: PingResponse): void {
+		const now = Date.now();
+		const offset = (pong.clientTimestamp + now)/2 - pong.serverTimestamp;
+		
+		this.pingOffsets.push(offset);
+		if (this.pingOffsets.length > 5) {
+			this.pingOffsets.shift();
+		}
+		
+		this.clockSkew = calculateSkew(this.pingOffsets);
+		this.pingTimeoutId = setTimeout(() => this.ping(), this.PING_INTERVAL_MS);
+	}
 };
+
+
+function calculateSkew(offsets: number[]): number {
+	// Safe default.
+	if (offsets.length === 0) {
+		return 0;
+	}
+	
+	if (offsets.length < 4) {
+		// Return average of all offsets.
+		return offsets.reduce((sum, offset) => sum + offset, 0) / offsets.length;
+	}
+	
+	// Discard the highest and lowest offset, then return the average of the rest.
+	const sortedOffsets = offsets.slice(1, -1).sort((a, b) => a - b);
+	return sortedOffsets.reduce((sum, offset) => sum + offset, 0) / sortedOffsets.length;
+}

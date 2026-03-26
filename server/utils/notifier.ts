@@ -89,12 +89,4 @@ export class Notifier<N> {
 		}
 		return this;
 	}
-	
-	// TODO: Remove when disconnect testing is no longer needed.
-	public terminate(): this {
-		for (const ws of this.clientToId.keys()) {
-			ws.terminate();
-		}
-		return this;
-	}
 };

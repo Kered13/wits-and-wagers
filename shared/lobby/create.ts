@@ -1,4 +1,4 @@
-import { array, boolean, integer, maxValue, minValue, nonEmpty, number, optional, pipe, strictObject, string, type InferOutput } from "valibot";
+import { array, boolean, integer, maxValue, minValue, nonEmpty, number, optional, pipe, strictObject, string, title, type InferOutput } from "valibot";
 
 import { LobbyIdSchema } from "./lobby.js";
 import { PrivatePlayerSchema } from "../player.js";
@@ -30,10 +30,12 @@ export type LobbyOptions = InferOutput<typeof LobbyOptionsSchema>;
 
 
 // Creates a new lobby and adds the host to it.
-export const CreateLobbyRequestSchema = strictObject({
-	// Options for the lobby.
-	options: LobbyOptionsSchema,
-});
+export const CreateLobbyRequestSchema = pipe(
+	strictObject({
+		// Options for the lobby.
+		options: LobbyOptionsSchema,
+	}),
+	title("CreateLobbyRequest"));
 export type CreateLobbyRequest = InferOutput<typeof CreateLobbyRequestSchema>;
 
 

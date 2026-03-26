@@ -35,7 +35,7 @@ async function main(port: number) {
 	const lobbyApp = new LobbyApp(gameApp, lobbyFactory);
 	const questionsApp = new QuestionApp(questionSetManager);
 	
-	const server = expressWs(express()).app
+	expressWs(express()).app
 		.use(cors())
 		.use(express.json({ strict: false }))
 		.use(logRequest)
@@ -46,24 +46,6 @@ async function main(port: number) {
 		.use(QUESTIONS_API_ROOT, questionsApp.getRouter())
 		.get("*", (req, res) => res.sendFile("dist/client/browser/index.html", { root: process.cwd() }))
 		.listen(port, () => console.log("Server is running on port " + port));
-	
-	// Simple console interface to terminate websockets for testing.
-	// TODO: Remove when disconnect testing is no longer needed.
-	(async () => {
-		const rl = readlinePromises.createInterface({ input: process.stdin, output: process.stdout });
-		
-		let input = "";
-		do {
-			input = await rl.question("? ");
-			if (input === "r") {
-				lobbyApp.terminateWebsockets();
-				gameApp.terminateWebsockets();
-			}
-		} while (input !== "q");
-		
-		console.log("Shutting down server...");
-		server.close(() => process.exit());
-	})();
 }
 
 
