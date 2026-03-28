@@ -9,7 +9,11 @@
 		</mat-form-field>
 		<mat-form-field>
 			<mat-label>Join Code:</mat-label>
-			<input matInput placeholder="Join Code" type="text" [(ngModel)]="joinCode" />
+			<input matInput
+				placeholder="Join Code"
+				type="text"
+				oninput="this.value = this.value.toUpperCase()"
+				[(ngModel)]="joinCode" />
 		</mat-form-field>
 	</mat-card-content>
 	<mat-card-actions>
