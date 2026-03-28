@@ -16,18 +16,18 @@ export class RoutingService {
 		private readonly gameRoute: GameRoute) {}
 	
 	public toHome(): void {
-		this.router.navigate(this.homeRoute.url());
+		this.router.navigate(this.homeRoute.url(), { queryParamsHandling: "preserve" });
 	}
 	
 	public toHost(): void {
-		this.router.navigate(this.hostRoute.url());
+		this.router.navigate(this.hostRoute.url(), { queryParamsHandling: "preserve" });
 	}
 	
 	public toLobby(id: LobbyId): void {
-		this.router.navigate(this.lobbyRoute.url({ lobbyId: id }));
+		this.router.navigate(this.lobbyRoute.url({ lobbyId: id }), { queryParamsHandling: "preserve" });
 	}
 	
 	public toGame(id: GameId): void {
-		this.router.navigate(this.gameRoute.url({ gameId: id }));
+		this.router.navigate(this.gameRoute.url({ gameId: id }), { queryParamsHandling: "preserve" });
 	}
 }

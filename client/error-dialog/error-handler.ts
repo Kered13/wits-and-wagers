@@ -1,14 +1,24 @@
 import { HttpErrorResponse } from "@angular/common/http";
-import { ErrorHandler, Injectable, Provider } from "@angular/core";
+import { ErrorHandler, Injectable, Provider, Signal } from "@angular/core";
 import { MatDialog } from "@angular/material/dialog";
-import { Observable } from "rxjs";
+import { ActivatedRoute } from "@angular/router";
+import { map, Observable, of } from "rxjs";
 
 import { ErrorDialogComponent } from "./error-dialog.component.js";
+import { toSignal } from "@angular/core/rxjs-interop";
 
 
 @Injectable({ providedIn: "root" }) 
 export class GlobalErrorHandler implements ErrorHandler {
-	constructor(private readonly dialog: MatDialog) {}
+	private readonly debugMode: Signal<boolean>;
+	
+	constructor(private readonly dialog: MatDialog, route: ActivatedRoute) {
+		// TODO: For some reason the activated route is always empty, so this
+		// does not work.
+		this.debugMode = toSignal(
+			route.queryParams.pipe(map(params => params["debug"] === "true")),
+			{ initialValue: false });
+	}
 	
 	public static provideErrorHandler(): Provider {
 		return { provide: ErrorHandler, useClass: GlobalErrorHandler };
@@ -30,6 +40,10 @@ export class GlobalErrorHandler implements ErrorHandler {
 	
 	private handle(error: Error): Observable<any> {
 		console.error(error);
-		return this.dialog.open(ErrorDialogComponent, { data: error }).afterClosed();
+		if (this.debugMode()) {
+			return this.dialog.open(ErrorDialogComponent, { data: error }).afterClosed();
+		} else {
+			return of(undefined);
+		}
 	}
 }

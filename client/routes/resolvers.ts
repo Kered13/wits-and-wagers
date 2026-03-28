@@ -8,6 +8,7 @@ import { GameRoute, HomeRoute } from "./routes.js";
 import { HasGameId, HasLobbyId, HasPlayer } from "./types.js";
 import { ResolveFn, StringLiterals } from "./utils.js";
 import { GAME_ID, PRIVATE_ID, PUBLIC_ID, USERNAME } from "../app/localstorage.keys.js";
+import { GlobalErrorHandler } from "../error-dialog/error-handler.js";
 import { GameService } from "../game/game.service.js";
 import { LobbyService } from "../lobby/lobby.service.js";
 import { PrivateIdSchema, PrivatePlayer, PublicIdSchema } from "../../shared/player.js";
@@ -35,6 +36,7 @@ export async function resolveLobby(route: TypedActivatedRouteSnapshot<HasPlayer,
 	const gameService = inject(GameService);
 	const homeRoute = inject(HomeRoute);
 	const gameRoute = inject(GameRoute);
+	const errorHandler = inject(GlobalErrorHandler);
 	
 	const username = localStorage.getItem(USERNAME);
 	if (!username) {
@@ -43,17 +45,22 @@ export async function resolveLobby(route: TypedActivatedRouteSnapshot<HasPlayer,
 	
 	const idStr = localStorage.getItem(PRIVATE_ID);
 	const privateId = idStr !== null ? parse(PrivateIdSchema, idStr) : undefined;
-	const response = await firstValueFrom(lobbyService.joinLobby(lobbyId, username, privateId));
-	if ("player" in response) {
-		localStorage.setItem(PUBLIC_ID, response.player.publicId);
-		localStorage.setItem(PRIVATE_ID, response.player.privateId);
-		return response.player;
-	} else {
-		// Game has already begun, try to join.
-		const gameResponse = await firstValueFrom(gameService.joinGame(response.gameId, username, privateId));
-		localStorage.setItem(PUBLIC_ID, gameResponse.player.publicId);
-		localStorage.setItem(PRIVATE_ID, gameResponse.player.privateId);
-		return new RedirectCommand(router.createUrlTree(gameRoute.url({ gameId: response.gameId })));
+	try {
+		const response = await firstValueFrom(lobbyService.joinLobby(lobbyId, username, privateId));
+		if ("player" in response) {
+			localStorage.setItem(PUBLIC_ID, response.player.publicId);
+			localStorage.setItem(PRIVATE_ID, response.player.privateId);
+			return response.player;
+		} else {
+			// Game has already begun, try to join.
+			const gameResponse = await firstValueFrom(gameService.joinGame(response.gameId, username, privateId));
+			localStorage.setItem(PUBLIC_ID, gameResponse.player.publicId);
+			localStorage.setItem(PRIVATE_ID, gameResponse.player.privateId);
+			return new RedirectCommand(router.createUrlTree(gameRoute.url({ gameId: response.gameId })));
+		}
+	} catch (error) {
+		await firstValueFrom(errorHandler.handleError(error));
+		return new RedirectCommand(router.createUrlTree(homeRoute.url()));
 	}
 }
 
@@ -75,11 +82,16 @@ export async function resolveGame(route: TypedActivatedRouteSnapshot<HasPlayer, 
 	let publicId = localStorage.getItem(PUBLIC_ID);
 	let privateId = localStorage.getItem(PRIVATE_ID);
 	if (!publicId || !privateId) {
-		const gameResponse = await firstValueFrom(gameService.joinGame(route.params.gameId, username));
-		publicId = gameResponse.player.publicId;
-		privateId = gameResponse.player.privateId;
-		localStorage.setItem(PUBLIC_ID, publicId);
-		localStorage.setItem(PRIVATE_ID, privateId);
+		try {
+			const gameResponse = await firstValueFrom(gameService.joinGame(route.params.gameId, username));
+			publicId = gameResponse.player.publicId;
+			privateId = gameResponse.player.privateId;
+			localStorage.setItem(PUBLIC_ID, publicId);
+			localStorage.setItem(PRIVATE_ID, privateId);
+		} catch (error) {
+			await firstValueFrom(inject(GlobalErrorHandler).handleError(error));
+			return new RedirectCommand(router.createUrlTree(homeRoute.url()));
+		}
 	}
 	return {
 		name: username,
