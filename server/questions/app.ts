@@ -19,7 +19,8 @@ export class QuestionApp {
 				id,
 				name: questionSet.fileName,
 				size: questionSet.questions.length
-			}));
+			}))
+			.sort((a, b) => a.name.localeCompare(b.name));
 		assert(GetQuestionSetsResponseSchema, response);
 		res.send(response);
 	}
