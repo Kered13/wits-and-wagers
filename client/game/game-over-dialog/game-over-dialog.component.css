@@ -1,0 +1,38 @@
+:host {
+	--icon-size: 22px;
+}
+
+.title {
+	font-weight: 500;
+	align-self: center;
+}
+
+.round-end {
+	font-size: 16px;
+	
+	text-align: center;
+}
+
+.source {
+	font-size: 13px;
+}
+
+.results-tables {
+	justify-self: center;
+	
+	width: 100%;
+	
+	display: flex;
+	flex-flow: row wrap;
+	justify-content: space-evenly;
+	row-gap: 15px;
+}
+
+.divider {
+	border: 1px inset;
+	
+	/* This trick borrowed from:
+	 * https://stackoverflow.com/questions/72161749/how-to-handle-separators-with-dynamic-flex-wrapping
+	 */
+	width: clamp(0px, calc(437px - 100%) * 436, 100%);
+}

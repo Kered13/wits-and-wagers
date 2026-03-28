@@ -1,0 +1,18 @@
+<h1 mat-dialog-title class="title">Game Over!</h1>
+<div mat-dialog-content class="game-over">
+	<div class="results-tables">
+		<results-table
+			[type]="'players'"
+			[players]="sortedResults(players)"
+			[thisParticipant]="thisParticipant">
+		</results-table>
+		@if (spectators.length > 0) {
+			<div class="divider"></div>
+			<results-table
+				[type]="'spectators'"
+				[players]="sortedResults(spectators)"
+				[thisParticipant]="thisParticipant">
+			</results-table>
+		}
+	</div>
+</div>

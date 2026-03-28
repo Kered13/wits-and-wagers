@@ -7,8 +7,8 @@ import { ActivatedRoute } from "@angular/router";
 import { combineLatest, concat, delay, map, type Observable, of, pairwise, startWith, Subscription, switchMap, take } from "rxjs";
 
 import { BetData } from "./betting-chip/betting-chip.component.js";
-import { GameEndDialog } from "./game-end-dialog/game-end-dialog.component.js";
 import { GameInstanceService, GameService } from "./game.service.js";
+import { GameOverDialog, GameOverDialogData } from "./game-over-dialog/game-over-dialog.component.js";
 import { GuessCardData } from "./guess-card/guess-card.component.js";
 import { GuessDialog, GuessDialogData } from "./guess-dialog/guess-dialog.component.js";
 import { HelpDialog, HelpDialogData } from "./help-dialog/help-dialog.component.js";
@@ -229,6 +229,7 @@ export class GamePresenter {
 	private wagerDialog: MatDialogRef<WagerDialog, number> | undefined = undefined;
 	private helpDialog: MatDialogRef<HelpDialog> | undefined = undefined;
 	private intermissionDialog: MatDialogRef<RoundEndDialog> | undefined = undefined;
+	private gameOverDialog: MatDialogRef<GameOverDialog> | undefined = undefined;
 	
 	readonly game: Signal<GameState>;
 	readonly thisParticipant: Signal<PrivatePlayer>;
@@ -256,19 +257,10 @@ export class GamePresenter {
 			.subscribe(([oldService, newService]) => this.onNewGame(oldService, newService!)));
 		
 		const gameObs = instanceService.pipe(switchMap(service => service.get().onGameUpdate()));
-		this.subs.push(gameObs.pipe(startWith(undefined), pairwise()).subscribe({
-			next: ([oldState, state]) => {
+		this.subs.push(gameObs.pipe(startWith(undefined), pairwise())
+			.subscribe(([oldState, state]) => {
 				this.onGameUpdate(oldState, state!);
-			},
-			complete: () => {
-				// TODO: Would this be simpler if we react to GameOverPhase?
-				this.dialog.afterAllClosed.pipe(take(1)).subscribe(() =>
-					this.dialog.open<GameEndDialog, GameState>(GameEndDialog, {
-						data: this.game(),
-						scrollStrategy: this.overlay.scrollStrategies.noop(),
-					}));
-			}
-		})),
+			})),
 		
 		this.subs.push(instanceService.pipe(switchMap(service => service.get().onError()))
 			.subscribe(err => {
@@ -365,13 +357,16 @@ export class GamePresenter {
 		// check for re-opening the dialog here.
 		if (isIntermissionPhase(state.phase)) {
 			this.openIntermissionDialog(state.phase, state.players, state.spectators);
-		} else if (!isGameOverPhase(state.phase)) {
-			// On Game Over, keep the round end dialog open forever.
+		} else {
 			this.closeIntermissionDialog();
 		}
 		
 		if (!isBettingPhase(state.phase)) {
 			this.closeWagerDialog();
+		}
+		
+		if (isGameOverPhase(state.phase)) {
+			this.openGameOverDialog(state.players, state.spectators);
 		}
 	}
 	
@@ -461,6 +456,7 @@ export class GamePresenter {
 				},
 				disableClose: true,
 				scrollStrategy: this.overlay.scrollStrategies.noop(),
+				width: "600px",
 			});
 	}
 	
@@ -469,6 +465,22 @@ export class GamePresenter {
 			this.intermissionDialog.close();
 			this.intermissionDialog = undefined;
 		}
+	}
+	
+	private openGameOverDialog(players: GamePlayer[], spectators: GameSpectator[]): void {
+		this.gameOverDialog = this.dialog
+			.open<GameOverDialog, GameOverDialogData>(GameOverDialog, {
+				data: {
+					players: players,
+					spectators: spectators,
+					thisParticipant: this.thisParticipant().publicId,
+				},
+				scrollStrategy: this.overlay.scrollStrategies.noop(),
+				width: "600px",
+			});
+		this.gameOverDialog.afterClosed().subscribe(() => {
+			this.gameService().get().close();
+		});
 	}
 	
 	private openHelpDialog(): void {
