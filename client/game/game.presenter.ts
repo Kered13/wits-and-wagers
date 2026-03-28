@@ -365,7 +365,8 @@ export class GamePresenter {
 		// check for re-opening the dialog here.
 		if (isIntermissionPhase(state.phase)) {
 			this.openIntermissionDialog(state.phase, state.players, state.spectators);
-		} else {
+		} else if (!isGameOverPhase(state.phase)) {
+			// On Game Over, keep the round end dialog open forever.
 			this.closeIntermissionDialog();
 		}
 		

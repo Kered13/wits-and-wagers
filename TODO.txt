@@ -1,9 +1,9 @@
 * Implement game.
   * Generate random lobby/game names.
 * Implement UI
+  * Implement Game Over dialog.
   * Allow spectators to move back to player if they began as player?
   * Art pass (fonts, improved colors, etc.).
-* Some errors should not be elevated to UI.
 * Implement questions upload.
 * Upgrade to Typescript 6.
 * Upgrade to Express 5.
