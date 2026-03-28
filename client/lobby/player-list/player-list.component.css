@@ -29,3 +29,10 @@
 .spacer {
 	width: 25px;
 }
+
+.name {
+	max-width: 190px;
+	text-wrap-mode: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}

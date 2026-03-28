@@ -1,6 +1,6 @@
 .lobby {
 	width: 100svw;
-	max-width: 600px;
+	max-width: 800px;
 }
 
 .contents {
@@ -29,8 +29,6 @@
 	display: flex;
 	flex-flow: row wrap;
 	row-gap: default;
-	
-	width: 100%;
 }
 
 .list-container {
@@ -39,7 +37,7 @@
 }
 
 player-list {
-	min-width: 263px;
+	width: 363px;
 	margin: 10px;
 }
 

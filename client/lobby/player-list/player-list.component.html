@@ -33,7 +33,7 @@
 			} @else {
 				<mat-icon class="spec-icon action-button" [style.color]="spectatorColor()">visibility</mat-icon>
 			}
-			<span>{{ participant.name + (isHost(participant.publicId) ? " (Host)" : "") }}</span>
+			<span class="name">{{ (isHost(participant.publicId) ? "(Host) " : "") + participant.name }}</span>
 		</div>
 	}
 </div>
