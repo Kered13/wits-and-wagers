@@ -585,7 +585,16 @@ export class GamePresenter {
 		if (!source) {
 			return "";
 		}
-		return "Source: " + source + (date ? ` (${date})` : "");
+		return "Source: " + source + " " + this.getDate();
+	}
+	
+	public getDate(): string {
+		const phase = this.game().phase;
+		if (isGameOverPhase(phase)) {
+			return "";
+		}
+		const { date } = phase.questionInfo;
+		return date ? `(${date})` : "";
 	}
 	
 	public getPlayersForScore(): PlayerScoreData[] {

@@ -1,7 +1,11 @@
 <h1 mat-dialog-title class="title">Round Over!</h1>
 <div mat-dialog-content class="round-end">
 	<p>{{ intermission.questionInfo.question }}</p>
-	<p><b>Answer:</b> {{ formatAnswer() }}</p>
+	<p>
+		<b>Answer:</b> {{ formatAnswer() }}<br/>
+		<span class="source">{{ formatSource() }}</span>
+	</p>
+	<hr/>
 	@if (intermission.outcome.type === "skipped") {
 		<p>No one had any guesses? This round was skipped!</p>
 	} @else {

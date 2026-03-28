@@ -13,6 +13,10 @@
 	text-align: center;
 }
 
+.source {
+	font-size: 13px;
+}
+
 .results-tables {
 	justify-self: center;
 	

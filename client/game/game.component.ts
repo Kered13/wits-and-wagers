@@ -150,6 +150,10 @@ export class GameComponent implements GameView, OnDestroy {
 		return this.presenter.getSource();
 	}
 	
+	getDate(): string {
+		return this.presenter.getDate();
+	}
+	
 	getPlayersForScore(): PlayerScoreData[] {
 		return this.presenter.getPlayersForScore();
 	}

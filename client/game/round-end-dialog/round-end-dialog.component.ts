@@ -72,6 +72,14 @@ export class RoundEndDialog {
 		return formatNumber(this.intermission.questionInfo.answer);
 	}
 	
+	formatSource(): string {
+		const { source, date } = this.intermission.questionInfo;
+		if (!source) {
+			return "";
+		}
+		return "Source:\u00A0" + source + " " + (date ? `(${date})` : "");
+	}
+	
 	formatWinners(winnerIds: PublicId[]): string {
 		if (winnerIds.length === 0) {
 			return "All guesses were too high!";
