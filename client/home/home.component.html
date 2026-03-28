@@ -5,13 +5,18 @@
 	<mat-card-content>
 		<mat-form-field>
 			<mat-label>Username:</mat-label>
-			<input matInput placeholder="Username" type="text" [(ngModel)]="username" />
+			<input matInput
+				placeholder="Username"
+				type="text"
+				maxlength="30"
+				[(ngModel)]="username" />
 		</mat-form-field>
 		<mat-form-field>
 			<mat-label>Join Code:</mat-label>
 			<input matInput
 				placeholder="Join Code"
 				type="text"
+				maxlength="6"
 				oninput="this.value = this.value.toUpperCase()"
 				[(ngModel)]="joinCode" />
 		</mat-form-field>
