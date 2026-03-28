@@ -38,7 +38,6 @@ type LobbyData = {
 export class LobbyApp {
 	private readonly lobbies: Map<LobbyId, LobbyData> = new Map();
 	private readonly spectatorLobbies: Map<LobbyId, LobbyData> = new Map();
-	private lobbyCounter: number = 0;
 	
 	constructor(
 		private readonly gameApp: GameApp,
@@ -98,24 +97,11 @@ export class LobbyApp {
 		this.spectatorLobbies.delete(lobby.getSpectatorId());
 	}
 	
-	// TODO
-	private createLobbyId(): LobbyId {
-		return parse(LobbyIdSchema, "game" + this.lobbyCounter++);
-	}
-	
-	// TODO
-	private createLobbySpectatorId(): LobbyId {
-		return parse(LobbyIdSchema, "game-spec" + (this.lobbyCounter - 1));
-	}
-	
 	private create(req: Request, res: Response): void {
 		const request = verifyRequest(
 			req.body, CreateLobbyRequestSchema, `Invalid CreateLobbyRequest: ${JSON.stringify(req.body)}`);
 		
-		const lobby = this.lobbyFactory.newLobby(
-			this.createLobbyId(),
-			this.createLobbySpectatorId(),
-			request.options);
+		const lobby = this.lobbyFactory.newLobby(request.options);
 		this.addLobby(lobby);
 		
 		const response: CreateLobbyResponse = {
